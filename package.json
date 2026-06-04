@@ -16,7 +16,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
     "@prisma/client": "^6.1.0",
-    "next": "15.1.0",
+    "next": "15.1.11",
     "next-auth": "^4.24.5",
     "pdf-lib": "^1.17.1",
     "resend": "^3.5.0",
