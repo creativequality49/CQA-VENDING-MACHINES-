@@ -1,0 +1,8 @@
+allowBuilds:
+  '@prisma/client': false
+  '@prisma/engines': false
+  aws-sdk: false
+  esbuild: false
+  prisma: false
+  sharp: false
+  unrs-resolver: false
