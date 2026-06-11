@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
+import { requireUserSession } from "@/lib/auth";
 import { getPriceIdForTier, getStripeClient } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   try {
-    const { productId, tier, machineSlug, userId } = (await req.json()) as {
+    const session = await requireUserSession();
+    const { productId, tier, machineSlug } = (await req.json()) as {
       productId?: string;
       tier?: string;
       machineSlug?: string;
-      userId?: string;
     };
 
     if (!productId || !tier || !machineSlug) {
@@ -23,22 +24,25 @@ export async function POST(req: Request) {
     const mode = tier === "subscription" ? "subscription" : "payment";
 
     const stripe = getStripeClient();
-    const session = await stripe.checkout.sessions.create({
+    const checkoutSession = await stripe.checkout.sessions.create({
       mode,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${siteUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/checkout/cancel`,
+      client_reference_id: session.user.id,
+      customer_email: session.user.email ?? undefined,
       metadata: {
-        userId: userId ?? "anonymous",
+        userId: session.user.id,
         productId,
         tier,
         machineSlug,
       },
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Checkout error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const status = message === "Authentication required" ? 401 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

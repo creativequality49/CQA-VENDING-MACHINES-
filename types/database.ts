@@ -410,6 +410,63 @@ export type Database = {
           },
         ];
       };
+      customer_entitlements: {
+        Row: {
+          id: string;
+          user_id: string;
+          product_id: string;
+          tier_key: string | null;
+          machine_slug: string | null;
+          source: "checkout" | "subscription" | "manual";
+          status: "active" | "inactive" | "expired" | "cancelled";
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          stripe_checkout_session_id: string | null;
+          expires_at: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          product_id: string;
+          tier_key?: string | null;
+          machine_slug?: string | null;
+          source: "checkout" | "subscription" | "manual";
+          status?: "active" | "inactive" | "expired" | "cancelled";
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          stripe_checkout_session_id?: string | null;
+          expires_at?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["customer_entitlements"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "customer_entitlements_tier_key_fkey";
+            columns: ["tier_key"];
+            referencedRelation: "subscription_tiers";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      stripe_events: {
+        Row: {
+          id: string;
+          event_type: string;
+          processed_at: string;
+        };
+        Insert: {
+          id: string;
+          event_type: string;
+          processed_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["stripe_events"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

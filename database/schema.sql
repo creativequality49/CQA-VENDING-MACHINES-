@@ -143,6 +143,30 @@ create table if not exists public.content_analytics (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.customer_entitlements (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  product_id text not null,
+  tier_key text references public.subscription_tiers(id) on update cascade on delete set null,
+  machine_slug text,
+  source text not null check (source in ('checkout', 'subscription', 'manual')),
+  status text not null default 'active' check (status in ('active', 'inactive', 'expired', 'cancelled')),
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  stripe_checkout_session_id text,
+  expires_at timestamptz,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id, product_id, source)
+);
+
+create table if not exists public.stripe_events (
+  id text primary key,
+  event_type text not null,
+  processed_at timestamptz not null default now()
+);
+
 create index if not exists subscription_tiers_active_sort_idx on public.subscription_tiers(active, sort_order);
 create index if not exists content_items_status_published_idx on public.content_items(status, published_at desc);
 create index if not exists content_items_machine_slug_idx on public.content_items(machine_slug);
@@ -164,3 +188,6 @@ create index if not exists email_logs_recipient_created_idx on public.email_logs
 create index if not exists email_logs_status_idx on public.email_logs(status);
 create index if not exists content_analytics_item_event_idx on public.content_analytics(content_item_id, event_type, created_at desc);
 create index if not exists content_analytics_user_event_idx on public.content_analytics(user_id, event_type, created_at desc);
+create index if not exists customer_entitlements_user_product_idx on public.customer_entitlements(user_id, product_id, status);
+create index if not exists customer_entitlements_subscription_idx on public.customer_entitlements(stripe_subscription_id);
+create index if not exists stripe_events_type_idx on public.stripe_events(event_type, processed_at desc);

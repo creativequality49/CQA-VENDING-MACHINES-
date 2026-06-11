@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { markEventProcessed, hasProcessedEvent, setSubscription, upsertEntitlement, upsertOrder } from "@/lib/mock-store";
+import {
+  hasProcessedStripeEvent,
+  markStripeEventProcessed,
+  updateSubscriptionEntitlement,
+  upsertCheckoutEntitlement
+} from "@/lib/entitlements";
+import { getStripeClient } from "@/lib/stripe";
 
 export const runtime = "nodejs";
+
+function getStringId(value: string | { id: string } | null) {
+  if (!value) return null;
+  return typeof value === "string" ? value : value.id;
+}
 
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
@@ -15,62 +26,55 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", { apiVersion: "2024-06-20" });
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripeClient().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid webhook signature";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  if (hasProcessedEvent(event.id)) {
+  if (await hasProcessedStripeEvent(event.id)) {
     return NextResponse.json({ ok: true, duplicate: true });
   }
 
   switch (event.type) {
     case "checkout.session.completed": {
       const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId ?? "anonymous";
-      const productId = session.metadata?.productId ?? "unknown";
-      const tier = session.metadata?.tier ?? "unknown";
-      const machineSlug = session.metadata?.machineSlug ?? "unknown";
+      const userId = session.metadata?.userId ?? session.client_reference_id;
+      const productId = session.metadata?.productId;
+      const tier = session.metadata?.tier;
+      const machineSlug = session.metadata?.machineSlug;
 
-      upsertOrder({
-        id: session.id,
-        userId,
-        productId,
-        tier,
-        machineSlug,
-        status: "paid",
-        stripeSessionId: session.id,
-        createdAt: new Date().toISOString(),
-      });
-
-      upsertEntitlement({ userId, productId, active: true, source: tier === "subscription" ? "subscription" : "one_time" });
-      if (tier === "subscription") setSubscription(userId, tier, true);
+      if (userId && productId && tier && machineSlug) {
+        await upsertCheckoutEntitlement({
+          userId,
+          productId,
+          tier,
+          machineSlug,
+          stripeCustomerId: getStringId(session.customer),
+          stripeSubscriptionId: getStringId(session.subscription),
+          stripeSessionId: session.id,
+          source: tier === "subscription" ? "subscription" : "checkout"
+        });
+      }
       break;
     }
-    case "invoice.paid": {
-      const invoice = event.data.object as Stripe.Invoice;
-      const userId = (invoice as unknown as { metadata?: Record<string, string> }).metadata?.userId ?? "anonymous";
-      setSubscription(userId, "subscription", true);
-      break;
-    }
-    case "customer.subscription.updated": {
-      const sub = event.data.object as Stripe.Subscription;
-      const userId = sub.metadata?.userId ?? "anonymous";
-      setSubscription(userId, "subscription", sub.status === "active" || sub.status === "trialing");
-      break;
-    }
+    case "customer.subscription.updated":
     case "customer.subscription.deleted": {
-      const sub = event.data.object as Stripe.Subscription;
-      const userId = sub.metadata?.userId ?? "anonymous";
-      setSubscription(userId, "subscription", false);
+      const subscription = event.data.object as Stripe.Subscription;
+      const userId = subscription.metadata?.userId;
+      if (userId) {
+        await updateSubscriptionEntitlement({
+          userId,
+          stripeSubscriptionId: subscription.id,
+          status: subscription.status === "active" || subscription.status === "trialing" ? "active" : "cancelled"
+        });
+      }
       break;
     }
     default:
       break;
   }
 
-  markEventProcessed(event.id);
+  await markStripeEventProcessed(event.id, event.type);
   return NextResponse.json({ ok: true });
 }

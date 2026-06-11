@@ -16,6 +16,7 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
     "@prisma/client": "^6.1.0",
+    "@supabase/supabase-js": "^2.108.1",
     "aws-sdk": "^2.1692.0",
     "next": "15.5.19",
     "next-auth": "^4.24.5",

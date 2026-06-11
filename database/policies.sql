@@ -8,6 +8,8 @@ alter table public.bundle_items enable row level security;
 alter table public.download_logs enable row level security;
 alter table public.email_logs enable row level security;
 alter table public.content_analytics enable row level security;
+alter table public.customer_entitlements enable row level security;
+alter table public.stripe_events enable row level security;
 
 create or replace function public.is_admin()
 returns boolean
@@ -205,5 +207,23 @@ with check (user_id = auth.uid());
 drop policy if exists "Admins manage content analytics" on public.content_analytics;
 create policy "Admins manage content analytics"
 on public.content_analytics for all
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists "Users can read own entitlements" on public.customer_entitlements;
+create policy "Users can read own entitlements"
+on public.customer_entitlements for select
+to authenticated
+using (user_id = auth.uid());
+
+drop policy if exists "Admins manage entitlements" on public.customer_entitlements;
+create policy "Admins manage entitlements"
+on public.customer_entitlements for all
+using (public.is_admin())
+with check (public.is_admin());
+
+drop policy if exists "Admins manage stripe events" on public.stripe_events;
+create policy "Admins manage stripe events"
+on public.stripe_events for all
 using (public.is_admin())
 with check (public.is_admin());

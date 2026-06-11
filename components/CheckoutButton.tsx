@@ -11,7 +11,7 @@ export function CheckoutButton({ productId, tier, machineSlug, label }: { produc
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, tier, machineSlug, userId: "demo-user" }),
+        body: JSON.stringify({ productId, tier, machineSlug }),
       });
       const data = await response.json();
       if (data.url) window.location.href = data.url;
