@@ -1,0 +1,1 @@
+export default function Page(){return <main className='container'><section className='glass-card' style={{padding:'1rem'}}><h1>Dmca</h1><p className='small'>CQA dmca page production route.</p></section></main>}

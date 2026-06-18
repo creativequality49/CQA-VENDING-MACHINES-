@@ -1,76 +1,73 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { markEventProcessed, hasProcessedEvent, setSubscription, upsertEntitlement, upsertOrder } from "@/lib/mock-store";
+import { prisma } from "@/lib/prisma";
+import { isDatabaseConfigured } from "@/lib/env";
+import { createOrderFromCheckoutSession, markOrderRefunded, markPaymentFailed } from "@/services/orders.service";
+import { upsertStripeSubscription } from "@/services/subscriptions.service";
+import { createNotification } from "@/services/notifications.service";
+import { NotificationSeverity, PaymentStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!signature || !webhookSecret) {
-    return NextResponse.json({ error: "Missing webhook signature or secret" }, { status: 400 });
-  }
-
+  if (!signature || !webhookSecret) return NextResponse.json({ error: "Missing webhook signature or secret" }, { status: 400 });
   const body = await req.text();
-
   let event: Stripe.Event;
   try {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", { apiVersion: "2024-06-20" });
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid webhook signature";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid webhook signature" }, { status: 400 });
   }
-
-  if (hasProcessedEvent(event.id)) {
-    return NextResponse.json({ ok: true, duplicate: true });
-  }
+  if (!isDatabaseConfigured()) return NextResponse.json({ error: "Database not configured" }, { status: 503 });
+  const existing = await prisma.stripeEvent.findUnique({ where: { stripeEventId: event.id } });
+  if (existing) return NextResponse.json({ ok: true, duplicate: true });
 
   switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId ?? "anonymous";
-      const productId = session.metadata?.productId ?? "unknown";
-      const tier = session.metadata?.tier ?? "unknown";
-      const machineSlug = session.metadata?.machineSlug ?? "unknown";
-
-      upsertOrder({
-        id: session.id,
-        userId,
-        productId,
-        tier,
-        machineSlug,
-        status: "paid",
-        stripeSessionId: session.id,
-        createdAt: new Date().toISOString(),
-      });
-
-      upsertEntitlement({ userId, productId, active: true, source: tier === "subscription" ? "subscription" : "one_time" });
-      if (tier === "subscription") setSubscription(userId, tier, true);
+    case "checkout.session.completed":
+      await createOrderFromCheckoutSession(event.data.object as Stripe.Checkout.Session);
+      break;
+    case "payment_intent.succeeded": {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      await prisma.order.updateMany({ where: { stripePaymentIntentId: paymentIntent.id }, data: { paymentStatus: PaymentStatus.PAID, status: "paid" } });
       break;
     }
-    case "invoice.paid": {
+    case "payment_intent.payment_failed":
+      await markPaymentFailed((event.data.object as Stripe.PaymentIntent).id);
+      break;
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+      await upsertStripeSubscription(event.data.object as Stripe.Subscription);
+      break;
+    case "customer.subscription.deleted":
+      await upsertStripeSubscription(event.data.object as Stripe.Subscription);
+      break;
+    case "invoice.payment_succeeded": {
       const invoice = event.data.object as Stripe.Invoice;
-      const userId = (invoice as unknown as { metadata?: Record<string, string> }).metadata?.userId ?? "anonymous";
-      setSubscription(userId, "subscription", true);
+      if (typeof invoice.subscription === "string") {
+        await prisma.ecommerceSubscription.updateMany({ where: { stripeSubscriptionId: invoice.subscription }, data: { status: "ACTIVE" } });
+        await prisma.customerEntitlement.updateMany({ where: { stripeSubscriptionId: invoice.subscription }, data: { status: "active", expiresAt: null } });
+      }
       break;
     }
-    case "customer.subscription.updated": {
-      const sub = event.data.object as Stripe.Subscription;
-      const userId = sub.metadata?.userId ?? "anonymous";
-      setSubscription(userId, "subscription", sub.status === "active" || sub.status === "trialing");
+    case "invoice.payment_failed": {
+      const invoice = event.data.object as Stripe.Invoice;
+      if (typeof invoice.subscription === "string") {
+        await prisma.ecommerceSubscription.updateMany({ where: { stripeSubscriptionId: invoice.subscription }, data: { status: "PAST_DUE" } });
+        await createNotification({ type: "FAILED_PAYMENT", title: "Invoice payment failed", message: `Invoice ${invoice.id} failed`, severity: NotificationSeverity.WARNING, relatedEntityType: "StripeInvoice", relatedEntityId: invoice.id });
+      }
       break;
     }
-    case "customer.subscription.deleted": {
-      const sub = event.data.object as Stripe.Subscription;
-      const userId = sub.metadata?.userId ?? "anonymous";
-      setSubscription(userId, "subscription", false);
+    case "charge.refunded": {
+      const charge = event.data.object as Stripe.Charge;
+      if (typeof charge.payment_intent === "string") await markOrderRefunded(charge.payment_intent);
       break;
     }
     default:
       break;
   }
-
-  markEventProcessed(event.id);
+  await prisma.stripeEvent.create({ data: { stripeEventId: event.id, type: event.type } });
   return NextResponse.json({ ok: true });
 }

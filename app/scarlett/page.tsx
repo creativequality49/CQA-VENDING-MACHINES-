@@ -1,31 +1,27 @@
 import Link from "next/link";
+import { getStoreProducts } from "@/lib/content-service";
 
-export default function ScarlettPage() {
+export const dynamic = "force-dynamic";
+
+export default async function ScarlettPage() {
+  const products = await getStoreProducts("scarlett-vault");
   return (
     <main className="container" style={{ paddingBottom: "2rem" }}>
-      <section className="glass-card" style={{ padding: "1rem", marginBottom: "1rem" }}>
+      <section className="glass-card hero">
         <p className="small">scarlettmay.online funnel</p>
-        <h1 className="section-title">Enter the Scarlett May Digital Vault</h1>
-        <p className="small">Luxury AI influencer funnel with premium digital products and recurring access.</p>
+        <h1 className="section-title glow">Enter the Scarlett May Digital Vault</h1>
+        <p className="small">Luxury AI influencer funnel powered by live Supabase product records.</p>
         <Link className="cta" href="/machine/scarlett-vault">Open Scarlett Vault</Link>
       </section>
       <section className="grid grid-3" style={{ marginBottom: "1rem" }}>
-        {[
-          ["Starter Aesthetic Pack", "$97"],
-          ["Pro Monetization Formula", "$297"],
-          ["Elite Private Creator Access", "$997"],
-        ].map(([name, price]) => (
-          <article key={name} className="glass-card" style={{ padding: "1rem" }}>
-            <h3>{name}</h3><p style={{ color: "#ff7bd3", fontWeight: 700 }}>{price}</p>
-            <p className="small">Premium offer optimized for mobile conversion.</p>
+        {products.map((product) => (
+          <article key={product.id} className="glass-card" style={{ padding: "1rem" }}>
+            <h3>{product.title}</h3><p style={{ color: "#ff7bd3", fontWeight: 700 }}>${product.priceAud} AUD</p>
+            <p className="small">{product.description}</p>
           </article>
         ))}
       </section>
-      <section className="glass-card" style={{ padding: "1rem" }}>
-        <h2 style={{ marginTop: 0 }}>Social Proof</h2>
-        <p className="small">“Our Scarlett funnel converted cold traffic into subscribers in 48 hours.”</p>
-        <p className="small">“Daily drop automation turned one-time buyers into recurring MRR.”</p>
-      </section>
+      {products.length === 0 ? <p className="small">Scarlett vault products are being prepared for launch.</p> : null}
     </main>
   );
 }

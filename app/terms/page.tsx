@@ -1,0 +1,1 @@
+export default function Page(){return <main className='container'><section className='glass-card' style={{padding:'1rem'}}><h1>Terms</h1><p className='small'>CQA terms page production route.</p></section></main>}

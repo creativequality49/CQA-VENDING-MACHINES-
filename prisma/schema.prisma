@@ -1,0 +1,653 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ProductType {
+  DIGITAL
+  PHYSICAL
+  SUBSCRIPTION
+  BUNDLE
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum FulfillmentStatus {
+  NOT_STARTED
+  PROCESSING
+  AWAITING_FULFILLMENT
+  PICKING
+  PACKED
+  SHIPPED
+  DELIVERED
+  COMPLETED
+  ISSUE_EXCEPTION
+}
+
+enum OrderType {
+  DIGITAL
+  PHYSICAL
+  SUBSCRIPTION
+  MIXED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  PAST_DUE
+  INCOMPLETE
+}
+
+enum DigitalAccessStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+}
+
+enum FulfillmentTaskStatus {
+  PENDING
+  AWAITING_FULFILLMENT
+  PICKING
+  PACKED
+  READY_TO_SHIP
+  SHIPPED
+  DELIVERED
+  ISSUE_EXCEPTION
+}
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum InventoryMovementType {
+  SALE
+  RESERVE
+  RELEASE
+  RESTOCK
+  ADJUSTMENT
+  REFUND_RETURN
+}
+
+enum StaffRole {
+  ADMIN
+  OPERATIONS
+  FULFILLMENT
+  SUPPORT
+  FINANCE
+}
+
+enum IssueType {
+  REFUND_REQUEST
+  DAMAGED_ITEM
+  MISSING_ITEM
+  DELIVERY_ISSUE
+  DIGITAL_ACCESS_ISSUE
+  OTHER
+}
+
+enum SupportIssueStatus {
+  OPEN
+  IN_REVIEW
+  WAITING_CUSTOMER
+  RESOLVED
+  REJECTED
+}
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+model User {
+  id                     String                  @id @default(cuid())
+  email                  String                  @unique
+  createdAt              DateTime                @default(now()) @map("created_at")
+  profile                Profile?
+  orders                 Order[]
+  subscriptions          Subscription[]
+  ecommerceSubscriptions EcommerceSubscription[]
+  tickets                SupportTicket[]
+  stripeCustomer         StripeCustomer?
+
+  @@map("users")
+}
+
+model Profile {
+  id          String  @id @default(cuid())
+  userId      String  @unique @map("user_id")
+  displayName String? @map("display_name")
+  role        String  @default("customer")
+  user        User    @relation(fields: [userId], references: [id])
+
+  @@map("profiles")
+}
+
+model Machine {
+  id           String                @id @default(cuid())
+  name         String
+  slug         String                @unique
+  description  String?
+  status       String                @default("active")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+  products     Product[]
+  contentItems ContentItem[]
+  contentDrops ContentDrop[]
+  bundles      ContentBundle[]
+  entitlements CustomerEntitlement[]
+  analytics    ContentAnalytics[]
+
+  @@map("machines")
+}
+
+model Product {
+  id                      String                  @id @default(cuid())
+  name                    String?
+  machineId               String?                 @map("machine_id")
+  title                   String
+  slug                    String                  @unique
+  description             String?
+  tier                    String
+  priceAud                Int                     @map("price_aud")
+  stripePriceId           String?                 @map("stripe_price_id")
+  accessType              String                  @map("access_type")
+  productType             ProductType             @default(DIGITAL) @map("product_type")
+  sku                     String?                 @unique
+  category                String?
+  price                   Int?
+  currency                String                  @default("AUD")
+  stripeProductId         String?                 @map("stripe_product_id")
+  isSubscription          Boolean                 @default(false) @map("is_subscription")
+  billingInterval         String?                 @map("billing_interval")
+  stockQuantity           Int                     @default(0) @map("stock_quantity")
+  reservedStockQuantity   Int                     @default(0) @map("reserved_stock_quantity")
+  lowStockThreshold       Int                     @default(0) @map("low_stock_threshold")
+  digitalFileId           String?                 @map("digital_file_id")
+  secureAsset             String?                 @map("secure_asset")
+  fulfillmentInstructions String?                 @map("fulfillment_instructions")
+  status                  String                  @default("active")
+  createdAt               DateTime                @default(now()) @map("created_at")
+  updatedAt               DateTime                @updatedAt @map("updated_at")
+  machine                 Machine?                @relation(fields: [machineId], references: [id])
+  orders                  Order[]
+  orderItems              OrderItem[]
+  contentItems            ContentItem[]
+  contentDrops            ContentDrop[]
+  entitlements            CustomerEntitlement[]
+  downloadLogs            DownloadLog[]
+  analytics               ContentAnalytics[]
+  upsellBundles           ContentBundle[]         @relation("UpsellProduct")
+  orderBumpBundles        ContentBundle[]         @relation("OrderBumpProduct")
+  digitalAccesses         DigitalAccess[]
+  inventoryMovements      InventoryMovement[]
+  bundleComponents        BundleComponent[]       @relation("BundleProduct")
+  includedInBundles       BundleComponent[]       @relation("ComponentProduct")
+  ecommerceSubscriptions  EcommerceSubscription[]
+
+  @@map("products")
+}
+
+model ContentItem {
+  id                       String             @id @default(cuid())
+  title                    String
+  slug                     String             @unique
+  description              String?
+  contentType              String             @map("content_type")
+  accessType               String             @map("access_type")
+  status                   String             @default("draft")
+  filePath                 String?            @map("file_path")
+  previewImagePath         String?            @map("preview_image_path")
+  tags                     String[]           @default([])
+  assignedMachineId        String?            @map("assigned_machine_id")
+  assignedProductId        String?            @map("assigned_product_id")
+  assignedSubscriptionTier String?            @map("assigned_subscription_tier")
+  releaseDate              DateTime?          @map("release_date")
+  expiryDate               DateTime?          @map("expiry_date")
+  createdBy                String?            @map("created_by")
+  approvedBy               String?            @map("approved_by")
+  internalNotes            String?            @map("internal_notes")
+  createdAt                DateTime           @default(now()) @map("created_at")
+  updatedAt                DateTime           @updatedAt @map("updated_at")
+  machine                  Machine?           @relation(fields: [assignedMachineId], references: [id])
+  product                  Product?           @relation(fields: [assignedProductId], references: [id])
+  dropItems                ContentDropItem[]
+  bundleItems              BundleItem[]
+  downloadLogs             DownloadLog[]
+  emailLogs                EmailLog[]
+  analytics                ContentAnalytics[]
+
+  @@map("content_items")
+}
+
+model ContentDrop {
+  id                       String            @id @default(cuid())
+  dropTitle                String            @map("drop_title")
+  dropSlug                 String            @unique @map("drop_slug")
+  dropDescription          String?           @map("drop_description")
+  dropType                 String            @map("drop_type")
+  scheduledDate            DateTime?         @map("scheduled_date")
+  publishedAt              DateTime?         @map("published_at")
+  status                   String            @default("draft")
+  assignedMachineId        String?           @map("assigned_machine_id")
+  assignedProductId        String?           @map("assigned_product_id")
+  eligibleSubscriptionTier String?           @map("eligible_subscription_tier")
+  emailNotificationSent    Boolean           @default(false) @map("email_notification_sent")
+  publishNotes             String?           @map("publish_notes")
+  createdBy                String?           @map("created_by")
+  createdAt                DateTime          @default(now()) @map("created_at")
+  updatedAt                DateTime          @updatedAt @map("updated_at")
+  machine                  Machine?          @relation(fields: [assignedMachineId], references: [id])
+  product                  Product?          @relation(fields: [assignedProductId], references: [id])
+  items                    ContentDropItem[]
+  emailLogs                EmailLog[]
+
+  @@map("content_drops")
+}
+
+model ContentDropItem {
+  id            String      @id @default(cuid())
+  contentDropId String      @map("content_drop_id")
+  contentItemId String      @map("content_item_id")
+  sortOrder     Int         @default(0) @map("sort_order")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  drop          ContentDrop @relation(fields: [contentDropId], references: [id])
+  item          ContentItem @relation(fields: [contentItemId], references: [id])
+
+  @@unique([contentDropId, contentItemId])
+  @@map("content_drop_items")
+}
+
+model CustomerEntitlement {
+  id                   String    @id @default(cuid())
+  userId               String?   @map("user_id")
+  productId            String?   @map("product_id")
+  machineId            String?   @map("machine_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @map("stripe_subscription_id")
+  accessType           String    @map("access_type")
+  status               String    @default("active")
+  startsAt             DateTime  @default(now()) @map("starts_at")
+  expiresAt            DateTime? @map("expires_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  product              Product?  @relation(fields: [productId], references: [id])
+  machine              Machine?  @relation(fields: [machineId], references: [id])
+
+  @@map("customer_entitlements")
+}
+
+model DownloadLog {
+  id             String      @id @default(cuid())
+  userId         String?     @map("user_id")
+  contentItemId  String      @map("content_item_id")
+  productId      String?     @map("product_id")
+  machineId      String?     @map("machine_id")
+  accessType     String      @map("access_type")
+  downloadStatus String      @map("download_status")
+  downloadedAt   DateTime    @default(now()) @map("downloaded_at")
+  contentItem    ContentItem @relation(fields: [contentItemId], references: [id])
+  product        Product?    @relation(fields: [productId], references: [id])
+
+  @@map("download_logs")
+}
+
+model ContentBundle {
+  id                 String       @id @default(cuid())
+  bundleTitle        String       @map("bundle_title")
+  bundleSlug         String       @unique @map("bundle_slug")
+  bundleDescription  String?      @map("bundle_description")
+  coverImagePath     String?      @map("cover_image_path")
+  price              Int
+  stripePriceId      String?      @map("stripe_price_id")
+  assignedMachineId  String?      @map("assigned_machine_id")
+  accessRules        Json?        @map("access_rules")
+  upsellProductId    String?      @map("upsell_product_id")
+  orderBumpProductId String?      @map("order_bump_product_id")
+  status             String       @default("draft")
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  machine            Machine?     @relation(fields: [assignedMachineId], references: [id])
+  upsellProduct      Product?     @relation("UpsellProduct", fields: [upsellProductId], references: [id])
+  orderBumpProduct   Product?     @relation("OrderBumpProduct", fields: [orderBumpProductId], references: [id])
+  items              BundleItem[]
+
+  @@map("content_bundles")
+}
+
+model BundleItem {
+  id            String        @id @default(cuid())
+  bundleId      String        @map("bundle_id")
+  contentItemId String        @map("content_item_id")
+  sortOrder     Int           @default(0) @map("sort_order")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  bundle        ContentBundle @relation(fields: [bundleId], references: [id])
+  item          ContentItem   @relation(fields: [contentItemId], references: [id])
+
+  @@unique([bundleId, contentItemId])
+  @@map("bundle_items")
+}
+
+model EmailLog {
+  id               String       @id @default(cuid())
+  userId           String?      @map("user_id")
+  emailType        String       @map("email_type")
+  relatedContentId String?      @map("related_content_id")
+  relatedDropId    String?      @map("related_drop_id")
+  sentTo           String       @map("sent_to")
+  status           String
+  sentAt           DateTime?    @map("sent_at")
+  errorMessage     String?      @map("error_message")
+  contentItem      ContentItem? @relation(fields: [relatedContentId], references: [id])
+  drop             ContentDrop? @relation(fields: [relatedDropId], references: [id])
+
+  @@map("email_logs")
+}
+
+model ContentAnalytics {
+  id                  String       @id @default(cuid())
+  contentItemId       String?      @map("content_item_id")
+  machineId           String?      @map("machine_id")
+  productId           String?      @map("product_id")
+  views               Int          @default(0)
+  downloads           Int          @default(0)
+  purchasesInfluenced Int          @default(0) @map("purchases_influenced")
+  revenueAttributed   Int          @default(0) @map("revenue_attributed")
+  subscriberUnlocks   Int          @default(0) @map("subscriber_unlocks")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  contentItem         ContentItem? @relation(fields: [contentItemId], references: [id])
+  machine             Machine?     @relation(fields: [machineId], references: [id])
+  product             Product?     @relation(fields: [productId], references: [id])
+
+  @@map("content_analytics")
+}
+
+model Order {
+  id                      String              @id @default(cuid())
+  orderNumber             String              @unique @map("order_number")
+  customerId              String?             @map("customer_id")
+  userId                  String?             @map("user_id")
+  productId               String              @map("product_id")
+  stripeCustomerId        String?             @map("stripe_customer_id")
+  stripeCheckoutSessionId String?             @unique @map("stripe_checkout_session_id")
+  stripePaymentIntentId   String?             @map("stripe_payment_intent_id")
+  stripeSubscriptionId    String?             @map("stripe_subscription_id")
+  totalAmount             Int                 @default(0) @map("total_amount")
+  amountAud               Int                 @map("amount_aud")
+  currency                String              @default("AUD")
+  paymentStatus           PaymentStatus       @default(PENDING) @map("payment_status")
+  fulfillmentStatus       FulfillmentStatus   @default(NOT_STARTED) @map("fulfillment_status")
+  orderType               OrderType           @default(DIGITAL) @map("order_type")
+  customerEmail           String?             @map("customer_email")
+  shippingAddress         Json?               @map("shipping_address")
+  billingAddress          Json?               @map("billing_address")
+  status                  String              @default("pending")
+  stripeSessionId         String?             @map("stripe_session_id")
+  createdAt               DateTime            @default(now()) @map("created_at")
+  updatedAt               DateTime            @updatedAt @map("updated_at")
+  user                    User?               @relation(fields: [userId], references: [id])
+  product                 Product             @relation(fields: [productId], references: [id])
+  items                   OrderItem[]
+  digitalAccesses         DigitalAccess[]
+  fulfillmentTasks        FulfillmentTask[]
+  inventoryMovements      InventoryMovement[]
+  supportIssues           SupportIssue[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id                   String      @id @default(cuid())
+  orderId              String      @map("order_id")
+  productId            String      @map("product_id")
+  productNameSnapshot  String      @map("product_name_snapshot")
+  skuSnapshot          String?     @map("sku_snapshot")
+  quantity             Int         @default(1)
+  unitPrice            Int         @map("unit_price")
+  totalPrice           Int         @map("total_price")
+  productType          ProductType @map("product_type")
+  fulfillmentRequired  Boolean     @default(false) @map("fulfillment_required")
+  digitalAccessGranted Boolean     @default(false) @map("digital_access_granted")
+  createdAt            DateTime    @default(now()) @map("created_at")
+  order                Order       @relation(fields: [orderId], references: [id])
+  product              Product     @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  userId               String?  @map("user_id")
+  stripeSubscriptionId String   @unique @map("stripe_subscription_id")
+  status               String
+  plan                 String
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  user                 User?    @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model VaultAccess {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  grantedAt DateTime @default(now()) @map("granted_at")
+
+  @@map("vault_access")
+}
+
+model StripeCustomer {
+  id               String @id @default(cuid())
+  userId           String @unique @map("user_id")
+  stripeCustomerId String @unique @map("stripe_customer_id")
+  user             User   @relation(fields: [userId], references: [id])
+
+  @@map("stripe_customers")
+}
+
+model StripeEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique @map("stripe_event_id")
+  type          String
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("stripe_events")
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  subject   String
+  message   String
+  status    String   @default("open")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("support_tickets")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  name      String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("analytics_events")
+}
+
+model EcommerceSubscription {
+  id                   String             @id @default(cuid())
+  customerId           String?            @map("customer_id")
+  userId               String?            @map("user_id")
+  stripeSubscriptionId String             @unique @map("stripe_subscription_id")
+  stripeCustomerId     String?            @map("stripe_customer_id")
+  productId            String?            @map("product_id")
+  tier                 String?
+  status               SubscriptionStatus @default(INCOMPLETE)
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  renewalDate          DateTime?          @map("renewal_date")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  cancelledAt          DateTime?          @map("cancelled_at")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  user                 User?              @relation(fields: [userId], references: [id])
+  product              Product?           @relation(fields: [productId], references: [id])
+  digitalAccesses      DigitalAccess[]
+
+  @@map("ecommerce_subscriptions")
+}
+
+model DigitalAccess {
+  id               String                 @id @default(cuid())
+  customerId       String?                @map("customer_id")
+  productId        String                 @map("product_id")
+  orderId          String?                @map("order_id")
+  subscriptionId   String?                @map("subscription_id")
+  accessStatus     DigitalAccessStatus    @default(ACTIVE) @map("access_status")
+  accessStartsAt   DateTime               @default(now()) @map("access_starts_at")
+  accessEndsAt     DateTime?              @map("access_ends_at")
+  downloadCount    Int                    @default(0) @map("download_count")
+  lastDownloadedAt DateTime?              @map("last_downloaded_at")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  product          Product                @relation(fields: [productId], references: [id])
+  order            Order?                 @relation(fields: [orderId], references: [id])
+  subscription     EcommerceSubscription? @relation(fields: [subscriptionId], references: [id])
+
+  @@map("digital_access")
+}
+
+model FulfillmentTask {
+  id                String                @id @default(cuid())
+  orderId           String                @map("order_id")
+  assignedToStaffId String?               @map("assigned_to_staff_id")
+  status            FulfillmentTaskStatus @default(PENDING)
+  priority          Priority              @default(NORMAL)
+  dueDate           DateTime?             @map("due_date")
+  packingNotes      String?               @map("packing_notes")
+  internalNotes     String?               @map("internal_notes")
+  packedAt          DateTime?             @map("packed_at")
+  shippedAt         DateTime?             @map("shipped_at")
+  deliveredAt       DateTime?             @map("delivered_at")
+  trackingNumber    String?               @map("tracking_number")
+  courier           String?
+  shippingLabelUrl  String?               @map("shipping_label_url")
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+  order             Order                 @relation(fields: [orderId], references: [id])
+
+  @@map("fulfillment_tasks")
+}
+
+model InventoryMovement {
+  id             String                @id @default(cuid())
+  productId      String                @map("product_id")
+  movementType   InventoryMovementType @map("movement_type")
+  quantityChange Int                   @map("quantity_change")
+  previousStock  Int                   @map("previous_stock")
+  newStock       Int                   @map("new_stock")
+  reason         String
+  orderId        String?               @map("order_id")
+  staffId        String?               @map("staff_id")
+  createdAt      DateTime              @default(now()) @map("created_at")
+  product        Product               @relation(fields: [productId], references: [id])
+  order          Order?                @relation(fields: [orderId], references: [id])
+
+  @@map("inventory_movements")
+}
+
+model BundleComponent {
+  id                      String      @id @default(cuid())
+  bundleProductId         String      @map("bundle_product_id")
+  componentProductId      String      @map("component_product_id")
+  quantity                Int         @default(1)
+  componentType           ProductType @map("component_type")
+  fulfillmentInstructions String?     @map("fulfillment_instructions")
+  createdAt               DateTime    @default(now()) @map("created_at")
+  bundleProduct           Product     @relation("BundleProduct", fields: [bundleProductId], references: [id])
+  componentProduct        Product     @relation("ComponentProduct", fields: [componentProductId], references: [id])
+
+  @@map("bundle_components")
+}
+
+model StaffMember {
+  id        String    @id @default(cuid())
+  userId    String?   @map("user_id")
+  email     String    @unique
+  name      String?
+  role      StaffRole
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@map("staff_members")
+}
+
+model ActivityLog {
+  id            String   @id @default(cuid())
+  actorId       String?  @map("actor_id")
+  actorRole     String?  @map("actor_role")
+  entityType    String   @map("entity_type")
+  entityId      String   @map("entity_id")
+  action        String
+  previousValue Json?    @map("previous_value")
+  newValue      Json?    @map("new_value")
+  ipAddress     String?  @map("ip_address")
+  userAgent     String?  @map("user_agent")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}
+
+model SupportIssue {
+  id         String             @id @default(cuid())
+  customerId String?            @map("customer_id")
+  orderId    String?            @map("order_id")
+  issueType  IssueType          @map("issue_type")
+  status     SupportIssueStatus @default(OPEN)
+  priority   Priority           @default(NORMAL)
+  notes      String?
+  resolution String?
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+  order      Order?             @relation(fields: [orderId], references: [id])
+
+  @@map("support_issues")
+}
+
+model Notification {
+  id                String               @id @default(cuid())
+  type              String
+  title             String
+  message           String
+  severity          NotificationSeverity @default(INFO)
+  relatedEntityType String?              @map("related_entity_type")
+  relatedEntityId   String?              @map("related_entity_id")
+  readAt            DateTime?            @map("read_at")
+  createdAt         DateTime             @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
