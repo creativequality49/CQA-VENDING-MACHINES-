@@ -1,4 +1,5 @@
-import AWS from "aws-sdk";
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const signedUrlExpiresIn = 60 * 10;
 
@@ -11,11 +12,12 @@ function getR2Client() {
     throw new Error("Missing R2 storage configuration");
   }
 
-  return new AWS.S3({
+  return new S3Client({
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-    accessKeyId,
-    secretAccessKey,
-    signatureVersion: "v4",
+    credentials: {
+      accessKeyId,
+      secretAccessKey
+    },
     region: "auto"
   });
 }
@@ -25,10 +27,12 @@ export async function createSignedDownloadUrl(assetKey: string) {
   if (!bucket) throw new Error("Missing R2_BUCKET");
 
   const storage = getR2Client();
-  const url = await storage.getSignedUrlPromise("getObject", {
+  const command = new GetObjectCommand({
     Bucket: bucket,
-    Key: assetKey,
-    Expires: signedUrlExpiresIn
+    Key: assetKey
+  });
+  const url = await getSignedUrl(storage, command, {
+    expiresIn: signedUrlExpiresIn
   });
 
   return {
