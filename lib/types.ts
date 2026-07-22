@@ -1,4 +1,5 @@
 export type TierKey = "basic" | "pro" | "elite" | "subscription";
+export type ProductStatus = "draft" | "quality_review" | "live";
 
 export type Product = {
   id: string;
@@ -7,6 +8,14 @@ export type Product = {
   tier: TierKey;
   priceLabel: string;
   assetKey: string;
+  stripePriceEnv: string;
+  status: ProductStatus;
+  version: string;
+  deliverables: string[];
+  licence: string;
+  accessPolicy: string;
+  canvaDesignId?: string;
+  disclaimer?: string;
   subscriberOnly?: boolean;
 };
 
