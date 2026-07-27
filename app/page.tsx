@@ -1,16 +1,16 @@
 import Link from "next/link";
 
 const machines = [
-  { name: "Fitness Vault", niche: "Training, plans & memberships", theme: "pink", price: "$19/mo", icon: "FIT" },
-  { name: "Creator Tools", niche: "Prompts, captions & launch kits", theme: "cyan", price: "$17", icon: "AI" },
-  { name: "Beauty Bar", niche: "Guides, bookings & subscriptions", theme: "purple", price: "$29/mo", icon: "BB" },
-  { name: "Business OS", niche: "Automation systems & templates", theme: "gold", price: "$47", icon: "OS" },
+  { name: "Content Machine", niche: "90-day content plan, prompts and campaign assets", theme: "pink", price: "$997", icon: "CM" },
+  { name: "Lead Capture Machine", niche: "Lead forms, CRM flow and instant follow-up", theme: "cyan", price: "$997", icon: "LC" },
+  { name: "Sales Follow-Up Machine", niche: "Email, SMS and pipeline follow-up systems", theme: "purple", price: "$1,497", icon: "SF" },
+  { name: "Business Automation Machine", niche: "Connected multi-function automation blueprint", theme: "gold", price: "$2,989", icon: "BA" },
 ];
 
 const benefits = [
-  ["01", "Brand it", "Add your logo, colours, banner and creator identity."],
-  ["02", "Load products", "Sell downloads, services, memberships and recurring drops."],
-  ["03", "Launch", "Publish a mobile-first storefront built to convert around the clock."],
+  ["01", "Buy your machine", "Choose a fixed-price automation system and pay securely through Stripe."],
+  ["02", "Complete the intake", "Answer machine-specific questions online with no call required."],
+  ["03", "Open delivery", "Access practical plans, workflows, prompts and implementation checklists."],
 ];
 
 export default function HomePage() {
@@ -18,24 +18,24 @@ export default function HomePage() {
     <main>
       <section className="hero container">
         <div className="hero-copy">
-          <span className="eyebrow">CQA Vending OS</span>
-          <h1>Your brand.<br />Your products.<br /><span>Your vending machine.</span></h1>
+          <span className="eyebrow">Creative Quality Australia</span>
+          <h1>Buy the automation.<br />Complete the intake.<br /><span>Receive the system.</span></h1>
           <p>
-            Rent a premium digital vending machine, customise it to your brand and sell products,
-            subscriptions and creator content through one high-converting storefront.
+            Fixed-price AI Business Machines turn guided online intake into practical plans,
+            sequences, workflows, prompts and launch checklists for Australian businesses.
           </p>
           <div className="hero-actions">
-            <Link href="/launch-machine" className="button primary">Launch Your Machine</Link>
-            <Link href="/machines" className="button secondary">Explore Marketplace</Link>
+            <Link href="/quiz" className="button primary">Get Assessed</Link>
+            <Link href="/machines" className="button secondary">Choose a Machine</Link>
           </div>
           <div className="hero-proof">
-            <div><strong>24/7</strong><span>Automated selling</span></div>
-            <div><strong>AUD</strong><span>Creator-first commerce</span></div>
-            <div><strong>60 sec</strong><span>Secure delivery</span></div>
+            <div><strong>No calls</strong><span>Guided online intake</span></div>
+            <div><strong>AUD</strong><span>Fixed transparent pricing</span></div>
+            <div><strong>Secure</strong><span>Workspace delivery</span></div>
           </div>
         </div>
 
-        <div className="hero-machine-wrap" aria-label="CQA digital vending machine preview">
+        <div className="hero-machine-wrap" aria-label="CQA automation vending machine preview">
           <div className="machine-glow" />
           <div className="vending-machine hero-machine">
             <div className="machine-top">
@@ -43,12 +43,12 @@ export default function HomePage() {
               <span className="machine-status"><i /> LIVE</span>
             </div>
             <div className="machine-display">
-              <span className="display-label">FEATURED MACHINE</span>
-              <h2>CREATOR<br />COMMERCE</h2>
-              <p>Digital products · Memberships · Drops</p>
+              <span className="display-label">AI AUTOMATION MACHINE</span>
+              <h2>BUSINESS<br />ONRAMP</h2>
+              <p>Intake · Blueprint · Delivery</p>
             </div>
             <div className="machine-grid">
-              {["PROMPTS", "CONTENT", "TEMPLATES", "MEMBERSHIP", "COURSES", "BUNDLES"].map((item, index) => (
+              {["CONTENT", "LEADS", "SALES", "ONBOARDING", "REVIEWS", "BUSINESS"].map((item, index) => (
                 <div className="machine-slot" key={item}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <b>{item}</b>
@@ -56,8 +56,8 @@ export default function HomePage() {
               ))}
             </div>
             <div className="machine-console">
-              <div><span>SELECT ITEM</span><strong>READY</strong></div>
-              <button aria-label="Open machine">BUY NOW</button>
+              <div><span>SELECT SYSTEM</span><strong>READY</strong></div>
+              <Link href="/quiz">ASSESS</Link>
             </div>
           </div>
         </div>
@@ -66,8 +66,8 @@ export default function HomePage() {
       <section className="market-section container">
         <div className="section-heading">
           <div>
-            <span className="eyebrow">Marketplace</span>
-            <h2>Choose your machine</h2>
+            <span className="eyebrow">Fixed-price systems</span>
+            <h2>Choose your automation machine</h2>
           </div>
           <Link href="/machines" className="text-link">View all machines →</Link>
         </div>
@@ -83,10 +83,10 @@ export default function HomePage() {
                 <div className="mini-console" />
               </div>
               <div className="market-card-copy">
-                <span className="card-kicker">CQA MACHINE</span>
+                <span className="card-kicker">CQA AI MACHINE</span>
                 <h3>{machine.name}</h3>
                 <p>{machine.niche}</p>
-                <div><strong>From {machine.price}</strong><Link href="/launch-machine">View →</Link></div>
+                <div><strong>AUD {machine.price}</strong><Link href="/machines">View →</Link></div>
               </div>
             </article>
           ))}
@@ -97,8 +97,8 @@ export default function HomePage() {
         <div className="container">
           <div className="section-heading centered">
             <div>
-              <span className="eyebrow">Simple setup</span>
-              <h2>From idea to income machine</h2>
+              <span className="eyebrow">How it works</span>
+              <h2>From intake to implementation</h2>
             </div>
           </div>
           <div className="benefit-grid">
@@ -115,11 +115,11 @@ export default function HomePage() {
 
       <section className="final-cta container">
         <div>
-          <span className="eyebrow">Built for creators</span>
-          <h2>Stop selling from scattered links.</h2>
-          <p>Give your brand one destination designed to look premium and convert.</p>
+          <span className="eyebrow">Not sure where to start?</span>
+          <h2>Get your AI Readiness Score in 60 seconds.</h2>
+          <p>See your estimated time and money loss, then match your business to the right CQA machine.</p>
         </div>
-        <Link href="/launch-machine" className="button primary">Build My Machine</Link>
+        <Link href="/quiz" className="button primary">Get Assessed</Link>
       </section>
     </main>
   );
