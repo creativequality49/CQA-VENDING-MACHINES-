@@ -1,45 +1,53 @@
+import { getSupabaseAdminClient } from "@/lib/supabase";
+
 export type ContentDrop = {
   id: string;
   title: string;
   releaseAt: string;
   machineSlug: string;
   subscriberOnly: boolean;
-  assetKey: string;
   released: boolean;
 };
 
-const drops: ContentDrop[] = [
-  {
-    id: "drop-scarlett-1",
-    title: "Scarlett Pose Pack Vol. 1",
-    releaseAt: new Date(Date.now() - 86400000).toISOString(),
-    machineSlug: "scarlett-vault",
-    subscriberOnly: true,
-    assetKey: "drops/scarlett/pose-pack-1.zip",
-    released: false,
-  },
-  {
-    id: "drop-store-1",
-    title: "CQA Vending Ad Script Bundle",
-    releaseAt: new Date(Date.now() + 86400000).toISOString(),
-    machineSlug: "store",
-    subscriberOnly: true,
-    assetKey: "drops/store/ad-scripts-1.zip",
-    released: false,
-  },
-];
+export async function getDrops(): Promise<ContentDrop[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("content_drops")
+    .select("id,title,release_at,machine_slug,subscriber_only,status")
+    .order("release_at", { ascending: false });
 
-export function getDrops() {
-  return drops;
+  if (error) {
+    throw new Error(`Unable to load content drops: ${error.message}`);
+  }
+
+  return (data ?? []).map((drop) => ({
+    id: drop.id,
+    title: drop.title,
+    releaseAt: drop.release_at,
+    machineSlug: drop.machine_slug ?? "store",
+    subscriberOnly: drop.subscriber_only,
+    released: drop.status === "released"
+  }));
 }
 
-export function releaseScheduledDrops(now = new Date()) {
-  let released = 0;
-  drops.forEach((drop) => {
-    if (!drop.released && new Date(drop.releaseAt) <= now) {
-      drop.released = true;
-      released += 1;
-    }
-  });
-  return released;
+export async function releaseScheduledDrops(now = new Date()): Promise<number> {
+  const supabase = getSupabaseAdminClient();
+  const releasedAt = now.toISOString();
+
+  const { data, error } = await supabase
+    .from("content_drops")
+    .update({
+      status: "released",
+      released_at: releasedAt,
+      updated_at: releasedAt
+    })
+    .eq("status", "scheduled")
+    .lte("release_at", releasedAt)
+    .select("id");
+
+  if (error) {
+    throw new Error(`Unable to release scheduled drops: ${error.message}`);
+  }
+
+  return data?.length ?? 0;
 }
