@@ -3,15 +3,17 @@ import { getDrops } from "@/lib/drops";
 import { getUserVaultSnapshot } from "@/lib/mock-store";
 import { machines } from "@/lib/catalog";
 
-export default function VaultPage() {
+export const dynamic = "force-dynamic";
+
+export default async function VaultPage() {
   const userId = "demo-user";
   const snapshot = getUserVaultSnapshot(userId);
-  const drops = getDrops();
+  const drops = await getDrops();
 
   return (
     <main className="container" style={{ paddingBottom: "2rem" }}>
       <h1 className="section-title">Customer Vault</h1>
-      <p className="small">Mock data layer currently active. Replace with Supabase/Postgres repository later.</p>
+      <p className="small">Purchases, subscriptions, secure downloads and scheduled member drops.</p>
 
       <section className="grid grid-2" style={{ marginBottom: "1rem" }}>
         <article className="glass-card" style={{ padding: "1rem" }}>
@@ -36,10 +38,14 @@ export default function VaultPage() {
 
       <section className="grid grid-2">
         <article className="glass-card" style={{ padding: "1rem" }}>
-          <h3 style={{ marginTop: 0 }}>Daily Drops</h3>
-          {drops.map((drop) => (
-            <p className="small" key={drop.id}>{drop.title} — {drop.released ? "Released" : "Scheduled"}</p>
-          ))}
+          <h3 style={{ marginTop: 0 }}>Scheduled Drops</h3>
+          {drops.length === 0 ? (
+            <p className="small">No content drops are scheduled.</p>
+          ) : (
+            drops.map((drop) => (
+              <p className="small" key={drop.id}>{drop.title} — {drop.released ? "Released" : "Scheduled"}</p>
+            ))
+          )}
         </article>
         <article className="glass-card" style={{ padding: "1rem" }}>
           <h3 style={{ marginTop: 0 }}>Elite Upsell</h3>
