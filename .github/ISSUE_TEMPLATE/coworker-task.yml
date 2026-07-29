@@ -1,0 +1,55 @@
+name: CQA Coworker Task
+description: Assign a repeatable operations, content, support or review task
+title: "[TEAM] "
+labels:
+  - coworker-task
+body:
+  - type: dropdown
+    id: team
+    attributes:
+      label: Workstream
+      options:
+        - Operations
+        - Content and Products
+        - Customer Support
+        - Quality and Compliance
+        - Engineering
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Required outcome
+      description: Describe the completed result, not only the activity.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: SOP steps
+      description: Include the exact repeatable process and links to relevant admin screens.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance checks
+      description: State the checks that prove the task is complete.
+    validations:
+      required: true
+  - type: dropdown
+    id: owner_approval
+    attributes:
+      label: Brooke approval required?
+      options:
+        - No — coworker may complete under SOP
+        - Yes — pricing, refund above AUD $150, legal/privacy, major launch or destructive change
+    validations:
+      required: true
+  - type: input
+    id: due
+    attributes:
+      label: Due date or recurrence
+      placeholder: "Example: Every Monday, or 2026-08-15"
+    validations:
+      required: true
