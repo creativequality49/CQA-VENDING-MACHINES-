@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const machines = [
-  { name: "Content Machine", niche: "90-day content plan, prompts and campaign assets", theme: "pink", price: "$997", icon: "CM" },
-  { name: "Lead Capture Machine", niche: "Lead forms, CRM flow and instant follow-up", theme: "cyan", price: "$997", icon: "LC" },
-  { name: "Sales Follow-Up Machine", niche: "Email, SMS and pipeline follow-up systems", theme: "purple", price: "$1,497", icon: "SF" },
-  { name: "Business Automation Machine", niche: "Connected multi-function automation blueprint", theme: "gold", price: "$2,989", icon: "BA" },
+  { name: "Content Machine", niche: "90-day content plan, prompts and campaign assets", theme: "pink", price: "$997", icon: "CM", href: "/machines" },
+  { name: "Lead Capture Machine", niche: "Live local business discovery, lead scoring and CSV export", theme: "cyan", price: "$997", icon: "LC", href: "/lead-machine" },
+  { name: "Sales Follow-Up Machine", niche: "Email, SMS and pipeline follow-up systems", theme: "purple", price: "$1,497", icon: "SF", href: "/machines" },
+  { name: "Business Automation Machine", niche: "Connected multi-function automation blueprint", theme: "gold", price: "$2,989", icon: "BA", href: "/machines" },
 ];
 
 const benefits = [
@@ -26,7 +26,7 @@ export default function HomePage() {
           </p>
           <div className="hero-actions">
             <Link href="/quiz" className="button primary">Get Assessed</Link>
-            <Link href="/machines" className="button secondary">Choose a Machine</Link>
+            <Link href="/lead-machine" className="button secondary">Open Lead Machine</Link>
           </div>
           <div className="hero-proof">
             <div><strong>No calls</strong><span>Guided online intake</span></div>
@@ -69,7 +69,7 @@ export default function HomePage() {
             <span className="eyebrow">Fixed-price systems</span>
             <h2>Choose your automation machine</h2>
           </div>
-          <Link href="/machines" className="text-link">View all machines →</Link>
+          <Link href="/lead-machine" className="text-link">Try Lead Machine →</Link>
         </div>
 
         <div className="machine-card-grid">
@@ -86,7 +86,7 @@ export default function HomePage() {
                 <span className="card-kicker">CQA AI MACHINE</span>
                 <h3>{machine.name}</h3>
                 <p>{machine.niche}</p>
-                <div><strong>AUD {machine.price}</strong><Link href="/machines">View →</Link></div>
+                <div><strong>AUD {machine.price}</strong><Link href={machine.href}>View →</Link></div>
               </div>
             </article>
           ))}
