@@ -26,6 +26,7 @@ export default function HomePage() {
           </p>
           <div className="hero-actions">
             <Link href="/quiz" className="button primary">Get Assessed</Link>
+            <Link href="/login" className="button secondary">Customer Login</Link>
             <Link href="/lead-machine" className="button secondary">Open Lead Machine</Link>
           </div>
           <div className="hero-proof">
@@ -57,7 +58,7 @@ export default function HomePage() {
             </div>
             <div className="machine-console">
               <div><span>SELECT SYSTEM</span><strong>READY</strong></div>
-              <Link href="/quiz">ASSESS</Link>
+              <Link href="/login">LOGIN</Link>
             </div>
           </div>
         </div>
@@ -69,7 +70,7 @@ export default function HomePage() {
             <span className="eyebrow">Fixed-price systems</span>
             <h2>Choose your automation machine</h2>
           </div>
-          <Link href="/lead-machine" className="text-link">Try Lead Machine →</Link>
+          <Link href="/login" className="text-link">Customer Login →</Link>
         </div>
 
         <div className="machine-card-grid">
