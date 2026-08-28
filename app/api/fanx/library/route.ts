@@ -1,0 +1,21 @@
+import { NextResponse } from "next/server";
+import { AGE_COOKIE, verifyAgeToken } from "@/lib/age-assurance";
+import { requireFanXUser, bearerError } from "@/lib/fanx-auth";
+import { getFanXDb } from "@/lib/fanx-db";
+
+export const runtime="nodejs";
+function cookieValue(request:Request,name:string){const raw=request.headers.get("cookie")||"";for(const p of raw.split(";")){const [k,...r]=p.trim().split("=");if(k===name)return decodeURIComponent(r.join("="))}return null}
+
+export async function GET(request:Request){
+ try{
+  if(!verifyAgeToken(cookieValue(request,AGE_COOKIE))) return NextResponse.json({error:"Verified age assurance is required."},{status:403});
+  const user=await requireFanXUser(request);const db=getFanXDb();const now=new Date().toISOString();
+  const {data:ents,error}=await db.from("fanx_entitlements").select("id,content_type,content_id,creator_id,status,expires_at,created_at").eq("fan_user_id",user.id).eq("status","active").order("created_at",{ascending:false});if(error)throw new Error(error.message);
+  const active=(ents||[]).filter(e=>!e.expires_at||e.expires_at>now);
+  const productIds=active.filter(e=>e.content_type==="product").map(e=>e.content_id);const postIds=active.filter(e=>e.content_type==="post").map(e=>e.content_id);const creatorIds=[...new Set(active.map(e=>e.creator_id).filter(Boolean))] as string[];
+  const products=productIds.length?(await db.from("fanx_products").select("id,slug,title,description,cover_url,asset_url,product_type").in("id",productIds)).data||[]:[];
+  const posts=postIds.length?(await db.from("fanx_posts").select("id,title,caption,media_type,media_url,preview_url").in("id",postIds)).data||[]:[];
+  const creators=creatorIds.length?(await db.from("fanx_creators").select("id,slug,display_name,avatar_url").in("id",creatorIds)).data||[]:[];
+  return NextResponse.json({entitlements:active,products,posts,creators});
+ }catch(error){const e=bearerError(error);return NextResponse.json({error:e.message},{status:e.status})}
+}
