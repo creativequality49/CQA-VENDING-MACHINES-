@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { getSupabaseAdminClient } from "@/lib/supabase";
 
 export async function requireFanXUser(request: Request) {
