@@ -13,6 +13,6 @@ export async function POST(request:NextRequest){
   const apiKey=process.env.RESEND_API_KEY;const to=process.env.SAFETY_REPORT_EMAIL;
   if(!apiKey||!to)return NextResponse.json({error:"Safety-report delivery is not configured."},{status:503});
   const resend=new Resend(apiKey);
-  await resend.emails.send({from:"FanXFantasy Safety <onboarding@resend.dev>",to,replyTo:email,subject:`FanXFantasy safety report: ${category}`,text:`Reporter: ${email}\nCategory: ${category}\nContent reference: ${contentUrl||"Not supplied"}\n\nDetails:\n${details}\n\nSafety note: do not request or forward unlawful imagery by email.`});
+  await resend.emails.send({from:"FanXFantasy Safety <onboarding@resend.dev>",to,reply_to:email,subject:`FanXFantasy safety report: ${category}`,text:`Reporter: ${email}\nCategory: ${category}\nContent reference: ${contentUrl||"Not supplied"}\n\nDetails:\n${details}\n\nSafety note: do not request or forward unlawful imagery by email.`});
   return NextResponse.redirect(new URL("/compliance?report=submitted",request.url),303);
 }
