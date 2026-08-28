@@ -6,6 +6,7 @@ import {
   updateSubscriptionEntitlement,
   upsertCheckoutEntitlement
 } from "@/lib/entitlements";
+import { handleFanXStripeEvent } from "@/lib/fanx-commerce";
 import { getStripeClient } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -23,7 +24,6 @@ export async function POST(req: Request) {
   }
 
   const body = await req.text();
-
   let event: Stripe.Event;
   try {
     event = getStripeClient().webhooks.constructEvent(body, signature, webhookSecret);
@@ -36,45 +36,48 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, duplicate: true });
   }
 
-  switch (event.type) {
-    case "checkout.session.completed": {
-      const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId ?? session.client_reference_id;
-      const productId = session.metadata?.productId;
-      const tier = session.metadata?.tier;
-      const machineSlug = session.metadata?.machineSlug;
+  const fanXHandled = await handleFanXStripeEvent(event);
 
-      if (userId && productId && tier && machineSlug) {
-        await upsertCheckoutEntitlement({
-          userId,
-          productId,
-          tier,
-          machineSlug,
-          stripeCustomerId: getStringId(session.customer),
-          stripeSubscriptionId: getStringId(session.subscription),
-          stripeSessionId: session.id,
-          source: tier === "subscription" ? "subscription" : "checkout"
-        });
+  if (!fanXHandled) {
+    switch (event.type) {
+      case "checkout.session.completed": {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const userId = session.metadata?.userId ?? session.client_reference_id;
+        const productId = session.metadata?.productId;
+        const tier = session.metadata?.tier;
+        const machineSlug = session.metadata?.machineSlug;
+        if (userId && productId && tier && machineSlug) {
+          await upsertCheckoutEntitlement({
+            userId,
+            productId,
+            tier,
+            machineSlug,
+            stripeCustomerId: getStringId(session.customer),
+            stripeSubscriptionId: getStringId(session.subscription),
+            stripeSessionId: session.id,
+            source: tier === "subscription" ? "subscription" : "checkout"
+          });
+        }
+        break;
       }
-      break;
-    }
-    case "customer.subscription.updated":
-    case "customer.subscription.deleted": {
-      const subscription = event.data.object as Stripe.Subscription;
-      const userId = subscription.metadata?.userId;
-      if (userId) {
-        await updateSubscriptionEntitlement({
-          userId,
-          stripeSubscriptionId: subscription.id,
-          status: subscription.status === "active" || subscription.status === "trialing" ? "active" : "cancelled"
-        });
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const userId = subscription.metadata?.userId;
+        if (userId) {
+          await updateSubscriptionEntitlement({
+            userId,
+            stripeSubscriptionId: subscription.id,
+            status: subscription.status === "active" || subscription.status === "trialing" ? "active" : "cancelled"
+          });
+        }
+        break;
       }
-      break;
+      default:
+        break;
     }
-    default:
-      break;
   }
 
   await markStripeEventProcessed(event.id, event.type);
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, fanXHandled });
 }
