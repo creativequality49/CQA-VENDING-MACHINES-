@@ -1,5 +1,98 @@
 import Link from "next/link";
 import { getFanXDb } from "@/lib/fanx-db";
-export const dynamic="force-dynamic";
-export default async function Home(){const db=getFanXDb();const {data:creators}=await db.from("fanx_creators").select("id,slug,display_name,handle,bio,avatar_url,cover_url,verified").eq("status","active").limit(8);return <main style={main}><header style={header}><img src="/fanx/logo.png" alt="FanXFantasy" style={{height:58,width:190,objectFit:"contain"}}/><nav><Link href="/fanxfantasy/explore" style={nav}>Explore</Link><Link href="/fanxfantasy/marketplace" style={nav}>Marketplace</Link><Link href="/fanxfantasy/auth" style={join}>Join free</Link></nav></header><section style={hero}><div><span style={kicker}>AI creators · real connections · premium worlds</span><h1 style={h1}>Discover AI Creators.<br/><span style={{color:"#ff2d8d"}}>Follow Free. Unlock More.</span></h1><p style={lead}>Explore creator worlds for free, follow the personalities you like, then choose premium subscriptions, individual drops and private creator experiences.</p><div style={{display:"flex",gap:12,flexWrap:"wrap"}}><Link href="/fanxfantasy/explore" style={primary}>Explore creators</Link><Link href="/fanxfantasy/dashboard" style={secondary}>Become a creator →</Link></div><div style={age}><b>18+</b><span>Public discovery is non-explicit. Mature areas and purchases require verified age assurance.</span></div></div><div style={mascot}/></section><section style={wrap}><div style={{display:"flex",justifyContent:"space-between",alignItems:"end",gap:15}}><div><span style={kicker}>Trending now</span><h2 style={{fontSize:32,margin:"7px 0"}}>Featured creators</h2></div><Link href="/fanxfantasy/explore" style={nav}>View all →</Link></div><div style={grid}>{(creators||[]).map((c,i)=><Link key={c.id} href={c.slug==="scarlett-may"?"/fanxfantasy/profile":"/fanxfantasy/explore"} style={card}><div style={{height:270,borderRadius:16,background:`linear-gradient(to top,rgba(0,0,0,.7),transparent),url(${c.avatar_url||c.cover_url||"/fanx/mascot.png"}) center/cover`}}/><h3 style={{fontSize:21,margin:"12px 0 4px"}}>{c.display_name} {c.verified?"✓":""}</h3><p style={{...muted,margin:"0 0 8px"}}>{c.handle}</p><p style={muted}>{c.bio}</p></Link>)}</div><section style={creatorPitch}><span style={kicker}>For creators</span><h2 style={{fontSize:"clamp(2rem,5vw,3.5rem)",margin:"8px 0"}}>Your storefront and AI creator operating system.</h2><p style={{...lead,maxWidth:800}}>FanXFantasy is not just where fans find you. Build your character, sell subscriptions and products, track real earnings and connect payouts from one creator dashboard.</p><Link href="/fanxfantasy/dashboard" style={primary}>Start as a creator</Link></section></section></main>}
-const main:React.CSSProperties={minHeight:"100vh",background:"#070708",color:"white",fontFamily:"Inter,system-ui,sans-serif"},header:React.CSSProperties={display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px clamp(16px,4vw,54px)",borderBottom:"1px solid #25252b",position:"sticky",top:0,zIndex:10,background:"rgba(7,7,8,.94)",backdropFilter:"blur(14px)"},nav:React.CSSProperties={color:"#ccc",marginLeft:16,textDecoration:"none"},join:React.CSSProperties={display:"inline-block",marginLeft:16,padding:"10px 15px",borderRadius:999,background:"#ff2d8d",color:"white",fontWeight:900,textDecoration:"none"},hero:React.CSSProperties={width:"min(1220px,94vw)",margin:"24px auto 0",minHeight:"min(680px,78vh)",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",gap:24,alignItems:"center",border:"1px solid #2b2b32",borderRadius:28,padding:"clamp(24px,5vw,60px)",background:"radial-gradient(circle at 75% 25%,rgba(0,229,255,.13),transparent 24%),radial-gradient(circle at 20% 70%,rgba(255,45,141,.18),transparent 30%),#0e0e12"},kicker:React.CSSProperties={color:"#ff2d8d",fontWeight:900,textTransform:"uppercase",letterSpacing:".13em",fontSize:12},h1:React.CSSProperties={fontSize:"clamp(3rem,7vw,6.3rem)",lineHeight:.94,letterSpacing:"-.055em",margin:"12px 0 20px"},lead:React.CSSProperties={color:"#b5b5c0",fontSize:"clamp(1rem,2vw,1.18rem)",lineHeight:1.7,maxWidth:680},primary:React.CSSProperties={display:"inline-block",padding:"13px 19px",borderRadius:999,background:"#ff2d8d",color:"white",fontWeight:900,textDecoration:"none"},secondary:React.CSSProperties={...primary,background:"transparent",border:"1px solid #45454e"},age:React.CSSProperties={display:"flex",gap:10,marginTop:22,padding:13,border:"1px solid #3b2931",borderRadius:14,color:"#c8b6bf",maxWidth:620},mascot:React.CSSProperties={minHeight:500,borderRadius:24,background:"url(/fanx/mascot.png) center/cover",boxShadow:"0 0 80px rgba(255,45,141,.1)"},wrap:React.CSSProperties={width:"min(1180px,92vw)",margin:"0 auto",padding:"60px 0 110px"},grid:React.CSSProperties={display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:16,marginTop:20},card:React.CSSProperties={border:"1px solid #292930",background:"#111115",borderRadius:20,padding:14,color:"white",textDecoration:"none"},muted:React.CSSProperties={color:"#aaaab5",lineHeight:1.55},creatorPitch:React.CSSProperties={marginTop:70,border:"1px solid #34242d",borderRadius:26,padding:"clamp(28px,6vw,60px)",background:"radial-gradient(circle at 80% 30%,rgba(255,45,141,.16),transparent 28%),#101014"};
+import styles from "./home.module.css";
+
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const db = getFanXDb();
+  const { data: creators } = await db
+    .from("fanx_creators")
+    .select("id,slug,display_name,handle,bio,avatar_url,cover_url,verified")
+    .eq("status", "active")
+    .limit(8);
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <Link href="/fanxfantasy" aria-label="FanXFantasy home">
+          <img className={styles.logo} src="/fanx/logo.png" alt="FanXFantasy" />
+        </Link>
+        <div className={styles.headerActions}>
+          <Link className={styles.iconBtn} href="/fanxfantasy/explore" aria-label="Search creators">⌕</Link>
+          <Link className={styles.iconBtn} href="/fanxfantasy/auth" aria-label="Account">◎</Link>
+          <Link className={`${styles.secondary} ${styles.desktopText}`} href="/fanxfantasy/explore">Explore</Link>
+          <Link className={`${styles.secondary} ${styles.desktopText}`} href="/fanxfantasy/marketplace">Marketplace</Link>
+          <Link className={styles.join} href="/fanxfantasy/auth">Join free</Link>
+        </div>
+      </header>
+
+      <div className={styles.main}>
+        <section className={styles.hero}>
+          <div className={styles.heroImage} />
+          <div className={styles.heroContent}>
+            <span className={styles.eyebrow}>AI creators · premium worlds</span>
+            <h1>AI creators.<br /><span>Real fantasies.</span></h1>
+            <p>Discover creator worlds, follow for free, then unlock subscriptions, drops and private experiences.</p>
+            <div className={styles.heroButtons}>
+              <Link className={styles.primary} href="/fanxfantasy/explore">Explore creators</Link>
+              <Link className={styles.secondary} href="/fanxfantasy/dashboard">Become a creator</Link>
+            </div>
+          </div>
+        </section>
+
+        <div className={styles.trustRow}>
+          <div className={styles.trust}><b>18+ verified</b><span>Protected mature access</span></div>
+          <div className={styles.trust}><b>Private & secure</b><span>Protected purchases</span></div>
+          <div className={styles.trust}><b>Creator first</b><span>Built to earn & grow</span></div>
+        </div>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <div><span className={styles.eyebrow}>Trending now</span><h2>Featured creators</h2></div>
+            <Link className={styles.viewAll} href="/fanxfantasy/explore">View all →</Link>
+          </div>
+          <div className={styles.creatorRail}>
+            {(creators || []).map((creator) => (
+              <Link className={styles.creatorCard} key={creator.id} href={`/fanxfantasy/creator/${creator.slug}`}>
+                <div
+                  className={styles.creatorImage}
+                  style={{ backgroundImage: `url(${creator.avatar_url || creator.cover_url || "/fanx/mascot.png"})` }}
+                />
+                <div className={styles.creatorInfo}>
+                  <div className={styles.creatorTop}>
+                    <h3>{creator.display_name} {creator.verified ? <span className={styles.verified}>✓</span> : null}</h3>
+                    <span className={styles.badge}>VIEW</span>
+                  </div>
+                  <div className={styles.handle}>{creator.handle}</div>
+                  <p className={styles.bio}>{creator.bio}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <div className={styles.sectionHead}>
+            <div><span className={styles.eyebrow}>FanXFantasy</span><h2>Choose your experience</h2></div>
+          </div>
+          <div className={styles.featureGrid}>
+            <Link className={styles.featureCard} href="/fanxfantasy/feed"><b>Premium feed</b><span>Follow creators and unlock drops</span></Link>
+            <Link className={styles.featureCard} href="/fanxfantasy/messages"><b>Private chat</b><span>Creator messaging and locked content</span></Link>
+            <Link className={styles.featureCard} href="/fanxfantasy/marketplace"><b>Marketplace</b><span>Bundles, images, videos and products</span></Link>
+            <Link className={styles.featureCard} href="/fanxfantasy/dashboard"><b>Creator Studio</b><span>Build, automate and grow your creator business</span></Link>
+          </div>
+          <div className={styles.ageBar}><strong>18+</strong><span>Public previews stay non-explicit. Mature content and purchases require verified age assurance.</span></div>
+        </section>
+      </div>
+
+      <nav className={styles.bottomNav} aria-label="Fan navigation">
+        <Link href="/fanxfantasy"><b>⌂</b><span>Home</span></Link>
+        <Link href="/fanxfantasy/explore"><b>⌕</b><span>Explore</span></Link>
+        <Link href="/fanxfantasy/feed"><b>▣</b><span>Feed</span></Link>
+        <Link href="/fanxfantasy/messages"><b>✉</b><span>Messages</span></Link>
+        <Link href="/fanxfantasy/library"><b>▤</b><span>Library</span></Link>
+      </nav>
+    </main>
+  );
+}
