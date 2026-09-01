@@ -13,13 +13,13 @@ export function NavBar() {
         </Link>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <Link href="/machines">Marketplace</Link>
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/launch-machine">Launch a Machine</Link>
+          <Link href="/machines">Machines</Link>
+          <Link href="/quiz">Find My Machine</Link>
+          <Link href="/creator-studio">Creator Studio</Link>
           <Link href="/dashboard">Dashboard</Link>
         </nav>
 
-        <Link href="/launch-machine" className="nav-cta">Rent a Machine</Link>
+        <Link href="/quiz" className="nav-cta">Choose a Machine</Link>
       </div>
     </header>
   );
