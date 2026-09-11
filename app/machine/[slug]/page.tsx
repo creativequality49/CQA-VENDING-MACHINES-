@@ -7,8 +7,8 @@ async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> 
   try {
     const supabase = getPublicSupabaseClient();
     const { data, error } = await supabase
-      .from("machines")
-      .select("id,slug,title,subtitle,theme,assistant_enabled,business:businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers(id,name,description,offer_type,price_cents,currency,stripe_price_id)")
+      .from("cqa_machines")
+      .select("id,slug,title,subtitle,theme,assistant_enabled,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id)")
       .eq("slug", slug)
       .eq("status", "live")
       .single();
