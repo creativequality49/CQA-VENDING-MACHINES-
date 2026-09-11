@@ -16,7 +16,8 @@ function LoginForm() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const next = searchParams.get("next") || "/owner/dashboard";
+  const requestedNext = searchParams.get("next") || "/owner/dashboard";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/owner/dashboard";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -25,14 +26,19 @@ function LoginForm() {
     setLoading(true);
 
     if (mode === "signup") {
-      const { data, error: authError } = await supabase.auth.signUp({ email, password });
+      const emailRedirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo }
+      });
       if (authError) {
         setError(authError.message);
         setLoading(false);
         return;
       }
       if (!data.session) {
-        setMessage("Account created. Check your email to confirm your address, then log in to continue.");
+        setMessage("Account created. Check your email and tap Confirm your mail. The link will return you to your CQA dashboard.");
         setMode("login");
         setLoading(false);
         return;
@@ -49,7 +55,7 @@ function LoginForm() {
       return;
     }
 
-    router.push(next.startsWith("/") ? next : "/owner/dashboard");
+    router.push(next);
     router.refresh();
   }
 
