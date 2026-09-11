@@ -2,25 +2,24 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { NavBar } from "@/components/NavBar";
 
-const siteUrl = "https://cqavmachine.live";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.cqavmachine.live";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "CQA AI Business Automation Australia | Digital Vending Machines",
-    template: "%s | CQA Digital Vending Machines",
+    default: "CQA Vending Marketplace | Business Machines + AI Workers",
+    template: "%s | CQA Vending Marketplace",
   },
   description:
-    "Creative Quality Australia provides fixed-price AI business automation systems for content, lead generation, sales follow-up, onboarding and business workflows.",
+    "Creative Quality Australia gives Australian businesses branded digital vending machines inside a shared marketplace for services, bookings, products, subscriptions and AI-assisted operations.",
   keywords: [
-    "AI business automation Australia",
-    "business automation Australia",
-    "AI automation systems",
-    "lead generation automation",
-    "sales follow-up automation",
-    "content automation",
+    "digital vending marketplace Australia",
+    "business vending machine",
+    "online business storefront Australia",
+    "AI business workers",
+    "business automation marketplace",
     "Creative Quality Australia",
-    "CQA Digital Vending Machines",
+    "CQA Vending Marketplace",
   ],
   alternates: {
     canonical: "/",
@@ -39,16 +38,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: siteUrl,
-    siteName: "CQA Digital Vending Machines",
-    title: "CQA AI Business Automation Australia",
+    siteName: "CQA Vending Marketplace",
+    title: "CQA Vending Marketplace",
     description:
-      "Fixed-price AI automation systems for Australian businesses, from content and lead generation to sales follow-up and onboarding.",
+      "Branded digital business machines, marketplace discovery, Stripe-connected payments and optional AI workers for Australian businesses.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CQA AI Business Automation Australia",
+    title: "CQA Vending Marketplace",
     description:
-      "Fixed-price AI automation systems for Australian businesses.",
+      "Digital business machines, marketplace discovery and AI-assisted operations for Australian businesses.",
   },
 };
 
