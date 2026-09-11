@@ -1,63 +1,93 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckoutButton } from "@/components/CheckoutButton";
-import { getMachine, getProductReadiness } from "@/lib/catalog";
+import { MarketplaceCheckoutButton } from "@/components/MarketplaceCheckoutButton";
+import { DEMO_MACHINES, formatAud, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
 
-const statusLabel = {
-  draft: "In production",
-  quality_review: "Quality review",
-  live: "Available now"
-} as const;
+async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> {
+  try {
+    const supabase = getPublicSupabaseClient();
+    const { data, error } = await supabase
+      .from("machines")
+      .select("id,slug,title,subtitle,theme,assistant_enabled,business:businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers(id,name,description,offer_type,price_cents,currency,stripe_price_id)")
+      .eq("slug", slug)
+      .eq("status", "live")
+      .single();
+    if (error || !data) return null;
+    return data as unknown as MarketplaceMachine;
+  } catch {
+    return null;
+  }
+}
 
 export default async function MachinePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const machine = getMachine(slug);
+  const live = await getLiveMachine(slug);
+  const machine = live || DEMO_MACHINES.find((item) => item.slug === slug);
   if (!machine) notFound();
 
   return (
-    <main className="container" style={{ paddingBottom: "3rem" }}>
-      <section className="glass-card" style={{ padding: "1.4rem", marginBottom: "1rem" }}>
-        <p className="small" style={{ textTransform: "uppercase", letterSpacing: ".14em" }}>CQA verified product vault</p>
-        <h1 style={{ margin: 0 }}>{machine.title}</h1>
-        <p className="small" style={{ maxWidth: 760 }}>{machine.subtitle}</p>
+    <main className="container" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+          <div>
+            <span className="eyebrow">{machine.business.category} · CQA BUSINESS MACHINE</span>
+            <h1 style={{ marginBottom: ".5rem" }}>{machine.business.name}</h1>
+            <p className="small" style={{ maxWidth: 760 }}>{machine.business.description || machine.subtitle}</p>
+            <p className="small"><strong>{machine.business.location_text || "Australia"}</strong>{machine.business.verified ? " · CQA verified" : ""}</p>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <span className="live-pill"><i /> {machine.demo ? "DEMO MACHINE" : "OPEN"}</span>
+          </div>
+        </div>
+        {machine.demo ? (
+          <div style={{ marginTop: "1rem", padding: ".8rem 1rem", borderRadius: 12, border: "1px solid rgba(255,190,90,.35)", background: "rgba(255,190,90,.08)" }}>
+            This is a CQA demonstration machine showing how a customer business can appear. No payment is taken for demo offers.
+          </div>
+        ) : null}
       </section>
 
       <section className="grid grid-2">
-        {machine.products.map((product) => {
-          const readiness = getProductReadiness(product);
+        {machine.offers.map((offer) => {
+          const bookingLike = ["service", "booking", "quote", "consultation"].includes(offer.offer_type);
           return (
-            <article key={product.id} className="glass-card" style={{ padding: "1.2rem", display: "flex", flexDirection: "column" }}>
+            <article key={offer.id} className="glass-card" style={{ padding: "1.2rem", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
-                <p className="small" style={{ margin: 0, textTransform: "uppercase" }}>{product.tier}</p>
-                <span className="small" style={{ color: readiness.sellable ? "#85ffc7" : "#ffb6df" }}>
-                  {statusLabel[product.status]}
-                </span>
+                <span className="eyebrow">{offer.offer_type.replaceAll("_", " ")}</span>
+                <strong style={{ color: "#ff7bd3" }}>{formatAud(offer.price_cents)}</strong>
               </div>
-              <h2 style={{ marginBottom: ".35rem" }}>{product.title}</h2>
-              <p className="small">{product.description}</p>
-              <p style={{ color: "#ff7bd3", fontWeight: 800, fontSize: "1.2rem" }}>{product.priceLabel}</p>
-
-              <h3 style={{ fontSize: "1rem" }}>Included</h3>
-              <ul className="small" style={{ paddingLeft: "1.15rem", lineHeight: 1.7 }}>
-                {product.deliverables.map((item) => <li key={item}>{item}</li>)}
-              </ul>
-
-              {product.disclaimer ? <p className="small" style={{ borderTop: "1px solid rgba(255,255,255,.1)", paddingTop: ".8rem" }}>{product.disclaimer}</p> : null}
-              <p className="small"><strong>Licence:</strong> {product.licence}</p>
-              <p className="small"><strong>Access:</strong> {product.accessPolicy}</p>
-
+              <h2 style={{ marginBottom: ".35rem" }}>{offer.name}</h2>
+              <p className="small">{offer.description || "Available through this business machine."}</p>
               <div style={{ marginTop: "auto", paddingTop: ".8rem" }}>
-                {readiness.sellable ? (
-                  <CheckoutButton productId={product.id} tier={product.tier} machineSlug={machine.slug} label="Buy securely with Stripe" />
+                {machine.demo ? (
+                  <Link className="button primary" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`} style={{ justifyContent: "center" }}>
+                    Try demo request
+                  </Link>
+                ) : bookingLike ? (
+                  <Link className="button primary" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`} style={{ justifyContent: "center" }}>
+                    {offer.offer_type === "quote" ? "Request quote" : "Book / enquire"}
+                  </Link>
                 ) : (
-                  <div style={{ border: "1px solid rgba(255,123,211,.35)", borderRadius: 12, padding: ".8rem", color: "#ffb6df", fontWeight: 700 }}>
-                    Purchase disabled until the final product file, Stripe price and fulfilment test are verified.
-                  </div>
+                  <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "Start subscription" : "Buy securely with Stripe"} />
                 )}
               </div>
             </article>
           );
         })}
       </section>
+
+      {machine.assistant_enabled ? (
+        <section className="glass-card" style={{ padding: "1.25rem", marginTop: "1rem" }}>
+          <span className="eyebrow">Business assistant</span>
+          <h2>Need help choosing?</h2>
+          <p className="small">This machine is configured to support guided customer enquiries. During pilot rollout, requests are collected for the business owner so sensitive actions stay human-approved.</p>
+          <Link href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=general`} className="button ghost">Ask this business</Link>
+        </section>
+      ) : null}
+
+      <div style={{ marginTop: "1.25rem", display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
+        <Link href="/marketplace" className="text-link">← Back to marketplace</Link>
+        <Link href="/onboarding" className="text-link">List my business with CQA →</Link>
+      </div>
     </main>
   );
 }
