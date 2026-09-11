@@ -24,21 +24,21 @@ export default async function MarketplacePage() {
   const categories = Array.from(new Set(machines.map((machine) => machine.business.category)));
 
   return (
-    <main className="container" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
-      <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
+    <main className="container marketplace-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      <section className="glass-card marketplace-hero" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
         <span className="eyebrow">CQA BUSINESS MARKETPLACE</span>
         <h1 style={{ marginBottom: ".55rem" }}>Find a business. Enter their machine. Get it done.</h1>
         <p className="small" style={{ maxWidth: 850 }}>
           Browse independent businesses operating branded vending machines through Creative Quality Australia. Services, bookings, products, subscriptions and enquiries live inside each machine.
         </p>
         {demoMode ? (
-          <div style={{ marginTop: "1rem", padding: ".85rem 1rem", borderRadius: 12, border: "1px solid rgba(255,190,90,.35)", background: "rgba(255,190,90,.08)" }}>
+          <div className="marketplace-preview-note">
             <strong>Marketplace preview:</strong> the listings below are demonstrations. Real approved businesses will replace or sit alongside these examples as they join CQA.
           </div>
         ) : null}
       </section>
 
-      <section style={{ display: "flex", gap: ".6rem", flexWrap: "wrap", marginBottom: "1.5rem" }} aria-label="Marketplace categories">
+      <section className="category-rail" aria-label="Marketplace categories">
         <span className="button ghost" style={{ cursor: "default" }}>All businesses</span>
         {categories.map((category) => <span key={category} className="button ghost" style={{ cursor: "default" }}>{category}</span>)}
       </section>
@@ -54,7 +54,7 @@ export default async function MarketplacePage() {
               <div className="machine-window"><span>{machine.business.name.slice(0, 2).toUpperCase()}</span></div>
               <div className="machine-dots">{Array.from({ length: 8 }).map((_, index) => <i key={index} />)}</div>
             </div>
-            <h2 style={{ fontSize: "1.35rem", marginBottom: ".4rem" }}>{machine.business.name}</h2>
+            <h2>{machine.business.name}</h2>
             <p>{machine.business.description || machine.subtitle}</p>
             <p className="small"><strong>{machine.business.location_text || "Australia"}</strong> · {machine.offers.length} offer{machine.offers.length === 1 ? "" : "s"}</p>
             <ul>{machine.offers.slice(0, 3).map((offer) => <li key={offer.id}>{offer.name}</li>)}</ul>
