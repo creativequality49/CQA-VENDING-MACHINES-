@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripeClient } from "@/lib/stripe";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
 
 export const runtime = "nodejs";
 
@@ -35,12 +36,39 @@ export async function POST(req: Request) {
     const session = event.data.object as Stripe.Checkout.Session;
     const businessId = session.metadata?.cqaBusinessId;
     if (businessId) {
-      await admin.from("cqa_orders").update({
+      const email = (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
+      const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null;
+      const { data: order } = await admin.from("cqa_orders").update({
         status: "paid",
-        stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null,
-        customer_email: session.customer_details?.email || session.customer_email || null,
+        stripe_payment_intent_id: paymentIntentId,
+        customer_email: email || null,
         updated_at: new Date().toISOString()
-      }).eq("stripe_checkout_session_id", session.id).eq("business_id", businessId);
+      }).eq("stripe_checkout_session_id", session.id).eq("business_id", businessId).select("id,machine_id,offer_id,amount_cents,currency").maybeSingle();
+
+      let contactId: string | null = null;
+      if (email) {
+        const { data: contact } = await admin.from("cqa_contacts").upsert({
+          business_id: businessId,
+          email,
+          name: session.customer_details?.name || null,
+          status: "subscribed",
+          source: "purchase",
+          tags: ["customer"],
+          metadata: { latest_order_id: order?.id || null, stripe_checkout_session_id: session.id },
+          updated_at: new Date().toISOString()
+        }, { onConflict: "business_id,email" }).select("id").single();
+        contactId = contact?.id || null;
+      }
+
+      void triggerBusinessAutomations(businessId, "purchase", {
+        orderId: order?.id || null,
+        machineId: order?.machine_id || session.metadata?.cqaMachineId || null,
+        offerId: order?.offer_id || session.metadata?.cqaOfferId || null,
+        amountCents: order?.amount_cents || session.amount_total || null,
+        currency: order?.currency || session.currency || "aud",
+        checkoutSessionId: session.id,
+        paymentIntentId
+      }, contactId).catch((automationError) => console.error("[automation] purchase trigger failed", automationError));
     }
   }
 
