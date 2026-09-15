@@ -26,18 +26,19 @@ export async function handleCheckoutSessionCompleted(
 ): Promise<void> {
   console.log('Processing checkout.session.completed:', session.id);
 
-  if (!session.customer_details?.email) {
+  const customerEmail = session.customer_details?.email;
+  if (!customerEmail) {
     throw new Error('No email in checkout session');
   }
 
   // Get or create user from email
   const { data: users } = await supabase.auth.admin.listUsers();
-  let userId = users?.users.find((u) => u.email === session.customer_details.email)?.id;
+  let userId = users?.users.find((u) => u.email === customerEmail)?.id;
 
   if (!userId) {
     // Create new user from checkout
     const { data: newUser } = await supabase.auth.admin.createUser({
-      email: session.customer_details.email,
+      email: customerEmail,
       email_confirm: true,
       user_metadata: {
         stripe_customer_id: session.customer,
@@ -62,7 +63,7 @@ export async function handleCheckoutSessionCompleted(
   const automationContext: AutomationContext = {
     stripeCustomerId: session.customer as string,
     stripeSessionId: session.id,
-    email: session.customer_details.email,
+    email: customerEmail,
     userId,
     productId,
     eventType: 'checkout.session.completed',
