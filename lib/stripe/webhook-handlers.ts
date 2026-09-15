@@ -44,7 +44,7 @@ export async function handleCheckoutSessionCompleted(
         stripe_customer_id: session.customer,
       },
     });
-    userId = newUser?.id;
+    userId = newUser?.user?.id;
   }
 
   if (!userId) {
