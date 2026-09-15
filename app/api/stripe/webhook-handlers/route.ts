@@ -14,6 +14,11 @@ import { supabase } from '@/lib/supabase/client';
  * Main entry point for all Stripe webhook events
  * Verifies signature and routes to appropriate handler
  */
+function getStripeCustomerId(object: Stripe.Event.Data.Object): string {
+  const customer = (object as { customer?: string | { id: string } }).customer;
+  return typeof customer === "string" ? customer : customer?.id ?? "unknown";
+}
+
 export async function POST(request: NextRequest) {
   const signature = request.headers.get('stripe-signature');
   const body = await request.text();
@@ -92,7 +97,7 @@ export async function POST(request: NextRequest) {
       {
         event_id: event.id,
         event_type: event.type,
-        stripe_customer_id: event.data.object.customer || 'unknown',
+        stripe_customer_id: getStripeCustomerId(event.data.object),
         processed_at: new Date().toISOString(),
         status: 'failed',
         metadata: {
