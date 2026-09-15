@@ -111,7 +111,7 @@ export async function handleSubscriptionCreated(
   const automationContext: AutomationContext = {
     stripeCustomerId: subscription.customer as string,
     stripeSubscriptionId: subscription.id,
-    email: subscription.billing_details?.email || 'unknown@cqa.local',
+    email: 'unknown@cqa.local',
     userId: profile.user_id,
     productId,
     eventType: 'customer.subscription.created',
@@ -167,7 +167,7 @@ export async function handleSubscriptionUpdated(
   const automationContext: AutomationContext = {
     stripeCustomerId: subscription.customer as string,
     stripeSubscriptionId: subscription.id,
-    email: subscription.billing_details?.email || 'unknown@cqa.local',
+    email: 'unknown@cqa.local',
     userId: profile.user_id,
     productId,
     eventType: 'customer.subscription.updated',
