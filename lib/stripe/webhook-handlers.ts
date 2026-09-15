@@ -14,7 +14,7 @@ export interface WebhookEventRecord {
   processed_at: string;
   user_id: string;
   status: 'success' | 'failed' | 'pending';
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 /**
@@ -31,8 +31,8 @@ export async function handleCheckoutSessionCompleted(
   }
 
   // Get or create user from email
-  let { data: user } = await supabase.auth.admin.listUsers();
-  let userId = user?.find((u) => u.email === session.customer_details.email)?.id;
+  const { data: users } = await supabase.auth.admin.listUsers();
+  let userId = users?.users.find((u) => u.email === session.customer_details.email)?.id;
 
   if (!userId) {
     // Create new user from checkout
