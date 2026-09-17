@@ -3,7 +3,9 @@ import "./globals.css";
 import "./ux-release.css";
 import { NavBar } from "@/components/NavBar";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.cqavmachine.live";
+// Keep the public fallback aligned with the domain attached to the production
+// Vercel project. Vercel still overrides this with NEXT_PUBLIC_SITE_URL when set.
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.creativequalityaustralia.tech";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
