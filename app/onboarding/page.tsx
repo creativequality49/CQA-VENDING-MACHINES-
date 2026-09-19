@@ -5,10 +5,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CQA_PLANS, getBrowserSupabaseClient, type PlanKey } from "@/lib/cqa-marketplace";
 
-function slugify(value: string) {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 64);
-}
-
 function OnboardingForm() {
   const router = useRouter();
   const search = useSearchParams();
@@ -41,60 +37,43 @@ function OnboardingForm() {
     setLoading(true);
     setError("");
 
-    const baseSlug = slugify(name);
-    if (!baseSlug) {
-      setError("Enter a valid business name.");
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      setError("Your login session expired. Please log in again.");
       setLoading(false);
       return;
     }
 
-    const { data: existing } = await supabase.from("cqa_businesses").select("id").eq("owner_id", userId).limit(1);
-    if (existing?.length) {
+    const response = await fetch("/api/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name, category, description, location, phone, businessEmail, plan })
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.businessId) {
+      setError(result.error || "Could not create the business workspace.");
+      setLoading(false);
+      return;
+    }
+
+    if (result.existing) {
       router.push("/owner/dashboard");
       return;
     }
 
-    let business: { id: string } | null = null;
-    for (let attempt = 0; attempt < 3 && !business; attempt += 1) {
-      const slug = attempt === 0 ? baseSlug : `${baseSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const { data, error: businessError } = await supabase
-        .from("cqa_businesses")
-        .insert({ owner_id: userId, name, slug, category, description, location_text: location, phone: phone || null, email: businessEmail || null, plan, status: "review" })
-        .select("id")
-        .single();
-      if (!businessError && data) business = data as { id: string };
-      else if (businessError?.code !== "23505") {
-        setError(businessError?.message || "Could not create the business record.");
-        setLoading(false);
-        return;
-      }
-    }
-
-    if (!business) {
-      setError("That business name is already in use. Please adjust the name and try again.");
-      setLoading(false);
-      return;
-    }
-
-    const machineSlug = `${baseSlug}-machine-${business.id.slice(0, 6)}`;
-    const { error: machineError } = await supabase.from("cqa_machines").insert({
-      business_id: business.id,
-      slug: machineSlug,
-      title: `${name} Machine`,
-      subtitle: description || `The official ${name} digital vending machine.`,
-      theme: plan === "elite" ? "gold" : plan === "pro" ? "cyan" : "pink",
-      status: "review",
-      assistant_enabled: true
+    const billingResponse = await fetch("/api/cqa-billing/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ kind: "plan", businessId: result.businessId, plan })
     });
-
-    if (machineError) {
-      await supabase.from("cqa_businesses").delete().eq("id", business.id);
-      setError(machineError.message);
-      setLoading(false);
+    const billing = await billingResponse.json().catch(() => ({}));
+    if (billingResponse.ok && billing.url) {
+      window.location.assign(billing.url);
       return;
     }
 
-    router.push("/owner/dashboard?created=1");
+    router.push("/owner/dashboard?created=1&billing=required");
     router.refresh();
   }
 
@@ -112,7 +91,11 @@ function OnboardingForm() {
 
   return (
     <form onSubmit={submit} className="glass-card" style={{ padding: "1.5rem", maxWidth: 850, margin: "0 auto", display: "grid", gap: "1rem" }}>
-      <div><span className="eyebrow">CQA BUSINESS ONBOARDING</span><h1>Build your business machine.</h1><p className="small">Submit the business details CQA will use to prepare your storefront. Your machine stays in review until it is ready for public customers.</p></div>
+      <div>
+        <span className="eyebrow">CQA BUSINESS ONBOARDING</span>
+        <h1>Build and activate your business machine.</h1>
+        <p className="small">Submit your business details, then complete the selected monthly CQA plan in secure Stripe Checkout. Your machine remains private and in review until CQA verification and payment onboarding are complete.</p>
+      </div>
       <label><span className="small">Business name</span><input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Example: Summit Plumbing Co." /></label>
       <label><span className="small">Business category</span><select value={category} onChange={(e) => setCategory(e.target.value)}><option>Trades & Services</option><option>Beauty</option><option>Fitness</option><option>Coaching</option><option>Professional Services</option><option>Retail</option><option>Creator</option><option>Other</option></select></label>
       <label><span className="small">What does the business provide?</span><textarea required rows={4} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your services, products and ideal customers." /></label>
@@ -121,10 +104,20 @@ function OnboardingForm() {
         <label><span className="small">Business phone</span><input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Optional" /></label>
       </div>
       <label><span className="small">Business contact email</span><input type="email" required value={businessEmail} onChange={(e) => setBusinessEmail(e.target.value)} /></label>
-      <fieldset style={{ border: 0, padding: 0, margin: 0 }}><legend className="small" style={{ marginBottom: ".6rem" }}>Machine plan</legend><div className="grid grid-3">{CQA_PLANS.map((item) => <label key={item.key} className="glass-card" style={{ padding: "1rem", cursor: "pointer", border: plan === item.key ? "1px solid #ff7bd3" : undefined }}><input type="radio" name="plan" checked={plan === item.key} onChange={() => setPlan(item.key)} /> <strong>{item.name}</strong><br/><span className="small">${item.price}/month · {item.fee}% sale fee</span></label>)}</div></fieldset>
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend className="small" style={{ marginBottom: ".6rem" }}>Machine plan</legend>
+        <div className="grid grid-3">
+          {CQA_PLANS.map((item) => (
+            <label key={item.key} className="glass-card" style={{ padding: "1rem", cursor: "pointer", border: plan === item.key ? "1px solid #ff7bd3" : undefined }}>
+              <input type="radio" name="plan" checked={plan === item.key} onChange={() => setPlan(item.key)} /> <strong>{item.name}</strong><br/>
+              <span className="small">{"$"}{item.price}/month · {item.fee}% sale fee</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
       {error ? <div role="alert" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(255,70,100,.4)" }}>{error}</div> : null}
-      <button className="button primary" type="submit" disabled={loading} style={{ justifyContent: "center" }}>{loading ? "Creating your machine…" : "Submit Business for CQA Review"}</button>
-      <p className="small">Submitting creates your private owner workspace. Public publication and live customer payments remain disabled until CQA verification and Stripe onboarding are complete.</p>
+      <button className="button primary" type="submit" disabled={loading} style={{ justifyContent: "center" }}>{loading ? "Creating secure checkout…" : "Create Machine & Continue to Stripe"}</button>
+      <p className="small">The CQA plan is billed monthly through Stripe. Public publication and customer payments stay disabled until CQA review and the business’s own Stripe Connect onboarding are complete.</p>
     </form>
   );
 }
