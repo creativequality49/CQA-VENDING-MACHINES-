@@ -9,7 +9,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
           <strong style={{ marginRight: "auto" }}>CQA Owner Workspace</strong>
           <Link className="button ghost" href="/owner/dashboard">Dashboard</Link>
           <Link className="button ghost" href="/owner/automations">Automations</Link>
-          <Link className="button ghost" href="/machines">Marketplace</Link>
+          <Link className="button ghost" href="/marketplace">Marketplace</Link>
         </nav>
       </div>
       {children}
