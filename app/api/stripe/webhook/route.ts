@@ -7,6 +7,7 @@ import {
   upsertCheckoutEntitlement
 } from "@/lib/entitlements";
 import { handleFanXStripeEvent } from "@/lib/fanx-commerce";
+import { handleCqaBillingStripeEvent } from "@/lib/cqa-billing";
 import { getStripeClient } from "@/lib/stripe";
 
 export const runtime = "nodejs";
@@ -36,9 +37,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, duplicate: true });
   }
 
-  const fanXHandled = await handleFanXStripeEvent(event);
+  const cqaBillingHandled = await handleCqaBillingStripeEvent(event);
+  const fanXHandled = cqaBillingHandled ? false : await handleFanXStripeEvent(event);
 
-  if (!fanXHandled) {
+  if (!cqaBillingHandled && !fanXHandled) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -79,5 +81,5 @@ export async function POST(req: Request) {
   }
 
   await markStripeEventProcessed(event.id, event.type);
-  return NextResponse.json({ ok: true, fanXHandled });
+  return NextResponse.json({ ok: true, fanXHandled, cqaBillingHandled });
 }
