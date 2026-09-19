@@ -15,6 +15,7 @@ export function NavBar() {
 
           <nav className="desktop-nav" aria-label="Primary navigation">
             <Link href="/marketplace">Marketplace</Link>
+            <Link href="/machines">Solutions</Link>
             <Link href="/pricing">Plans</Link>
             <Link href="/workers">AI Workers</Link>
             <Link href="/owner/dashboard">Owner Workspace</Link>
