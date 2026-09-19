@@ -22,8 +22,9 @@ export async function GET() {
   }
 
   const stripe = configured(process.env.STRIPE_SECRET_KEY);
-  const webhook = configured(process.env.STRIPE_CONNECT_WEBHOOK_SECRET);
-  const healthy = database === "ok" && stripe === "ok" && webhook === "ok";
+  const platformWebhook = configured(process.env.STRIPE_WEBHOOK_SECRET);
+  const connectWebhook = configured(process.env.STRIPE_CONNECT_WEBHOOK_SECRET);
+  const healthy = database === "ok" && stripe === "ok" && platformWebhook === "ok" && connectWebhook === "ok";
 
   return NextResponse.json(
     {
@@ -31,7 +32,8 @@ export async function GET() {
       environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
       database,
       stripe,
-      stripeWebhook: webhook,
+      stripePlatformWebhook: platformWebhook,
+      stripeConnectWebhook: connectWebhook,
     },
     { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
