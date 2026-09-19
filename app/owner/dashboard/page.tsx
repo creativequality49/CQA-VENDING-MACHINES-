@@ -10,7 +10,9 @@ type Machine = { id: string; slug: string; title: string; status: string };
 type Offer = { id: string; name: string; offer_type: string; price_cents: number | null; active: boolean };
 type Booking = { id: string; customer_name: string; customer_email: string; status: string; created_at: string; notes: string | null };
 type ConnectedAccount = { stripe_account_id: string | null; onboarding_complete: boolean; charges_enabled: boolean; payouts_enabled: boolean };
-type Worker = { worker_id: string; enabled: boolean };\ntype PlanSubscription = { status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };\ntype WorkerSubscription = { worker_id: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
+type Worker = { worker_id: string; enabled: boolean };
+type PlanSubscription = { status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
+type WorkerSubscription = { worker_id: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
 
 export default function OwnerDashboardPage() {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
@@ -175,7 +177,10 @@ export default function OwnerDashboardPage() {
   if (!userId) return <main className="container" style={{ paddingTop: "3rem", paddingBottom: "4rem" }}><section className="glass-card" style={{ padding: "1.5rem" }}><span className="eyebrow">OWNER LOGIN REQUIRED</span><h1>Your business workspace is protected.</h1><Link href="/login?next=/owner/dashboard" className="button primary">Log in to Owner Dashboard</Link></section></main>;
   if (!business) return <main className="container" style={{ paddingTop: "3rem", paddingBottom: "4rem" }}><section className="glass-card" style={{ padding: "1.5rem" }}><span className="eyebrow">NO MACHINE YET</span><h1>Create your first CQA business machine.</h1><p className="small">Your account is active, but no business is connected to it yet.</p><Link href="/onboarding" className="button primary">Start Business Onboarding</Link></section></main>;
 
-  const enabledWorkerIds = new Set(workers.filter((worker) => worker.enabled).map((worker) => worker.worker_id));\n  const activePlan = ["active", "trialing"].includes(planSubscription?.status || "");\n  const workerBillingById = new Map(workerSubscriptions.map((item) => [item.worker_id, item]));\n  const planDefinition = CQA_PLANS.find((item) => item.key === business.plan);
+  const enabledWorkerIds = new Set(workers.filter((worker) => worker.enabled).map((worker) => worker.worker_id));
+  const activePlan = ["active", "trialing"].includes(planSubscription?.status || "");
+  const workerBillingById = new Map(workerSubscriptions.map((item) => [item.worker_id, item]));
+  const planDefinition = CQA_PLANS.find((item) => item.key === business.plan);
   return (
     <main className="container" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
       <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
