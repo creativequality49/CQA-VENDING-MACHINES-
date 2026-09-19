@@ -7,7 +7,7 @@ export default function ScarlettPage() {
         <p className="small">scarlettmay.online funnel</p>
         <h1 className="section-title">Enter the Scarlett May Digital Vault</h1>
         <p className="small">Luxury AI influencer funnel with premium digital products and recurring access.</p>
-        <Link className="cta" href="/machine/scarlett-vault">Open Scarlett Vault</Link>
+        <Link className="cta" href="/fanxfantasy">Open FanXFantasy</Link>
       </section>
       <section className="grid grid-3" style={{ marginBottom: "1rem" }}>
         {[
