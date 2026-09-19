@@ -23,6 +23,9 @@ export default function OwnerDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [account, setAccount] = useState<ConnectedAccount | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const [planSubscription, setPlanSubscription] = useState<PlanSubscription | null>(null);
+  const [workerSubscriptions, setWorkerSubscriptions] = useState<WorkerSubscription[]>([]);
+  const [billingBusy, setBillingBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [offerName, setOfferName] = useState("");
@@ -39,18 +42,22 @@ export default function OwnerDashboardPage() {
     setBusiness(first);
     if (!first) { setChecking(false); return; }
 
-    const [machineResult, offerResult, bookingResult, accountResult, workerResult] = await Promise.all([
+    const [machineResult, offerResult, bookingResult, accountResult, workerResult, planBillingResult, workerBillingResult] = await Promise.all([
       supabase.from("cqa_machines").select("id,slug,title,status").eq("business_id", first.id).limit(1),
       supabase.from("cqa_offers").select("id,name,offer_type,price_cents,active").eq("business_id", first.id).order("sort_order"),
       supabase.from("cqa_bookings").select("id,customer_name,customer_email,status,created_at,notes").eq("business_id", first.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("cqa_connected_accounts").select("stripe_account_id,onboarding_complete,charges_enabled,payouts_enabled").eq("business_id", first.id).maybeSingle(),
-      supabase.from("cqa_business_workers").select("worker_id,enabled").eq("business_id", first.id)
+      supabase.from("cqa_business_workers").select("worker_id,enabled").eq("business_id", first.id),
+      supabase.from("cqa_plan_subscriptions").select("status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id).maybeSingle(),
+      supabase.from("cqa_worker_subscriptions").select("worker_id,status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id)
     ]);
     setMachine((machineResult.data?.[0] as Machine | undefined) || null);
     setOffers((offerResult.data as Offer[] | null) || []);
     setBookings((bookingResult.data as Booking[] | null) || []);
     setAccount((accountResult.data as ConnectedAccount | null) || null);
     setWorkers((workerResult.data as Worker[] | null) || []);
+    setPlanSubscription((planBillingResult.data as PlanSubscription | null) || null);
+    setWorkerSubscriptions((workerBillingResult.data as WorkerSubscription[] | null) || []);
     setChecking(false);
   }
 
@@ -63,8 +70,13 @@ export default function OwnerDashboardPage() {
   }, [supabase]);
 
   useEffect(() => {
-    if (search.get("created") === "1") setMessage("Your business machine has been created and submitted for CQA review.");
-    if (search.get("stripe") === "return") setMessage("Stripe onboarding returned successfully. Refreshing account status may take a moment.");
+    if (search.get("created") === "1") setMessage("Your business machine has been created. Activate the CQA plan below to continue launch setup.");
+    if (search.get("stripe") === "return") setMessage("Stripe Connect onboarding returned successfully. Account status may take a moment to refresh.");
+    if (search.get("billing") === "success") setMessage("CQA billing checkout completed. Stripe is confirming the subscription now.");
+    if (search.get("billing") === "cancelled") setMessage("CQA billing checkout was cancelled. No new subscription was activated.");
+    if (search.get("billing") === "required") setMessage("Your workspace was created, but the CQA plan still needs payment activation.");
+    const selectedWorker = search.get("worker") || search.get("addWorker");
+    if (selectedWorker) setMessage("AI worker selected. Complete its monthly subscription from the AI Worker Store below.");
   }, [search]);
 
   async function addOffer(event: FormEvent<HTMLFormElement>) {
@@ -144,6 +156,10 @@ export default function OwnerDashboardPage() {
   async function connectStripe() {
     if (!business) return;
     setError("");
+    if (!["active", "trialing"].includes(planSubscription?.status || "")) {
+      setError("Activate the CQA machine plan before connecting customer payments.");
+      return;
+    }
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     if (!token) { setError("Please log in again before connecting Stripe."); return; }
