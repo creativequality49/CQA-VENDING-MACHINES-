@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
+import { CQA_PLANS, CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 
 type Business = { id: string; name: string; slug: string; category: string; plan: "starter" | "pro" | "elite"; status: string; verified: boolean };
 type Machine = { id: string; slug: string; title: string; status: string };
