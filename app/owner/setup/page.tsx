@@ -158,7 +158,8 @@ export default function OwnerSetupPage() {
 
     setMachine(result.machine || null);
     setAssets(result.assets || []);
-    loadSetup(result.setup || null);
+    if (result.setup) loadSetup(result.setup);
+    else setSetupMode(b.plan === "elite" ? "done_for_you" : b.plan === "pro" ? "assisted" : "guided");
 
     const { data: billing } = await supabase
       .from("cqa_plan_subscriptions")
