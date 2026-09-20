@@ -44,7 +44,7 @@ export default function VaultPage() {
         <article className="glass-card" style={{ padding: "1rem" }}>
           <h3 style={{ marginTop: 0 }}>Elite Upsell</h3>
           <p className="small">Unlock all premium content, private support assets, and top-tier recurring drops.</p>
-          <Link className="cta" href="/machine/store">Upgrade to Elite</Link>
+          <Link className="cta" href="/pricing">Upgrade to Elite</Link>
         </article>
       </section>
     </main>

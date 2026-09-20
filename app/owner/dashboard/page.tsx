@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
+import { CQA_PLANS, CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 
 type Business = { id: string; name: string; slug: string; category: string; plan: "starter" | "pro" | "elite"; status: string; verified: boolean };
 type Machine = { id: string; slug: string; title: string; status: string };
@@ -11,6 +11,8 @@ type Offer = { id: string; name: string; offer_type: string; price_cents: number
 type Booking = { id: string; customer_name: string; customer_email: string; status: string; created_at: string; notes: string | null };
 type ConnectedAccount = { stripe_account_id: string | null; onboarding_complete: boolean; charges_enabled: boolean; payouts_enabled: boolean };
 type Worker = { worker_id: string; enabled: boolean };
+type PlanSubscription = { status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
+type WorkerSubscription = { worker_id: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
 
 export default function OwnerDashboardPage() {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
@@ -23,6 +25,9 @@ export default function OwnerDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [account, setAccount] = useState<ConnectedAccount | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
+  const [planSubscription, setPlanSubscription] = useState<PlanSubscription | null>(null);
+  const [workerSubscriptions, setWorkerSubscriptions] = useState<WorkerSubscription[]>([]);
+  const [billingBusy, setBillingBusy] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [offerName, setOfferName] = useState("");
@@ -39,18 +44,22 @@ export default function OwnerDashboardPage() {
     setBusiness(first);
     if (!first) { setChecking(false); return; }
 
-    const [machineResult, offerResult, bookingResult, accountResult, workerResult] = await Promise.all([
+    const [machineResult, offerResult, bookingResult, accountResult, workerResult, planBillingResult, workerBillingResult] = await Promise.all([
       supabase.from("cqa_machines").select("id,slug,title,status").eq("business_id", first.id).limit(1),
       supabase.from("cqa_offers").select("id,name,offer_type,price_cents,active").eq("business_id", first.id).order("sort_order"),
       supabase.from("cqa_bookings").select("id,customer_name,customer_email,status,created_at,notes").eq("business_id", first.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("cqa_connected_accounts").select("stripe_account_id,onboarding_complete,charges_enabled,payouts_enabled").eq("business_id", first.id).maybeSingle(),
-      supabase.from("cqa_business_workers").select("worker_id,enabled").eq("business_id", first.id)
+      supabase.from("cqa_business_workers").select("worker_id,enabled").eq("business_id", first.id),
+      supabase.from("cqa_plan_subscriptions").select("status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id).maybeSingle(),
+      supabase.from("cqa_worker_subscriptions").select("worker_id,status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id)
     ]);
     setMachine((machineResult.data?.[0] as Machine | undefined) || null);
     setOffers((offerResult.data as Offer[] | null) || []);
     setBookings((bookingResult.data as Booking[] | null) || []);
     setAccount((accountResult.data as ConnectedAccount | null) || null);
     setWorkers((workerResult.data as Worker[] | null) || []);
+    setPlanSubscription((planBillingResult.data as PlanSubscription | null) || null);
+    setWorkerSubscriptions((workerBillingResult.data as WorkerSubscription[] | null) || []);
     setChecking(false);
   }
 
@@ -63,8 +72,13 @@ export default function OwnerDashboardPage() {
   }, [supabase]);
 
   useEffect(() => {
-    if (search.get("created") === "1") setMessage("Your business machine has been created and submitted for CQA review.");
-    if (search.get("stripe") === "return") setMessage("Stripe onboarding returned successfully. Refreshing account status may take a moment.");
+    if (search.get("created") === "1") setMessage("Your business machine has been created. Activate the CQA plan below to continue launch setup.");
+    if (search.get("stripe") === "return") setMessage("Stripe Connect onboarding returned successfully. Account status may take a moment to refresh.");
+    if (search.get("billing") === "success") setMessage("CQA billing checkout completed. Stripe is confirming the subscription now.");
+    if (search.get("billing") === "cancelled") setMessage("CQA billing checkout was cancelled. No new subscription was activated.");
+    if (search.get("billing") === "required") setMessage("Your workspace was created, but the CQA plan still needs payment activation.");
+    const selectedWorker = search.get("worker") || search.get("addWorker");
+    if (selectedWorker) setMessage("AI worker selected. Complete its monthly subscription from the AI Worker Store below.");
   }, [search]);
 
   async function addOffer(event: FormEvent<HTMLFormElement>) {
@@ -80,12 +94,57 @@ export default function OwnerDashboardPage() {
     await load(userId);
   }
 
-  async function addWorker(workerId: string) {
-    if (!business || !userId) return;
-    const { error: workerError } = await supabase.from("cqa_business_workers").upsert({ business_id: business.id, worker_id: workerId, enabled: true }, { onConflict: "business_id,worker_id" });
-    if (workerError) { setError(workerError.message); return; }
-    setMessage("AI worker added to your business workspace.");
-    await load(userId);
+  async function startBilling(kind: "plan" | "worker", value: string) {
+    if (!business) return;
+    setError("");
+    setBillingBusy(`${kind}:${value}`);
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setError("Please log in again before changing billing.");
+      setBillingBusy("");
+      return;
+    }
+    const body = kind === "plan"
+      ? { kind, businessId: business.id, plan: value }
+      : { kind, businessId: business.id, workerId: value };
+    const response = await fetch("/api/cqa-billing/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(body)
+    });
+    const result = await response.json().catch(() => ({}));
+    setBillingBusy("");
+    if (!response.ok || !result.url) {
+      setError(result.error || "Unable to start secure CQA billing.");
+      return;
+    }
+    window.location.assign(result.url);
+  }
+
+  async function manageBilling() {
+    if (!business) return;
+    setError("");
+    setBillingBusy("portal");
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setError("Please log in again before managing billing.");
+      setBillingBusy("");
+      return;
+    }
+    const response = await fetch("/api/cqa-billing/portal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ businessId: business.id })
+    });
+    const result = await response.json().catch(() => ({}));
+    setBillingBusy("");
+    if (!response.ok || !result.url) {
+      setError(result.error || "Unable to open Stripe billing management.");
+      return;
+    }
+    window.location.assign(result.url);
   }
 
   async function requestChange(event: FormEvent<HTMLFormElement>) {
@@ -99,6 +158,10 @@ export default function OwnerDashboardPage() {
   async function connectStripe() {
     if (!business) return;
     setError("");
+    if (!["active", "trialing"].includes(planSubscription?.status || "")) {
+      setError("Activate the CQA machine plan before connecting customer payments.");
+      return;
+    }
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     if (!token) { setError("Please log in again before connecting Stripe."); return; }
@@ -115,6 +178,9 @@ export default function OwnerDashboardPage() {
   if (!business) return <main className="container" style={{ paddingTop: "3rem", paddingBottom: "4rem" }}><section className="glass-card" style={{ padding: "1.5rem" }}><span className="eyebrow">NO MACHINE YET</span><h1>Create your first CQA business machine.</h1><p className="small">Your account is active, but no business is connected to it yet.</p><Link href="/onboarding" className="button primary">Start Business Onboarding</Link></section></main>;
 
   const enabledWorkerIds = new Set(workers.filter((worker) => worker.enabled).map((worker) => worker.worker_id));
+  const activePlan = ["active", "trialing"].includes(planSubscription?.status || "");
+  const workerBillingById = new Map(workerSubscriptions.map((item) => [item.worker_id, item]));
+  const planDefinition = CQA_PLANS.find((item) => item.key === business.plan);
   return (
     <main className="container" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
       <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
@@ -129,10 +195,26 @@ export default function OwnerDashboardPage() {
         <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">AI WORKERS</span><h2>{enabledWorkerIds.size}</h2><p className="small">Operational workers enabled.</p></article>
       </section>
 
-      <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}>
-        <span className="eyebrow">PAYMENTS</span><h2>Stripe Connect</h2>
-        <p className="small">{account?.onboarding_complete && account.charges_enabled ? "Your connected account is ready to accept eligible machine payments." : "Connect the business’s own Stripe account before CQA publishes paid offers."}</p>
-        <div style={{ display: "flex", gap: ".7rem", flexWrap: "wrap" }}><button className="button primary" type="button" onClick={connectStripe}>{account?.stripe_account_id ? "Continue / Review Stripe Setup" : "Connect Business Stripe"}</button>{machine?.status === "live" ? <Link className="button ghost" href={`/machine/${machine.slug}`}>View Live Machine</Link> : null}</div>
+      <section className="grid grid-2" style={{ marginBottom: "1rem" }}>
+        <article className="glass-card" style={{ padding: "1.25rem" }}>
+          <span className="eyebrow">CQA MACHINE BILLING</span>
+          <h2>{planDefinition?.name || business.plan.toUpperCase()} plan</h2>
+          <p className="small">Status: <strong>{planSubscription?.status || "payment required"}</strong>{planSubscription?.cancel_at_period_end ? " · cancels at period end" : ""}</p>
+          <p className="small">{planDefinition ? `${planDefinition.price} AUD/month · ${planDefinition.fee}% marketplace fee` : "Monthly CQA machine subscription"}</p>
+          <div style={{ display: "flex", gap: ".7rem", flexWrap: "wrap" }}>
+            {!activePlan ? <button className="button primary" type="button" disabled={Boolean(billingBusy)} onClick={() => startBilling("plan", business.plan)}>{billingBusy.startsWith("plan:") ? "Opening Stripe…" : "Activate Machine Plan"}</button> : null}
+            {planSubscription?.stripe_customer_id ? <button className="button ghost" type="button" disabled={Boolean(billingBusy)} onClick={manageBilling}>{billingBusy === "portal" ? "Opening…" : "Manage CQA Billing"}</button> : null}
+          </div>
+        </article>
+
+        <article className="glass-card" style={{ padding: "1.25rem" }}>
+          <span className="eyebrow">CUSTOMER PAYMENTS</span><h2>Stripe Connect</h2>
+          <p className="small">{account?.onboarding_complete && account.charges_enabled ? "Your connected business account is ready to accept eligible machine payments." : activePlan ? "Connect the business’s own Stripe account before CQA publishes paid offers." : "Activate your CQA machine plan first. Stripe Connect unlocks after plan activation."}</p>
+          <div style={{ display: "flex", gap: ".7rem", flexWrap: "wrap" }}>
+            <button className={activePlan ? "button primary" : "button ghost"} type="button" disabled={!activePlan} onClick={connectStripe}>{account?.stripe_account_id ? "Continue / Review Stripe Setup" : "Connect Business Stripe"}</button>
+            {machine?.status === "live" ? <Link className="button ghost" href={`/machine/${machine.slug}`}>View Live Machine</Link> : null}
+          </div>
+        </article>
       </section>
 
       <section className="grid grid-2" style={{ marginBottom: "1rem" }}>
@@ -142,7 +224,30 @@ export default function OwnerDashboardPage() {
 
       <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}><span className="eyebrow">CURRENT OFFERS</span><h2>Your machine inventory</h2>{offers.length ? <div className="revenue-stack">{offers.map((offer) => <div key={offer.id}><span>{offer.active ? "ON" : "OFF"}</span><strong>{offer.name}</strong><small>{offer.offer_type.replaceAll("_", " ")} · {formatAud(offer.price_cents)}</small></div>)}</div> : <p className="small">No offers yet. Add your first service or product above.</p>}</section>
 
-      <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}><span className="eyebrow">AI WORKER STORE</span><h2>Expand your machine</h2><div className="grid grid-2">{CQA_WORKERS.map(([id, name, price, description]) => <article key={id} className="glass-card" style={{ padding: "1rem" }}><h3>{name}</h3><p className="small">{description}</p><strong>${price} AUD/month</strong><div style={{ marginTop: ".7rem" }}><button type="button" className={enabledWorkerIds.has(id) ? "button ghost" : "button primary"} disabled={enabledWorkerIds.has(id)} onClick={() => addWorker(id)}>{enabledWorkerIds.has(id) ? "Added" : "Add Worker"}</button></div></article>)}</div></section>
+      <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "end" }}>
+          <div><span className="eyebrow">AI WORKER STORE</span><h2>Paid operational add-ons</h2><p className="small">Workers activate only after Stripe confirms the monthly CQA subscription. Cancelling billing disables the worker automatically.</p></div>
+          {planSubscription?.stripe_customer_id ? <button className="button ghost" type="button" onClick={manageBilling} disabled={Boolean(billingBusy)}>Manage billing</button> : null}
+        </div>
+        <div className="grid grid-2">
+          {CQA_WORKERS.map(([id, name, price, description]) => {
+            const billing = workerBillingById.get(id);
+            const active = ["active", "trialing"].includes(billing?.status || "") && enabledWorkerIds.has(id);
+            return (
+              <article key={id} className="glass-card" style={{ padding: "1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: ".7rem", alignItems: "center" }}><h3 style={{ margin: 0 }}>{name}</h3><span className="eyebrow">{active ? "ACTIVE" : billing?.status || "AVAILABLE"}</span></div>
+                <p className="small">{description}</p>
+                <strong>{"$"}{price} AUD/month</strong>
+                <div style={{ marginTop: ".7rem" }}>
+                  {active
+                    ? <button type="button" className="button ghost" onClick={manageBilling} disabled={Boolean(billingBusy)}>Manage subscription</button>
+                    : <button type="button" className="button primary" disabled={!activePlan || Boolean(billingBusy)} onClick={() => startBilling("worker", id)}>{!activePlan ? "Activate plan first" : billingBusy === `worker:${id}` ? "Opening Stripe…" : "Subscribe & Activate"}</button>}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="glass-card" style={{ padding: "1.25rem" }}><span className="eyebrow">LATEST CUSTOMER REQUESTS</span><h2>Bookings and enquiries</h2>{bookings.length ? <div className="revenue-stack">{bookings.map((booking) => <div key={booking.id}><span>{booking.status.toUpperCase()}</span><strong>{booking.customer_name}</strong><small>{booking.customer_email} · {new Date(booking.created_at).toLocaleDateString("en-AU")}{booking.notes ? ` · ${booking.notes.slice(0, 90)}` : ""}</small></div>)}</div> : <p className="small">No customer requests yet.</p>}</section>
     </main>

@@ -31,6 +31,15 @@ export async function POST(req: Request) {
       .single();
     if (businessError || !business) return NextResponse.json({ error: "Business not found or not owned by this account." }, { status: 403 });
 
+    const { data: planBilling } = await admin
+      .from("cqa_plan_subscriptions")
+      .select("status")
+      .eq("business_id", business.id)
+      .maybeSingle();
+    if (!planBilling || !["active", "trialing"].includes(planBilling.status)) {
+      return NextResponse.json({ error: "Activate the CQA machine plan before connecting customer payments." }, { status: 402 });
+    }
+
     const stripe = getStripeClient();
     const { data: existing } = await admin.from("cqa_connected_accounts").select("stripe_account_id").eq("business_id", business.id).maybeSingle();
     let stripeAccountId = existing?.stripe_account_id as string | null | undefined;
