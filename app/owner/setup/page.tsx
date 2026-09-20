@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, DragEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CQA_PLANS, getBrowserSupabaseClient, type PlanKey } from "@/lib/cqa-marketplace";
@@ -47,6 +47,7 @@ type SetupProfile = {
 };
 
 type Asset = { id: string; kind: string; public_url: string | null; file_name: string };
+type SetupOffer = { id: string; name: string; offer_type: string; price_cents: number | null; image_url: string | null; active: boolean };
 
 const SALES = ["Physical products", "Digital products", "Services", "Bookings", "Subscriptions", "Quotes"];
 const FULFILMENT = ["Ship myself", "Print-on-demand", "Dropship / supplier", "Digital delivery", "Appointment / booking", "Local pickup"];
@@ -67,6 +68,8 @@ export default function OwnerSetupPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [machine, setMachine] = useState<Machine | null>(null);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [offers, setOffers] = useState<SetupOffer[]>([]);
+  const [productOfferId, setProductOfferId] = useState("");
   const [billingStatus, setBillingStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -158,6 +161,8 @@ export default function OwnerSetupPage() {
 
     setMachine(result.machine || null);
     setAssets(result.assets || []);
+    setOffers(result.offers || []);
+    if (!productOfferId && result.offers?.[0]?.id) setProductOfferId(result.offers[0].id);
     if (result.setup) loadSetup(result.setup);
     else setSetupMode(b.plan === "elite" ? "done_for_you" : b.plan === "pro" ? "assisted" : "guided");
 
@@ -239,14 +244,18 @@ export default function OwnerSetupPage() {
     await load();
   }
 
-  async function uploadMedia(event: ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(event.target.files || []);
+  async function uploadFiles(files: File[]) {
     if (!files.length || !business || !userId || !machine) return;
+    if (assetKind === "product" && !productOfferId) {
+      setError("Choose the product or service slot this image belongs to.");
+      return;
+    }
+
     setUploading(true);
     setError("");
 
     for (const file of files) {
-      if (!file.type.startsWith("image/")) continue;
+      if (!file.type.startsWith("image/")) { setError("Only image files can be uploaded here."); continue; }
       if (file.size > 10 * 1024 * 1024) { setError("Images must be 10MB or smaller."); continue; }
 
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-");
@@ -259,6 +268,7 @@ export default function OwnerSetupPage() {
       const { data: asset, error: assetError } = await supabase.from("cqa_machine_assets").insert({
         business_id: business.id,
         machine_id: machine.id,
+        offer_id: assetKind === "product" ? productOfferId : null,
         kind: assetKind,
         storage_path: storagePath,
         public_url: publicUrl,
@@ -270,13 +280,24 @@ export default function OwnerSetupPage() {
       if (assetError) { setError(assetError.message); continue; }
       if (assetKind === "hero") await supabase.from("cqa_machines").update({ hero_image_url: publicUrl }).eq("id", machine.id);
       if (assetKind === "logo") await supabase.from("cqa_businesses").update({ logo_url: publicUrl }).eq("id", business.id);
+      if (assetKind === "product" && productOfferId) await supabase.from("cqa_offers").update({ image_url: publicUrl }).eq("id", productOfferId).eq("business_id", business.id);
       setAssets((current) => [...current, asset as Asset]);
     }
 
-    event.target.value = "";
     setUploading(false);
-    setMessage("Media uploaded to your machine.");
+    setMessage(assetKind === "product" ? "Product image assigned to its machine slot." : "Media uploaded to your machine.");
     await load();
+  }
+
+  async function uploadMedia(event: ChangeEvent<HTMLInputElement>) {
+    await uploadFiles(Array.from(event.target.files || []));
+    event.target.value = "";
+  }
+
+  async function dropMedia(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    await uploadFiles(Array.from(event.dataTransfer.files || []));
   }
 
   if (loading) return <main className="container owner-setup-page"><p>Loading your CQA machine builder…</p></main>;
@@ -362,11 +383,19 @@ export default function OwnerSetupPage() {
           <article className="glass-card setup-panel">
             <span className="eyebrow">UPLOAD TO MACHINE</span>
             <h3>Drag/drop-ready media</h3>
-            <select value={assetKind} onChange={(e) => setAssetKind(e.target.value)}><option value="hero">Hero image</option><option value="logo">Logo</option><option value="product">Product image</option><option value="gallery">Gallery image</option></select>
-            <label className="setup-dropzone">
+            <select value={assetKind} onChange={(e) => setAssetKind(e.target.value)}><option value="hero">Hero image</option><option value="logo">Logo</option><option value="product">Product / offer image</option><option value="gallery">Gallery image</option></select>
+            {assetKind === "product" ? (
+              offers.length ? (
+                <select value={productOfferId} onChange={(e) => setProductOfferId(e.target.value)}>
+                  <option value="">Choose product / offer slot</option>
+                  {offers.map((offer) => <option key={offer.id} value={offer.id}>{offer.name}</option>)}
+                </select>
+              ) : <p className="small">Add or generate a product/service first, then assign its image here.</p>
+            ) : null}
+            <label className="setup-dropzone" onDragOver={(event) => event.preventDefault()} onDrop={dropMedia}>
               <input type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif" onChange={uploadMedia} />
-              <strong>{uploading ? "Uploading…" : "Drop or choose images"}</strong>
-              <small>PNG, JPG, WEBP or GIF · max 10MB</small>
+              <strong>{uploading ? "Uploading…" : "Drop images here or tap to choose"}</strong>
+              <small>{assetKind === "product" ? "Image will attach to the selected machine slot" : "PNG, JPG, WEBP or GIF · max 10MB"}</small>
             </label>
             {assets.length ? <div className="setup-asset-grid">{assets.slice(-6).map((asset) => asset.public_url ? <img key={asset.id} src={asset.public_url} alt={asset.file_name} /> : null)}</div> : null}
           </article>
