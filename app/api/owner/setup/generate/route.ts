@@ -33,7 +33,7 @@ function extractJson(text: string) {
   return JSON.parse(trimmed);
 }
 
-function fallbackDraft(business: { name: string; category: string; description: string | null }, setup: Record<string, unknown>) {
+function fallbackDraft(business: { name: string; category: string; description: string | null }, setup: Record<string, unknown>): z.infer<typeof generatedSchema> {
   const fulfillment = Array.isArray(setup.fulfillment_model) ? setup.fulfillment_model as string[] : [];
   const physical = fulfillment.some((x) => /physical|shipping|product/i.test(x));
   const digital = fulfillment.some((x) => /digital/i.test(x));
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY;
     const apiUrl = process.env.CQA_CHAT_API_URL || "https://api.openai.com/v1/chat/completions";
     const model = process.env.CQA_CHAT_MODEL || "gpt-4.1-mini";
-    let draft = fallbackDraft(business, setup as Record<string, unknown>);
+    let draft: z.infer<typeof generatedSchema> = fallbackDraft(business, setup as Record<string, unknown>);
     let aiUsed = false;
 
     if (apiKey) {
