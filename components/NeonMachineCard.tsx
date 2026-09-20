@@ -2,6 +2,9 @@ import Link from "next/link";
 import type { MarketplaceMachine } from "@/lib/cqa-marketplace";
 
 function themeClass(theme?: string | null) {
+  if (theme === "purple") return "violet";
+  if (theme === "aqua") return "cyan";
+  if (theme === "rose") return "pink";
   return ["pink", "cyan", "gold", "violet"].includes(theme || "") ? theme : "cyan";
 }
 
