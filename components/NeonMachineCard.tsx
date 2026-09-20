@@ -42,7 +42,10 @@ export function NeonMachineCard({
           <span className="neon-live"><i />{machine.demo ? "DEMO" : machine.business.verified ? "VERIFIED" : "LIVE"}</span>
         </header>
 
-        <div className="neon-machine-screen">
+        <div
+          className={machine.hero_image_url ? "neon-machine-screen has-media" : "neon-machine-screen"}
+          style={machine.hero_image_url ? { backgroundImage: `linear-gradient(90deg,rgba(4,4,7,.92),rgba(4,4,7,.38)),url("${machine.hero_image_url}")` } : undefined}
+        >
           <span className="screen-title">{machine.title}</span>
           <strong>{machine.subtitle || machine.business.description || "Digital business vending machine"}</strong>
           <small>{machine.business.location_text || "Australia"} · {machine.offers.length} offer{machine.offers.length === 1 ? "" : "s"}</small>
@@ -52,7 +55,9 @@ export function NeonMachineCard({
           {visibleOffers.map((offer, index) => (
             <div className="neon-product-slot" key={offer.id}>
               <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
-              <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>
+              {offer.image_url
+                ? <div className="slot-product-image" style={{ backgroundImage: `url("${offer.image_url}")` }} />
+                : <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>}
               <strong>{offer.name}</strong>
               <small>{offer.price_cents === null ? "QUOTE" : new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD", maximumFractionDigits: 0 }).format(offer.price_cents / 100)}</small>
             </div>
