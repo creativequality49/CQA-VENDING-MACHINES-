@@ -65,7 +65,10 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
             </div>
           </header>
 
-          <section className="machine-detail-screen">
+          <section
+            className={machine.hero_image_url ? "machine-detail-screen has-media" : "machine-detail-screen"}
+            style={machine.hero_image_url ? { backgroundImage: `linear-gradient(90deg,rgba(4,4,7,.93),rgba(4,4,7,.36)),url("${machine.hero_image_url}")` } : undefined}
+          >
             <div>
               <span>WELCOME TO</span>
               <strong>{machine.title}</strong>
@@ -88,7 +91,9 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
               return (
                 <article key={offer.id} className="machine-offer-slot">
                   <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
-                  <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>
+                  {offer.image_url
+                    ? <div className="machine-offer-image" style={{ backgroundImage: `url("${offer.image_url}")` }} />
+                    : <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>}
                   <span className="slot-type">{offer.offer_type.replaceAll("_", " ")}</span>
                   <h2>{offer.name}</h2>
                   <strong className="slot-price">{formatAud(offer.price_cents)}</strong>
