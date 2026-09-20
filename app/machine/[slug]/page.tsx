@@ -8,7 +8,7 @@ async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> 
     const supabase = getPublicSupabaseClient();
     const { data, error } = await supabase
       .from("cqa_machines")
-      .select("id,slug,title,subtitle,theme,assistant_enabled,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id)")
+      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,shipping_required,external_url)")
       .eq("slug", slug)
       .eq("status", "live")
       .single();
@@ -65,7 +65,10 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
             </div>
           </header>
 
-          <section className="machine-detail-screen">
+          <section
+            className={machine.hero_image_url ? "machine-detail-screen has-media" : "machine-detail-screen"}
+            style={machine.hero_image_url ? { backgroundImage: `linear-gradient(90deg,rgba(4,4,7,.93),rgba(4,4,7,.36)),url("${machine.hero_image_url}")` } : undefined}
+          >
             <div>
               <span>WELCOME TO</span>
               <strong>{machine.title}</strong>
@@ -88,7 +91,9 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
               return (
                 <article key={offer.id} className="machine-offer-slot">
                   <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
-                  <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>
+                  {offer.image_url
+                    ? <div className="machine-offer-image" style={{ backgroundImage: `url("${offer.image_url}")` }} />
+                    : <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>}
                   <span className="slot-type">{offer.offer_type.replaceAll("_", " ")}</span>
                   <h2>{offer.name}</h2>
                   <strong className="slot-price">{formatAud(offer.price_cents)}</strong>

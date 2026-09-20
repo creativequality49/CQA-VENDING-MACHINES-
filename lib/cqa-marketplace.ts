@@ -11,6 +11,11 @@ export type MarketplaceOffer = {
   price_cents: number | null;
   currency: string;
   stripe_price_id?: string | null;
+  image_url?: string | null;
+  source_provider?: string | null;
+  fulfillment_type?: string | null;
+  shipping_required?: boolean;
+  external_url?: string | null;
 };
 
 export type MarketplaceMachine = {
@@ -20,6 +25,11 @@ export type MarketplaceMachine = {
   subtitle: string | null;
   theme: string;
   assistant_enabled: boolean;
+  template_key?: string | null;
+  template_locked?: boolean;
+  layout_version?: number;
+  hero_image_url?: string | null;
+  customization?: Record<string, unknown> | null;
   business: {
     id: string;
     name: string;
@@ -43,7 +53,17 @@ export const CQA_PLANS = [
     price: 49,
     fee: 5,
     slots: "4 selling slots",
-    features: ["Hosted CQA machine", "Products or services", "Lead capture", "Basic owner dashboard", "AI Business Planner available"]
+    setupMode: "Guided Shell",
+    integrationSlots: 2,
+    automationLevel: "Manual + guided setup",
+    features: [
+      "CQA activewear-style master machine shell",
+      "Guided business setup questionnaire",
+      "Drag-and-drop logo and product images",
+      "Manual products, services and external links",
+      "Stripe Connect + 1 additional integration",
+      "Basic owner dashboard and lead capture"
+    ]
   },
   {
     key: "pro" as const,
@@ -51,7 +71,17 @@ export const CQA_PLANS = [
     price: 99,
     fee: 3,
     slots: "20 selling slots",
-    features: ["Everything in Starter", "Bookings + subscriptions", "Analytics", "Custom machine theme", "Sales and support workers available"]
+    setupMode: "AI-Assisted Build",
+    integrationSlots: 6,
+    automationLevel: "AI builds and installs draft machine",
+    features: [
+      "Everything in Starter",
+      "AI builds machine copy and draft offers from answers",
+      "Products, bookings, subscriptions and fulfilment fields",
+      "Up to 6 connected business tools",
+      "Custom colours, hero image and product imagery",
+      "Sales/support worker upgrades available"
+    ]
   },
   {
     key: "elite" as const,
@@ -59,9 +89,19 @@ export const CQA_PLANS = [
     price: 249,
     fee: 1,
     slots: "Unlimited selling slots",
-    features: ["Everything in Pro", "Dedicated AI assistant", "CRM/export tools", "Finance worker access", "Priority CQA support"]
+    setupMode: "Done-For-You Machine",
+    integrationSlots: 20,
+    automationLevel: "Questionnaire → full draft → CQA review",
+    features: [
+      "Everything in Pro",
+      "Full done-for-you machine draft from questionnaire",
+      "AI assistant and integration recommendations",
+      "Advanced fulfilment and external commerce links",
+      "Finance/marketing worker upgrades available",
+      "Priority CQA review and launch support"
+    ]
   }
-];
+]
 
 export const CQA_WORKERS = [
   ["receptionist", "AI Receptionist", 49, "Answers common questions, captures leads and prepares booking requests."],

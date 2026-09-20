@@ -58,7 +58,7 @@ function OnboardingForm() {
     }
 
     if (result.existing) {
-      router.push("/owner/dashboard");
+      router.push("/owner/setup");
       return;
     }
 
@@ -73,7 +73,7 @@ function OnboardingForm() {
       return;
     }
 
-    router.push("/owner/dashboard?created=1&billing=required");
+    router.push("/owner/setup?created=1&billing=required");
     router.refresh();
   }
 
@@ -110,7 +110,7 @@ function OnboardingForm() {
           {CQA_PLANS.map((item) => (
             <label key={item.key} className="glass-card" style={{ padding: "1rem", cursor: "pointer", border: plan === item.key ? "1px solid #ff7bd3" : undefined }}>
               <input type="radio" name="plan" checked={plan === item.key} onChange={() => setPlan(item.key)} /> <strong>{item.name}</strong><br/>
-              <span className="small">{"$"}{item.price}/month · {item.fee}% sale fee</span>
+              <span className="small">{"$"}{item.price}/month · {item.fee}% sale fee</span><br/><span className="small"><strong>{item.setupMode}</strong> · {item.automationLevel}</span>
             </label>
           ))}
         </div>

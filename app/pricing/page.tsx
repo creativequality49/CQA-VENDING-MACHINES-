@@ -28,6 +28,10 @@ export default function PricingPage() {
                 <strong>{"$"}{plan.price}</strong>
                 <small>AUD / MONTH</small>
               </div>
+              <div style={{ padding: "12px 6px 0", textAlign: "center" }}>
+                <strong style={{ color: "var(--plan-accent)", fontSize: ".85rem" }}>{plan.setupMode}</strong>
+                <p className="small" style={{ margin: ".35rem 0 0" }}>{plan.automationLevel}</p>
+              </div>
               <div className="plan-features">
                 <b>{plan.fee}% CQA marketplace fee</b>
                 <span>{plan.slots}</span>
