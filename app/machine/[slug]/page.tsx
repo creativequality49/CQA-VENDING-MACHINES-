@@ -19,74 +19,117 @@ async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> 
   }
 }
 
+function themeClass(theme?: string | null) {
+  if (theme === "purple") return "violet";
+  if (theme === "aqua") return "cyan";
+  if (theme === "rose") return "pink";
+  return ["pink", "cyan", "gold", "violet"].includes(theme || "") ? theme : "cyan";
+}
+
 export default async function MachinePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const live = await getLiveMachine(slug);
   const machine = live || DEMO_MACHINES.find((item) => item.slug === slug);
   if (!machine) notFound();
 
-  return (
-    <main className="container" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
-      <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "flex-start" }}>
-          <div>
-            <span className="eyebrow">{machine.business.category} · CQA BUSINESS MACHINE</span>
-            <h1 style={{ marginBottom: ".5rem" }}>{machine.business.name}</h1>
-            <p className="small" style={{ maxWidth: 760 }}>{machine.business.description || machine.subtitle}</p>
-            <p className="small"><strong>{machine.business.location_text || "Australia"}</strong>{machine.business.verified ? " · CQA verified" : ""}</p>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <span className="live-pill"><i /> {machine.demo ? "DEMO MACHINE" : "OPEN"}</span>
-          </div>
-        </div>
-        {machine.demo ? (
-          <div style={{ marginTop: "1rem", padding: ".8rem 1rem", borderRadius: 12, border: "1px solid rgba(255,190,90,.35)", background: "rgba(255,190,90,.08)" }}>
-            This is a CQA demonstration machine showing how a customer business can appear. No payment is taken for demo offers.
-          </div>
-        ) : null}
-      </section>
+  const theme = themeClass(machine.theme);
 
-      <section className="grid grid-2">
-        {machine.offers.map((offer) => {
-          const bookingLike = ["service", "booking", "quote", "consultation"].includes(offer.offer_type);
-          return (
-            <article key={offer.id} className="glass-card" style={{ padding: "1.2rem", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
-                <span className="eyebrow">{offer.offer_type.replaceAll("_", " ")}</span>
-                <strong style={{ color: "#ff7bd3" }}>{formatAud(offer.price_cents)}</strong>
-              </div>
-              <h2 style={{ marginBottom: ".35rem" }}>{offer.name}</h2>
-              <p className="small">{offer.description || "Available through this business machine."}</p>
-              <div style={{ marginTop: "auto", paddingTop: ".8rem" }}>
-                {machine.demo ? (
-                  <Link className="button primary" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`} style={{ justifyContent: "center" }}>
-                    Try demo request
-                  </Link>
-                ) : bookingLike ? (
-                  <Link className="button primary" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`} style={{ justifyContent: "center" }}>
-                    {offer.offer_type === "quote" ? "Request quote" : "Book / enquire"}
-                  </Link>
-                ) : (
-                  <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "Start subscription" : "Buy securely with Stripe"} />
-                )}
-              </div>
-            </article>
-          );
-        })}
+  return (
+    <main className={`container machine-detail-page machine-theme-${theme}`} style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      <section className="machine-detail-shell">
+        <aside className="machine-detail-rail" aria-hidden="true">
+          <span className="rail-logo">CQΛ</span>
+          <div className="rail-meter">2·5</div>
+          <span className="rail-label">PAYMENT</span>
+          <div className="rail-payment"><b>Stripe</b><small>VISA · MC · PAY</small></div>
+          <span className="rail-label">PRODUCT</span>
+          <div className="rail-product-port">▣</div>
+          <span className="rail-label">PUSH</span>
+          <div className="rail-push">PUSH</div>
+          <span className="rail-label">COLLECT</span>
+          <div className="rail-collect" />
+          <span className="rail-label">STATUS</span>
+          <div className="rail-status">ONLINE</div>
+        </aside>
+
+        <div className="machine-detail-main">
+          <header className="machine-detail-header">
+            <div>
+              <span className="eyebrow">{machine.business.category} · CQA BUSINESS MACHINE</span>
+              <h1>{machine.business.name}</h1>
+              <p>{machine.business.description || machine.subtitle}</p>
+            </div>
+            <div className="machine-detail-live">
+              <span><i /> {machine.demo ? "DEMO" : "LIVE"}</span>
+              <small>{machine.business.location_text || "Australia"}</small>
+            </div>
+          </header>
+
+          <section className="machine-detail-screen">
+            <div>
+              <span>WELCOME TO</span>
+              <strong>{machine.title}</strong>
+              <small>{machine.business.verified ? "CQA VERIFIED MACHINE" : "CQA MARKETPLACE MACHINE"}</small>
+            </div>
+            <div className="machine-screen-stats">
+              <div><b>{machine.offers.length}</b><span>OFFERS</span></div>
+              <div><b>{machine.business.plan.toUpperCase()}</b><span>PLAN</span></div>
+              <div><b>{machine.assistant_enabled ? "ON" : "OFF"}</b><span>AI HELP</span></div>
+            </div>
+          </section>
+
+          {machine.demo ? (
+            <div className="machine-demo-banner">DEMO MODE · No payment is taken for demonstration offers.</div>
+          ) : null}
+
+          <section className="machine-offer-bay">
+            {machine.offers.map((offer, index) => {
+              const bookingLike = ["service", "booking", "quote", "consultation"].includes(offer.offer_type);
+              return (
+                <article key={offer.id} className="machine-offer-slot">
+                  <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
+                  <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>
+                  <span className="slot-type">{offer.offer_type.replaceAll("_", " ")}</span>
+                  <h2>{offer.name}</h2>
+                  <strong className="slot-price">{formatAud(offer.price_cents)}</strong>
+                  <p>{offer.description || "Available through this business machine."}</p>
+                  <div className="slot-action">
+                    {machine.demo ? (
+                      <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`}>
+                        TRY DEMO →
+                      </Link>
+                    ) : bookingLike ? (
+                      <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>
+                        {offer.offer_type === "quote" ? "REQUEST QUOTE →" : "BOOK / ENQUIRE →"}
+                      </Link>
+                    ) : (
+                      <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "START SUBSCRIPTION" : "BUY WITH STRIPE"} />
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+
+          <footer className="machine-detail-footer">
+            <div><span>INSTANT ACCESS</span><small>Secure customer flow</small></div>
+            <div><span>STRIPE READY</span><small>Connected payments</small></div>
+            <div><span>OWNER CONTROLLED</span><small>Private dashboard</small></div>
+            <div><span>AI OPTIONAL</span><small>Approval-gated workers</small></div>
+          </footer>
+        </div>
       </section>
 
       {machine.assistant_enabled ? (
-        <section className="glass-card" style={{ padding: "1.25rem", marginTop: "1rem" }}>
-          <span className="eyebrow">Business assistant</span>
-          <h2>Need help choosing?</h2>
-          <p className="small">This machine is configured to support guided customer enquiries. During pilot rollout, requests are collected for the business owner so sensitive actions stay human-approved.</p>
-          <Link href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=general`} className="button ghost">Ask this business</Link>
+        <section className="glass-card machine-assistant-panel">
+          <div><span className="eyebrow">BUSINESS ASSISTANT</span><h2>Need help choosing a slot?</h2><p className="small">Send a guided enquiry to the business. Sensitive actions remain human-approved during the CQA rollout.</p></div>
+          <Link href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=general`} className="button primary">Ask this business</Link>
         </section>
       ) : null}
 
-      <div style={{ marginTop: "1.25rem", display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
+      <div className="machine-detail-links">
         <Link href="/marketplace" className="text-link">← Back to marketplace</Link>
-        <Link href="/onboarding" className="text-link">List my business with CQA →</Link>
+        <Link href="/onboarding" className="text-link">Build my own CQA machine →</Link>
       </div>
     </main>
   );

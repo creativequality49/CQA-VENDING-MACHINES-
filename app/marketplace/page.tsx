@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NeonMachineCard } from "@/components/NeonMachineCard";
 import { DEMO_MACHINES, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
 
 async function getLiveMachines(): Promise<MarketplaceMachine[]> {
@@ -24,52 +25,42 @@ export default async function MarketplacePage() {
   const categories = Array.from(new Set(machines.map((machine) => machine.business.category)));
 
   return (
-    <main className="container marketplace-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
-      <section className="glass-card marketplace-hero" style={{ padding: "1.5rem", marginBottom: "1.25rem" }}>
-        <span className="eyebrow">CQA BUSINESS MARKETPLACE</span>
-        <h1 style={{ marginBottom: ".55rem" }}>Find a business. Enter their machine. Get it done.</h1>
-        <p className="small" style={{ maxWidth: 850 }}>
-          Browse independent businesses operating branded vending machines through Creative Quality Australia. Services, bookings, products, subscriptions and enquiries live inside each machine.
-        </p>
-        {demoMode ? (
-          <div className="marketplace-preview-note">
-            <strong>Marketplace preview:</strong> the listings below are demonstrations. Real approved businesses will replace or sit alongside these examples as they join CQA.
-          </div>
-        ) : null}
+    <main className="container marketplace-page neon-marketplace-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      <section className="marketplace-neon-hero">
+        <div>
+          <span className="eyebrow">CQA BUSINESS MACHINE MARKETPLACE</span>
+          <h1>Every business gets the same premium machine architecture — with its own identity.</h1>
+          <p>Browse branded vending machines for services, bookings, products and subscriptions. Each machine keeps the CQA black-glass structure while colours, offers and brand details change by business.</p>
+        </div>
+        <div className="marketplace-live-panel">
+          <span><i /> MARKETPLACE LIVE</span>
+          <strong>{machines.length}</strong>
+          <small>machines visible</small>
+        </div>
       </section>
 
-      <section className="category-rail" aria-label="Marketplace categories">
-        <span className="button ghost" style={{ cursor: "default" }}>All businesses</span>
-        {categories.map((category) => <span key={category} className="button ghost" style={{ cursor: "default" }}>{category}</span>)}
+      {demoMode ? (
+        <div className="marketplace-preview-note">
+          <strong>Marketplace preview:</strong> these are demonstration businesses. Approved live businesses appear here automatically after CQA review.
+        </div>
+      ) : null}
+
+      <section className="category-rail neon-category-rail" aria-label="Marketplace categories">
+        <span className="button ghost" style={{ cursor: "default" }}>ALL MACHINES</span>
+        {categories.map((category) => <span key={category} className="button ghost" style={{ cursor: "default" }}>{category.toUpperCase()}</span>)}
       </section>
 
-      <section className="machine-grid-home">
-        {machines.map((machine) => (
-          <article className={`machine-card-home ${machine.theme || "cyan"}`} key={machine.slug}>
-            <div className="machine-card-topline">
-              <span>{machine.business.category}</span>
-              <strong>{machine.demo ? "DEMO" : machine.business.verified ? "CQA VERIFIED" : "LISTED"}</strong>
-            </div>
-            <div className="machine-card-visual">
-              <div className="machine-window"><span>{machine.business.name.slice(0, 2).toUpperCase()}</span></div>
-              <div className="machine-dots">{Array.from({ length: 8 }).map((_, index) => <i key={index} />)}</div>
-            </div>
-            <h2>{machine.business.name}</h2>
-            <p>{machine.business.description || machine.subtitle}</p>
-            <p className="small"><strong>{machine.business.location_text || "Australia"}</strong> · {machine.offers.length} offer{machine.offers.length === 1 ? "" : "s"}</p>
-            <ul>{machine.offers.slice(0, 3).map((offer) => <li key={offer.id}>{offer.name}</li>)}</ul>
-            <Link href={`/machine/${machine.slug}`} className="card-link">Enter machine <span>→</span></Link>
-          </article>
-        ))}
+      <section className="neon-machine-grid marketplace-machine-grid">
+        {machines.map((machine) => <NeonMachineCard machine={machine} key={machine.slug} />)}
       </section>
 
       <section className="final-panel" style={{ marginTop: "2rem" }}>
         <div>
-          <span className="eyebrow">Own a business?</span>
-          <h2>Put your business inside the marketplace.</h2>
-          <p>Launch a branded machine, connect your own Stripe account and manage your offers from your private owner workspace.</p>
+          <span className="eyebrow">OWN A BUSINESS?</span>
+          <h2>Put your business inside a CQA machine.</h2>
+          <p>Choose the plan, customise the machine, connect Stripe and manage the operation from your private owner workspace.</p>
         </div>
-        <Link href="/onboarding" className="button primary">Get My Machine</Link>
+        <Link href="/onboarding" className="button primary">Build My Machine</Link>
       </section>
     </main>
   );
