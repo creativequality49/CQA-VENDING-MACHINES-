@@ -124,8 +124,12 @@ export async function POST(req: Request) {
       client_reference_id: user.id,
       ...(existingCustomerId ? { customer: existingCustomerId } : { customer_email: user.email || business.email || undefined }),
       allow_promotion_codes: true,
-      success_url: `${origin}/owner/dashboard?billing=success`,
-      cancel_url: `${origin}/owner/dashboard?billing=cancelled`,
+      success_url: payload.kind === "plan"
+        ? `${origin}/owner/setup?billing=success`
+        : `${origin}/owner/dashboard?billing=success`,
+      cancel_url: payload.kind === "plan"
+        ? `${origin}/owner/setup?billing=cancelled`
+        : `${origin}/owner/dashboard?billing=cancelled`,
       metadata,
       subscription_data: { metadata }
     });
