@@ -33,14 +33,15 @@ export async function GET(req: Request) {
     const businessId = url.searchParams.get("businessId") || undefined;
     const { business, admin } = await requireCqaOwner(req, businessId);
 
-    const [{ data: setup }, { data: machine }, { data: assets }, { data: connections }] = await Promise.all([
+    const [{ data: setup }, { data: machine }, { data: assets }, { data: connections }, { data: offers }] = await Promise.all([
       admin.from("cqa_machine_setup_profiles").select("*").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_machines").select("id,slug,title,subtitle,theme,status,template_key,template_locked,layout_version,hero_image_url,customization").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_machine_assets").select("id,kind,public_url,file_name,mime_type,size_bytes,alt_text,sort_order,created_at").eq("business_id", business.id).order("sort_order"),
-      admin.from("cqa_business_connections").select("id,provider,label,status,capabilities,metadata,updated_at").eq("business_id", business.id).order("provider")
+      admin.from("cqa_business_connections").select("id,provider,label,status,capabilities,metadata,updated_at").eq("business_id", business.id).order("provider"),
+      admin.from("cqa_offers").select("id,name,offer_type,price_cents,image_url,active,sort_order").eq("business_id", business.id).order("sort_order")
     ]);
 
-    return NextResponse.json({ business, setup, machine, assets: assets || [], connections: connections || [] });
+    return NextResponse.json({ business, setup, machine, assets: assets || [], connections: connections || [], offers: offers || [] });
   } catch (error) {
     const status = typeof (error as { status?: unknown })?.status === "number" ? (error as { status: number }).status : 500;
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to load machine setup." }, { status });
