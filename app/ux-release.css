@@ -386,3 +386,16 @@ input:focus,textarea:focus,select:focus{border-color:rgba(0,207,255,.48)!importa
 .owner-workspace-live i{width:6px;height:6px;border-radius:50%;background:#58ff8e;box-shadow:0 0 10px #58ff8e}
 @media(max-width:900px){.owner-workspace-nav{align-items:flex-start;flex-wrap:wrap}.owner-workspace-links{order:3;width:100%;overflow:auto;flex-wrap:nowrap;padding-top:4px}.owner-workspace-links a{white-space:nowrap}.owner-workspace-live{margin-left:auto}}
 @media(max-width:560px){.owner-workspace-live{display:none}.owner-workspace-nav{padding:10px}.owner-workspace-brand small{display:none}}
+
+
+.marketplace-system-strip{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0 18px;
+}
+.marketplace-system-strip>div{
+  display:grid;grid-template-columns:36px 1fr;gap:3px 10px;align-items:center;
+  padding:15px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.012));
+}
+.marketplace-system-strip span{grid-row:1/3;font-size:10px;font-weight:950;color:#ff62c2}
+.marketplace-system-strip strong{font-size:10px;letter-spacing:.08em}.marketplace-system-strip small{font-size:9px;color:#858995}
+@media(max-width:760px){.marketplace-system-strip{grid-template-columns:1fr}}
