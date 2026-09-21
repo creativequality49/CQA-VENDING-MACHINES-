@@ -28,9 +28,9 @@ export default async function MarketplacePage() {
     <main className="container marketplace-page neon-marketplace-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
       <section className="marketplace-neon-hero">
         <div>
-          <span className="eyebrow">CQA BUSINESS MACHINE MARKETPLACE</span>
-          <h1>Every business gets the same premium machine architecture — with its own identity.</h1>
-          <p>Browse branded vending machines for services, bookings, products and subscriptions. Each machine keeps the CQA black-glass structure while colours, offers and brand details change by business.</p>
+          <span className="eyebrow">CQA DIGITAL VENDING MARKETPLACE</span>
+          <h1>Walk into a marketplace of businesses built as machines.</h1>
+          <p>The CQA Activewear machine is the visual master. Every business keeps the premium black-glass vending architecture while changing the brand, products, services, memberships, media and automation behind it.</p>
         </div>
         <div className="marketplace-live-panel">
           <span><i /> MARKETPLACE LIVE</span>
@@ -44,6 +44,12 @@ export default async function MarketplacePage() {
           <strong>Marketplace preview:</strong> these are demonstration businesses. Approved live businesses appear here automatically after CQA review.
         </div>
       ) : null}
+
+      <section className="marketplace-system-strip" aria-label="CQA machine system">
+        <div><span>01</span><strong>CHOOSE A MACHINE</strong><small>Products, services, bookings or memberships</small></div>
+        <div><span>02</span><strong>ENTER THE STOREFRONT</strong><small>Browse the business inside the CQA shell</small></div>
+        <div><span>03</span><strong>BUY OR BOOK</strong><small>Secure payment or enquiry flow</small></div>
+      </section>
 
       <section className="category-rail neon-category-rail" aria-label="Marketplace categories">
         <span className="button ghost" style={{ cursor: "default" }}>ALL MACHINES</span>
