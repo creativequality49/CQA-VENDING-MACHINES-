@@ -182,7 +182,7 @@ export default function OwnerDashboardPage() {
   const workerBillingById = new Map(workerSubscriptions.map((item) => [item.worker_id, item]));
   const planDefinition = CQA_PLANS.find((item) => item.key === business.plan);
   return (
-    <main className="container" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
+    <main className="container owner-dashboard" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
       <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}><div><span className="eyebrow">CQA OWNER WORKSPACE</span><h1 style={{ marginBottom: ".4rem" }}>{business.name}</h1><p className="small">{business.category} · {business.plan.toUpperCase()} · Machine status: <strong>{machine?.status || business.status}</strong></p></div><div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}><Link className="button primary" href="/owner/setup">Build / Edit Machine</Link><Link className="button ghost" href="/owner/integrations">Connections</Link><button className="button ghost" type="button" onClick={logout}>Log out</button></div></div>
         {message ? <div role="status" style={{ marginTop: "1rem", padding: ".75rem", border: "1px solid rgba(80,255,180,.35)", borderRadius: 10 }}>{message}</div> : null}
