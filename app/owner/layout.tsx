@@ -4,14 +4,20 @@ import { Suspense } from "react";
 export default function OwnerLayout({ children }: { children: React.ReactNode }) {
   return (
     <Suspense fallback={<main className="container" style={{ paddingTop: "3rem" }}><p>Loading secure owner workspace…</p></main>}>
-      <div className="container" style={{ paddingTop: "1rem" }}>
-        <nav className="glass-card" aria-label="Owner workspace" style={{ padding: ".7rem .9rem", display: "flex", gap: ".6rem", alignItems: "center", flexWrap: "wrap" }}>
-          <strong style={{ marginRight: "auto" }}>CQA Owner Workspace</strong>
-          <Link className="button ghost" href="/owner/dashboard">Dashboard</Link>
-          <Link className="button ghost" href="/owner/setup">Machine Builder</Link>
-          <Link className="button ghost" href="/owner/integrations">Connections</Link>
-          <Link className="button ghost" href="/owner/automations">Automations</Link>
-          <Link className="button ghost" href="/marketplace">Marketplace</Link>
+      <div className="container owner-workspace-shell">
+        <nav className="owner-workspace-nav" aria-label="Owner workspace">
+          <Link href="/owner/dashboard" className="owner-workspace-brand">
+            <span>CQΛ</span>
+            <div><strong>OWNER OS</strong><small>Business machine control</small></div>
+          </Link>
+          <div className="owner-workspace-links">
+            <Link href="/owner/dashboard">Dashboard</Link>
+            <Link href="/owner/setup">Machine Builder</Link>
+            <Link href="/owner/integrations">Connections</Link>
+            <Link href="/owner/automations">Automations</Link>
+            <Link href="/marketplace">Marketplace</Link>
+          </div>
+          <span className="owner-workspace-live"><i /> SYSTEM ONLINE</span>
         </nav>
       </div>
       {children}
