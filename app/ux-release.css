@@ -72,6 +72,7 @@ body:after{
   transform:rotate(18deg);animation:cqaV2Shine 6s ease-in-out infinite;
 }
 .cqa-logo-copy strong{font-size:11px!important}.cqa-logo-copy small{color:#8e91a0!important}
+.cqa-dashboard-link{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border:1px solid rgba(0,207,255,.36);border-radius:14px;background:rgba(0,207,255,.08);color:#fff;font-size:12px;font-weight:850;letter-spacing:.04em}.cqa-dashboard-link:hover{background:rgba(0,207,255,.16)}
 .cqa-menu-trigger{
   min-height:48px!important;border-radius:16px!important;
   border-color:rgba(255,0,140,.36)!important;
@@ -341,6 +342,7 @@ input:focus,textarea:focus,select:focus{border-color:rgba(0,207,255,.48)!importa
 }
 @media(max-width:760px){
   .cqa-nav-shell{min-height:68px!important}
+  .cqa-dashboard-link{display:none}
   .cqa-logo-mark{width:48px;height:43px;font-size:27px!important}
   .hero-machine-wrap{padding:50px 0 12px}
   .hero-machine-label{right:6px;left:6px;min-width:0}

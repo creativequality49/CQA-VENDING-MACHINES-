@@ -13,6 +13,8 @@ export function NavBar() {
             </span>
           </Link>
 
+          <Link href="/owner/dashboard" className="cqa-dashboard-link">Dashboard</Link>
+
           <details className="cqa-menu">
             <summary className="cqa-menu-trigger" aria-label="Open navigation menu">
               <span className="cqa-hamburger" aria-hidden="true"><i /><i /><i /></span>
@@ -28,7 +30,7 @@ export function NavBar() {
               <Link href="/machines">Solutions <span>03</span></Link>
               <Link href="/pricing">Plans <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>
-              <Link href="/owner/dashboard">Owner Workspace <span>06</span></Link>
+              <Link href="/owner/dashboard">Dashboard <span>06</span></Link>
               <Link href="/contact">Contact CQA <span>07</span></Link>
               <div className="menu-panel-actions">
                 <Link href="/login?next=/owner/dashboard" className="button ghost">Owner Login</Link>

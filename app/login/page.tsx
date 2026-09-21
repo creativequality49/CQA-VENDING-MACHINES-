@@ -18,6 +18,23 @@ function LoginForm() {
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
   const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/owner/dashboard";
+  const confirmationUrl = `${typeof window === "undefined" ? "" : window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
+
+  async function resendConfirmation() {
+    setError("");
+    setMessage("");
+    setLoading(true);
+
+    const { error: authError } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: confirmationUrl }
+    });
+
+    if (authError) setError(authError.message);
+    else setMessage("If this address needs confirmation, we sent a fresh confirmation link. Check Inbox and Spam, then return here to log in.");
+    setLoading(false);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -26,11 +43,10 @@ function LoginForm() {
     setLoading(true);
 
     if (mode === "signup") {
-      const emailRedirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
       const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo }
+        options: { emailRedirectTo: confirmationUrl }
       });
       if (authError) {
         setError(authError.message);
@@ -38,7 +54,10 @@ function LoginForm() {
         return;
       }
       if (!data.session) {
-        setMessage("Account created. Check your email and tap Confirm your mail. The link will return you to your CQA dashboard.");
+        const existingAccount = (data.user?.identities?.length ?? 0) === 0;
+        setMessage(existingAccount
+          ? "This email may already have a CQA account. Try Log in, or resend a confirmation link if it has not been confirmed yet."
+          : "Account created. Check your email and tap Confirm your mail. The link will return you to your CQA dashboard.");
         setMode("login");
         setLoading(false);
         return;
@@ -82,7 +101,7 @@ function LoginForm() {
           <input type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" style={{ width: "100%", padding: ".9rem 1rem", borderRadius: 12, border: "1px solid rgba(255,255,255,.14)", background: "rgba(255,255,255,.04)", color: "inherit" }} />
         </label>
         {error ? <div role="alert" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(255,70,100,.4)", background: "rgba(255,70,100,.08)" }}><span className="small">{error}</span></div> : null}
-        {message ? <div role="status" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(80,255,180,.35)", background: "rgba(80,255,180,.07)" }}><span className="small">{message}</span></div> : null}
+        {message ? <div role="status" style={{ display: "grid", gap: ".75rem", padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(80,255,180,.35)", background: "rgba(80,255,180,.07)" }}><span className="small">{message}</span><button className="button ghost" type="button" disabled={loading || !email} onClick={resendConfirmation}>Resend confirmation email</button></div> : null}
         <button className="button primary" type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Working…" : mode === "login" ? "Log in" : "Create owner account"}</button>
       </form>
 
