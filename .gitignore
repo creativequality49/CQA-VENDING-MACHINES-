@@ -1,0 +1,11 @@
+node_modules
+.next
+.env
+.env.local
+.env.*.local
+.DS_Store
+.netlify/
+*.tsbuildinfo
+.env.*
+!.env.example
+npm-debug.log*
