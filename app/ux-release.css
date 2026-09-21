@@ -366,3 +366,23 @@ input:focus,textarea:focus,select:focus{border-color:rgba(0,207,255,.48)!importa
 }
 
 @keyframes cqaV2Shine{0%,72%{left:-90%}86%,100%{left:150%}}
+
+
+/* OWNER WORKSPACE NAV — current markup */
+.owner-workspace-shell{padding-top:16px}
+.owner-workspace-nav{
+  display:flex;align-items:center;gap:18px;padding:11px 13px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(145deg,rgba(18,19,27,.86),rgba(7,8,12,.82));
+  backdrop-filter:blur(22px);box-shadow:0 18px 60px rgba(0,0,0,.28);
+}
+.owner-workspace-brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:max-content}
+.owner-workspace-brand>span{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,rgba(255,0,140,.20),rgba(0,207,255,.10));border:1px solid rgba(255,255,255,.11);font-weight:950;color:#fff;box-shadow:0 0 24px rgba(255,0,140,.10)}
+.owner-workspace-brand strong,.owner-workspace-brand small{display:block}.owner-workspace-brand strong{font-size:10px;letter-spacing:.16em}.owner-workspace-brand small{font-size:8px;color:#7f8390;margin-top:3px}
+.owner-workspace-links{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.owner-workspace-links a{padding:9px 11px;border-radius:11px;color:#b7bac4;font-size:11px;font-weight:800;transition:.18s ease}
+.owner-workspace-links a:hover{background:rgba(255,255,255,.055);color:#fff}
+.owner-workspace-live{display:flex;align-items:center;gap:6px;font-size:7px;letter-spacing:.12em;color:#6cff9b;white-space:nowrap}
+.owner-workspace-live i{width:6px;height:6px;border-radius:50%;background:#58ff8e;box-shadow:0 0 10px #58ff8e}
+@media(max-width:900px){.owner-workspace-nav{align-items:flex-start;flex-wrap:wrap}.owner-workspace-links{order:3;width:100%;overflow:auto;flex-wrap:nowrap;padding-top:4px}.owner-workspace-links a{white-space:nowrap}.owner-workspace-live{margin-left:auto}}
+@media(max-width:560px){.owner-workspace-live{display:none}.owner-workspace-nav{padding:10px}.owner-workspace-brand small{display:none}}
