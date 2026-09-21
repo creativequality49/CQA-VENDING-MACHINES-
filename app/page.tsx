@@ -17,9 +17,12 @@ export default function HomePage() {
         <div className="hero-orb hero-orb-two" />
         <div className="container hero-grid cqa-hero-grid">
           <div className="hero-copy">
-            <span className="eyebrow">CREATIVE QUALITY AUSTRALIA · DIGITAL VENDING ECOSYSTEM</span>
-            <h1>Turn a business into a <span>digital vending machine.</span></h1>
-            <p className="hero-lead">CQA gives businesses a branded, always-on machine for services, bookings, products and subscriptions — with optional AI workers and a private owner dashboard behind it.</p>
+            <span className="eyebrow">CREATIVE QUALITY AUSTRALIA · BUSINESS-IN-A-BOX</span>
+            <h1>Your business. <span>Already built into the machine.</span></h1>
+            <p className="hero-lead">Rent a branded digital vending machine, answer the guided business setup, load products or let CQA AI build the draft for you. Sell products, services, bookings, subscriptions and memberships from one premium storefront.</p>
+            <div className="hero-signal-row" aria-label="CQA platform capabilities">
+              <span>AI AGENTS</span><i /> <span>AUTOMATION</span><i /> <span>REVENUE SYSTEMS</span>
+            </div>
             <div className="hero-actions">
               <Link href="/marketplace" className="button primary">Enter Marketplace</Link>
               <Link href="/onboarding" className="button ghost">Build My Machine</Link>
@@ -31,7 +34,10 @@ export default function HomePage() {
               <div className="proof-item"><strong>1</strong><span>Owner dashboard</span></div>
             </div>
           </div>
-          <div className="hero-machine-wrap"><NeonMachineCard machine={DEMO_MACHINES[1]} compact /></div>
+          <div className="hero-machine-wrap">
+            <div className="hero-machine-label"><span>FLAGSHIP MASTER</span><strong>ACTIVEWEAR VENDING MACHINE</strong><small>Same premium shell · customised for every business</small></div>
+            <NeonMachineCard machine={DEMO_MACHINES[0]} compact />
+          </div>
         </div>
       </section>
 
@@ -60,8 +66,8 @@ export default function HomePage() {
 
       <section className="container section-block">
         <div className="section-heading">
-          <div><span className="eyebrow">Marketplace machines</span><h2>One machine shape. Different brands, categories and colours.</h2></div>
-          <p>The structure stays recognisably CQA while each business gets its own accent, category, offers and branding.</p>
+          <div><span className="eyebrow">THE CQA MACHINE SYSTEM</span><h2>One premium machine architecture. A different business inside every shell.</h2></div>
+          <p>The activewear machine is the locked visual master. Each customer changes the brand, products, services, colours, media and automations — not the CQA machine structure.</p>
         </div>
         <div className="neon-machine-grid">{DEMO_MACHINES.map((machine) => <NeonMachineCard machine={machine} key={machine.slug} />)}</div>
         <div style={{ marginTop: "1.25rem" }}><Link href="/marketplace" className="button ghost">See the full marketplace</Link></div>
@@ -85,11 +91,12 @@ export default function HomePage() {
           <div><span className="eyebrow">Machine plans</span><h2>Choose the operating level. Keep the vending-machine look.</h2></div>
           <Link href="/pricing" className="text-link">Compare all plans →</Link>
         </div>
-        <div className="neon-plan-grid">
+        <div className="neon-plan-grid home-plan-grid">
           {CQA_PLANS.map((plan, index) => {
             const theme = index === 0 ? "pink" : index === 1 ? "cyan" : "gold";
             return (
-              <article className={`neon-plan neon-plan-${theme}`} key={plan.key}>
+              <article className={`neon-plan neon-plan-${theme} ${plan.key === "pro" ? "neon-plan-featured" : ""}`} key={plan.key}>
+                {plan.key === "pro" ? <span className="plan-popular-badge">MOST POPULAR</span> : null}
                 <span className="plan-cap">CQΛ</span>
                 <div className="plan-display"><span>{plan.name.toUpperCase()}</span><strong>{"$"}{plan.price}</strong><small>AUD / MONTH</small></div>
                 <div className="plan-features">

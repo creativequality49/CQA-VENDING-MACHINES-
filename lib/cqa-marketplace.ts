@@ -114,12 +114,48 @@ export const CQA_WORKERS = [
 
 export const DEMO_MACHINES: MarketplaceMachine[] = [
   {
+    id: "demo-activewear",
+    slug: "demo-cqa-activewear",
+    title: "CQA Activewear Machine",
+    subtitle: "Shop performance drops, member clubs and branded essentials from one premium digital machine.",
+    theme: "pink",
+    assistant_enabled: true,
+    template_key: "activewear_master_v1",
+    template_locked: true,
+    layout_version: 1,
+    hero_image_url: null,
+    customization: { masterTemplate: true, visualStyle: "black-glass-neon" },
+    demo: true,
+    business: {
+      id: "demo-business-activewear",
+      name: "CQA Activewear",
+      slug: "cqa-activewear",
+      category: "Fashion · Activewear",
+      description: "Premium activewear, creator-led drops and recurring brand memberships.",
+      location_text: "Australia",
+      logo_url: null,
+      plan: "elite",
+      featured: true,
+      verified: true
+    },
+    offers: [
+      { id: "demo-a1", name: "Performance Leggings", description: "Premium flare and performance leggings.", offer_type: "physical_product", price_cents: 7900, currency: "aud", fulfillment_type: "shipping", shipping_required: true },
+      { id: "demo-a2", name: "CQA Crop Set", description: "Matching activewear crop and bottom set.", offer_type: "physical_product", price_cents: 9900, currency: "aud", fulfillment_type: "shipping", shipping_required: true },
+      { id: "demo-a3", name: "VIP Drop Club", description: "Monthly early access to new drops and member offers.", offer_type: "subscription", price_cents: 1900, currency: "aud", fulfillment_type: "subscription" },
+      { id: "demo-a4", name: "Style Box Membership", description: "Monthly member styling and product bundle access.", offer_type: "subscription", price_cents: 4900, currency: "aud", fulfillment_type: "subscription" },
+      { id: "demo-a5", name: "Premium Brand Club", description: "Priority drops, premium perks and VIP brand access.", offer_type: "subscription", price_cents: 9900, currency: "aud", fulfillment_type: "subscription" },
+      { id: "demo-a6", name: "CQA Accessories", description: "Caps, bags and branded bottles.", offer_type: "physical_product", price_cents: 3900, currency: "aud", fulfillment_type: "shipping", shipping_required: true }
+    ]
+  },
+  {
     id: "demo-plumbing",
     slug: "demo-summit-plumbing",
     title: "Summit Plumbing Machine",
     subtitle: "Book plumbing services, request quotes and organise maintenance in one place.",
     theme: "cyan",
     assistant_enabled: true,
+    template_key: "activewear_master_v1",
+    template_locked: true,
     demo: true,
     business: { id: "demo-business-1", name: "Summit Plumbing Co.", slug: "summit-plumbing", category: "Trades", description: "Residential plumbing and hot-water services.", location_text: "South Australia", logo_url: null, plan: "pro", featured: true, verified: true },
     offers: [
@@ -133,8 +169,10 @@ export const DEMO_MACHINES: MarketplaceMachine[] = [
     slug: "demo-luna-beauty",
     title: "Luna Beauty Machine",
     subtitle: "Appointments, memberships and retail products from one branded storefront.",
-    theme: "pink",
+    theme: "violet",
     assistant_enabled: true,
+    template_key: "activewear_master_v1",
+    template_locked: true,
     demo: true,
     business: { id: "demo-business-2", name: "Luna Beauty Studio", slug: "luna-beauty", category: "Beauty", description: "Beauty appointments, memberships and aftercare products.", location_text: "Adelaide, SA", logo_url: null, plan: "elite", featured: true, verified: true },
     offers: [
@@ -149,6 +187,8 @@ export const DEMO_MACHINES: MarketplaceMachine[] = [
     subtitle: "Sessions, programs and recurring coaching plans.",
     theme: "gold",
     assistant_enabled: true,
+    template_key: "activewear_master_v1",
+    template_locked: true,
     demo: true,
     business: { id: "demo-business-3", name: "Forge Fitness", slug: "forge-fitness", category: "Fitness", description: "Personal training and structured coaching programs.", location_text: "Australia", logo_url: null, plan: "pro", featured: false, verified: true },
     offers: [
@@ -156,7 +196,7 @@ export const DEMO_MACHINES: MarketplaceMachine[] = [
       { id: "demo-f2", name: "Monthly Coaching", description: "Recurring coaching and accountability program.", offer_type: "subscription", price_cents: 14900, currency: "aud" }
     ]
   }
-];
+]
 
 const fallbackUrl = "https://rjxiuukphwybujuclenn.supabase.co";
 const fallbackPublishableKey = "sb_publishable_eycv4056PKiBgUMYrA1sHA_dRCIMMBb";

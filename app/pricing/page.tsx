@@ -7,8 +7,8 @@ export default function PricingPage() {
       <section className="marketplace-neon-hero pricing-neon-hero">
         <div>
           <span className="eyebrow">CQA MACHINE RENTAL</span>
-          <h1>Choose your machine level.</h1>
-          <p>Each plan uses the same premium vending-machine structure. Capacity, fees and operating features increase as the business scales.</p>
+          <h1>Choose how much of the machine CQA builds for you.</h1>
+          <p>Starter gives you the guided shell. Pro turns your answers into an AI-assisted machine draft. Elite prepares the done-for-you business machine for review and launch.</p>
         </div>
         <div className="marketplace-live-panel">
           <span>MONTHLY</span>
@@ -21,7 +21,8 @@ export default function PricingPage() {
         {CQA_PLANS.map((plan, index) => {
           const theme = index === 0 ? "pink" : index === 1 ? "cyan" : "gold";
           return (
-            <article className={`neon-plan neon-plan-${theme} neon-plan-full`} key={plan.key}>
+            <article className={`neon-plan neon-plan-${theme} neon-plan-full ${plan.key === "pro" ? "neon-plan-featured" : ""}`} key={plan.key}>
+              {plan.key === "pro" ? <span className="plan-popular-badge">MOST POPULAR</span> : null}
               <span className="plan-cap">CQΛ</span>
               <div className="plan-display">
                 <span>{plan.name.toUpperCase()}</span>

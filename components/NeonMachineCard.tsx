@@ -17,9 +17,12 @@ export function NeonMachineCard({
 }) {
   const theme = themeClass(machine.theme);
   const visibleOffers = machine.offers.slice(0, compact ? 4 : 6);
+  const isMaster = machine.template_key === "activewear_master_v1" && machine.business.slug === "cqa-activewear";
 
   return (
-    <article className={`neon-machine neon-machine-${theme} ${compact ? "neon-machine-compact" : ""}`}>
+    <article className={`neon-machine neon-machine-${theme} ${compact ? "neon-machine-compact" : ""} ${machine.business.featured ? "neon-machine-featured" : ""} ${isMaster ? "neon-machine-master" : ""}`}>
+      <div className="machine-reflection" aria-hidden="true" />
+      {isMaster ? <span className="machine-master-badge">MASTER TEMPLATE</span> : null}
       <aside className="neon-machine-rail" aria-hidden="true">
         <span className="rail-logo">CQΛ</span>
         <div className="rail-meter">2·5</div>
@@ -34,6 +37,7 @@ export function NeonMachineCard({
       </aside>
 
       <div className="neon-machine-main">
+        <div className="machine-status-strip"><span>24/7 ONLINE</span><i /><span>SECURE CHECKOUT</span><i /><span>AI READY</span></div>
         <header className="neon-machine-header">
           <div>
             <span className="neon-kicker">{machine.business.category}</span>
@@ -74,6 +78,7 @@ export function NeonMachineCard({
             : null}
         </div>
 
+        <div className="machine-floor-glow" aria-hidden="true" />
         <footer className="neon-machine-footer">
           <div>
             <span>SECURE MACHINE</span>
