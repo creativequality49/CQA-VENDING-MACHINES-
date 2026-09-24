@@ -1,73 +1,14 @@
 import Link from "next/link";
-import { NeonMachineCard } from "@/components/NeonMachineCard";
-import { DEMO_MACHINES, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
+import { CQA_PLANS } from "@/lib/cqa-marketplace";
 
-async function getLiveMachines(): Promise<MarketplaceMachine[]> {
-  try {
-    const supabase = getPublicSupabaseClient();
-    const { data, error } = await supabase
-      .from("cqa_machines")
-      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,shipping_required,external_url)")
-      .eq("status", "live")
-      .order("published_at", { ascending: false });
+const workers = [
+  ["Most Popular", "Content Engine Worker", "Create weeks of on-brand content from one idea.", "Creators, coaches, and personal brands", "15 min", "Create Content", "pink"],
+  ["Fastest ROI", "Lead Capture Worker", "Turn website visitors into organized, qualified leads.", "Agencies, consultants, and service businesses", "20 min", "Get Leads", "cyan"],
+  [null, "Sales Follow-Up Worker", "Respond, qualify, and follow up without letting warm leads go cold.", "Digital products and high-ticket offers", "20 min", "Sell Products", "gold"],
+  ["Beginner Friendly", "Social Content Worker", "Turn your expertise into consistent posts for the platforms that matter.", "New creators and lean teams", "10 min", "Create Content", "violet"]
+] as const;
 
-    if (error || !data) return [];
-    return data as unknown as MarketplaceMachine[];
-  } catch {
-    return [];
-  }
-}
-
-export default async function MarketplacePage() {
-  const liveMachines = await getLiveMachines();
-  const machines = liveMachines.length ? liveMachines : DEMO_MACHINES;
-  const demoMode = liveMachines.length === 0;
-  const categories = Array.from(new Set(machines.map((machine) => machine.business.category)));
-
-  return (
-    <main className="container marketplace-page neon-marketplace-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
-      <section className="marketplace-neon-hero">
-        <div>
-          <span className="eyebrow">CQA DIGITAL VENDING MARKETPLACE</span>
-          <h1>Walk into a marketplace of businesses built as machines.</h1>
-          <p>The CQA Activewear machine is the visual master. Every business keeps the premium black-glass vending architecture while changing the brand, products, services, memberships, media and automation behind it.</p>
-        </div>
-        <div className="marketplace-live-panel">
-          <span><i /> MARKETPLACE LIVE</span>
-          <strong>{machines.length}</strong>
-          <small>machines visible</small>
-        </div>
-      </section>
-
-      {demoMode ? (
-        <div className="marketplace-preview-note">
-          <strong>Marketplace preview:</strong> these are demonstration businesses. Approved live businesses appear here automatically after CQA review.
-        </div>
-      ) : null}
-
-      <section className="marketplace-system-strip" aria-label="CQA machine system">
-        <div><span>01</span><strong>CHOOSE A MACHINE</strong><small>Products, services, bookings or memberships</small></div>
-        <div><span>02</span><strong>ENTER THE STOREFRONT</strong><small>Browse the business inside the CQA shell</small></div>
-        <div><span>03</span><strong>BUY OR BOOK</strong><small>Secure payment or enquiry flow</small></div>
-      </section>
-
-      <section className="category-rail neon-category-rail" aria-label="Marketplace categories">
-        <span className="button ghost" style={{ cursor: "default" }}>ALL MACHINES</span>
-        {categories.map((category) => <span key={category} className="button ghost" style={{ cursor: "default" }}>{category.toUpperCase()}</span>)}
-      </section>
-
-      <section className="neon-machine-grid marketplace-machine-grid">
-        {machines.map((machine) => <NeonMachineCard machine={machine} key={machine.slug} />)}
-      </section>
-
-      <section className="final-panel" style={{ marginTop: "2rem" }}>
-        <div>
-          <span className="eyebrow">OWN A BUSINESS?</span>
-          <h2>Put your business inside a CQA machine.</h2>
-          <p>Choose the plan, customise the machine, connect Stripe and manage the operation from your private owner workspace.</p>
-        </div>
-        <Link href="/onboarding" className="button primary">Build My Machine</Link>
-      </section>
-    </main>
-  );
+export default function MarketplacePage() {
+  const startingPrice = Math.min(...CQA_PLANS.map((plan) => plan.price));
+  return <main className="container marketplace-page neon-marketplace-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}><section className="marketplace-neon-hero"><div><span className="eyebrow">CQA AI WORKFORCE</span><h1>Choose Your AI Worker</h1><p>Deploy prebuilt AI systems for the work that creates momentum: content, leads, and sales.</p></div><div className="marketplace-live-panel"><span><i /> READY TO DEPLOY</span><strong>4</strong><small>starter workers</small></div></section><nav className="category-rail neon-category-rail" aria-label="Worker categories">{["All Workers", "Create Content", "Get Leads", "Sell Products", "Customer Support"].map((label, index) => <span className={`button ${index === 0 ? "primary" : "ghost"}`} key={label}>{label}</span>)}</nav><section className="worker-grid marketplace-worker-grid">{workers.map(([badge, title, description, bestFor, setup, filter, accent]) => <article className={`worker-card ${accent}`} key={title}>{badge ? <span className="worker-badge">{badge}</span> : null}<span className="worker-index">{filter}</span><h2>{title}</h2><p>{description}</p><dl><div><dt>Best for</dt><dd>{bestFor}</dd></div><div><dt>Setup time</dt><dd>{setup}</dd></div></dl><strong className="worker-price">From ${startingPrice}/month</strong><Link href="/onboarding" className="card-link">Deploy Worker →</Link></article>)}</section><section className="final-panel" style={{ marginTop: "2rem" }}><div><span className="eyebrow">NEED A STARTING POINT?</span><h2>Not sure where to start?</h2><p>Begin with the Growth Plan and deploy the Worker stack built for momentum.</p></div><Link href="/onboarding?plan=pro" className="button primary">Start With Growth Plan</Link></section></main>;
 }

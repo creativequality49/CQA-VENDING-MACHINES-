@@ -1,60 +1,8 @@
 import Link from "next/link";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
 
+const copy = { starter: { intro: "For getting your first AI Worker live.", features: ["1 AI Worker", "Core automation setup", "Up to 250 monthly automations", "Guided self-setup", "Standard support"], cta: "Start Starter" }, pro: { intro: "For businesses ready to create leads and turn demand into sales.", features: ["Up to 3 AI Workers", "Content, lead generation, and sales workflows", "Up to 1,500 monthly automations", "Priority setup support", "Priority support response"], cta: "Start With Growth Plan" }, elite: { intro: "For teams building an always-on AI operating layer.", features: ["Up to 6 AI Workers", "Advanced workflow customization", "Up to 5,000 monthly automations", "Dedicated onboarding support", "Fastest support SLA"], cta: "Talk to Sales" } } as const;
+
 export default function PricingPage() {
-  return (
-    <main className="container neon-pricing-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
-      <section className="marketplace-neon-hero pricing-neon-hero">
-        <div>
-          <span className="eyebrow">CQA MACHINE RENTAL</span>
-          <h1>Choose how much of the machine CQA builds for you.</h1>
-          <p>Starter gives you the guided shell. Pro turns your answers into an AI-assisted machine draft. Elite prepares the done-for-you business machine for review and launch.</p>
-        </div>
-        <div className="marketplace-live-panel">
-          <span>MONTHLY</span>
-          <strong>3</strong>
-          <small>operating levels</small>
-        </div>
-      </section>
-
-      <section className="neon-plan-grid pricing-plan-grid">
-        {CQA_PLANS.map((plan, index) => {
-          const theme = index === 0 ? "pink" : index === 1 ? "cyan" : "gold";
-          return (
-            <article className={`neon-plan neon-plan-${theme} neon-plan-full ${plan.key === "pro" ? "neon-plan-featured" : ""}`} key={plan.key}>
-              {plan.key === "pro" ? <span className="plan-popular-badge">MOST POPULAR</span> : null}
-              <span className="plan-cap">CQΛ</span>
-              <div className="plan-display">
-                <span>{plan.name.toUpperCase()}</span>
-                <strong>{"$"}{plan.price}</strong>
-                <small>AUD / MONTH</small>
-              </div>
-              <div style={{ padding: "12px 6px 0", textAlign: "center" }}>
-                <strong style={{ color: "var(--plan-accent)", fontSize: ".85rem" }}>{plan.setupMode}</strong>
-                <p className="small" style={{ margin: ".35rem 0 0" }}>{plan.automationLevel}</p>
-              </div>
-              <div className="plan-features">
-                <b>{plan.fee}% CQA marketplace fee</b>
-                <span>{plan.slots}</span>
-                {plan.features.map((feature) => <span key={feature}>✓ {feature}</span>)}
-              </div>
-              <Link href={`/onboarding?plan=${plan.key}`} className="neon-enter-button">CHOOSE {plan.name.toUpperCase()} →</Link>
-            </article>
-          );
-        })}
-      </section>
-
-      <section className="glass-card neon-payment-note" style={{ padding: "1.25rem", marginTop: "1.5rem" }}>
-        <div>
-          <span className="eyebrow">PAYMENT ARCHITECTURE</span>
-          <h2>Machine rental and customer payments stay separate.</h2>
-          <p className="small">CQA bills the business for its machine plan. Customer payments are processed through that business’s connected Stripe account. Stripe processing fees remain separate from CQA fees.</p>
-        </div>
-        <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
-          <Link href="/workers" className="button ghost">See AI worker add-ons</Link>
-          <Link href="/onboarding" className="button primary">Start onboarding</Link>
-        </div>
-      </section>
-    </main>
-  );
+  return <main className="container neon-pricing-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}><section className="marketplace-neon-hero pricing-neon-hero"><div><span className="eyebrow">CQA AI WORKFORCE PLANS</span><h1>Choose the AI Workforce Built for Your Next Stage</h1><p>Start with one Worker, then scale into a revenue system that supports your growth.</p></div><div className="marketplace-live-panel"><span>LAUNCH FAST</span><strong>3</strong><small>growth stages</small></div></section><section className="neon-plan-grid pricing-plan-grid">{CQA_PLANS.map((plan, index) => { const item = copy[plan.key]; const theme = index === 0 ? "pink" : index === 1 ? "cyan" : "gold"; return <article className={`neon-plan neon-plan-${theme} neon-plan-full ${plan.key === "pro" ? "neon-plan-featured" : ""}`} key={plan.key}>{plan.key === "pro" ? <span className="plan-popular-badge">MOST POPULAR</span> : null}<span className="plan-cap">CQΛ</span><div className="plan-display"><span>{plan.key === "pro" ? "GROWTH" : plan.name.toUpperCase()}</span><strong>${plan.price}</strong><small>AUD / MONTH</small></div><p className="plan-intro">{item.intro}</p><div className="plan-features">{item.features.map((feature) => <span key={feature}>✓ {feature}</span>)}</div><Link href={plan.key === "elite" ? "/contact" : `/onboarding?plan=${plan.key}`} className="neon-enter-button">{item.cta} →</Link></article>; })}</section><p className="pricing-reassurance">Launch in under 20 minutes. Upgrade as your workflow grows.</p><section className="faq-section"><span className="eyebrow">FAQ</span><h2>Questions before you deploy?</h2><div className="faq-grid"><article><h3>Do I need technical experience?</h3><p>No. Each Worker is designed for guided setup, with clear steps to connect your brand, offer, and tools.</p></article><article><h3>Can I change plans later?</h3><p>Yes. Upgrade whenever you need more Workers, automations, or support.</p></article><article><h3>What does “AI Worker” mean?</h3><p>An AI Worker is a prebuilt system that handles a specific growth task, such as creating content, capturing leads, or following up with prospects.</p></article><article><h3>How quickly can I launch?</h3><p>Most Workers can be deployed in 10–20 minutes, depending on the integrations you connect.</p></article></div></section></main>;
 }
