@@ -3,6 +3,7 @@ import Link from "next/link";
 export function NavBar() {
   return (
     <>
+      <div className="cqa-announcement">Turn traffic into revenue with deployable AI Workers.</div>
       <header className="site-header cqa-topbar">
         <div className="nav-shell cqa-nav-shell">
           <Link href="/" className="cqa-logo-lockup" aria-label="Creative Quality Australia home">
