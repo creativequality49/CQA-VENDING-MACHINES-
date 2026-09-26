@@ -1,76 +1,52 @@
 import Link from "next/link";
 
-const bots = [
-  ["01","Brand + Content AI","Creates branded content, product copy and campaign assets."],
-  ["02","Sales AI","Qualifies leads, follows up and moves buyers toward checkout."],
-  ["03","Marketing AI","Plans campaigns, social content and repeatable growth workflows."],
-  ["04","Operations AI","Keeps recurring business tasks, handoffs and workflows moving."],
-  ["05","Accounts AI","Organises sales and operational data for cleaner business oversight."],
-  ["06","Support AI","Handles repeat questions and routes customers to the right next step."]
-] as const;
+const products = [
+  ["BAGS","Essential","Functional"],
+  ["PLUS","Sculpting","Styles"],
+  ["TOPS","Premium","Performance"],
+  ["ULTIMATE","Comfort","Lifestyle"],
+];
 
 export default function HomePage() {
-  return <main className="home-page cqa-launch-home">
-    <section className="hero-shell cqa-neon-hero">
-      <div className="container launch-hero">
-        <div className="hero-copy">
-          <span className="eyebrow">CREATIVE QUALITY AUSTRALIA · DIGITAL BUSINESS OS</span>
-          <h1>Your business. <span>Built into a digital vending machine.</span></h1>
-          <p className="hero-lead">CQA combines a customer-facing sales machine with an AI workforce operating behind it. Sell products, subscriptions, services and digital offers while automation handles the repeatable work in the background.</p>
-          <div className="hero-actions"><Link href="/onboarding" className="button primary">Build My Machine</Link><Link href="/marketplace" className="button ghost">Explore Live Machines</Link></div>
-          <div className="launch-proof"><span><b>24/7</b> storefront</span><span><b>6+</b> AI worker roles</span><span><b>1</b> owner workspace</span></div>
-        </div>
-        <div className="launch-machine" aria-label="CQA digital vending machine preview">
-          <div className="launch-machine-top"><span className="launch-cqa">CQΛ</span><span className="launch-online"><i/> SYSTEM ONLINE</span></div>
-          <div className="launch-screen"><small>CREATIVE QUALITY AUSTRALIA</small><strong>DIGITAL BUSINESS<br/>VENDING MACHINE</strong><span>SELL · AUTOMATE · SCALE</span></div>
-          <div className="launch-slots">
-            <div><b>01</b><span>Digital Products</span><small>Instant delivery</small></div><div><b>02</b><span>Subscriptions</span><small>Recurring revenue</small></div>
-            <div><b>03</b><span>Services</span><small>Bookings + leads</small></div><div><b>04</b><span>AI Workforce</span><small>Runs behind the scenes</small></div>
+  return <main className="reference-home">
+    <section className="reference-shell">
+      <header className="brand-banner">
+        <div className="brand-mark">CQ<span>Λ</span></div>
+        <div><b>CREATIVE QUALITY</b><small>AUSTRALIA</small></div>
+      </header>
+
+      <section className="collection">
+        <div className="collection-title"><h1>WOMEN’S <em>ACTIVEWEAR</em> COLLECTION</h1><small>CQA CLOTHING &amp; SHOES</small></div>
+        <div className="machine-stage">
+          <aside className="side-rail left-rail">
+            <div className="rail-card"><b>CQA</b><small>CLOTHING &amp; SHOES</small><p>HIGH PERFORMANCE<br/>WEAR FOR EVERY<br/>YOU</p></div>
+            <div className="shoe-card"><span>◢</span><b>CQA RUNNER</b><small>GIVE IN STYLE.<br/>BE IN CONFIDENCE.</small></div>
+            <div className="seal">CQA<small>APPAREL · FOOTWEAR · ACCESSORIES</small></div>
+          </aside>
+
+          <div className="vending-machine">
+            <div className="machine-left"><b>CQA</b><small>VENDING SYSTEM</small><strong>24</strong><span>ACTIVE<br/>SERVICES</span>{["WORKOUT","NUTRITION","CLOTHING","SHOES","ACCESSORIES"].map(x=><i key={x}>{x}</i>)}</div>
+            <div className="machine-main">
+              <div className="model-window"><div className="model-glow">CQA</div><div className="model-silhouette"><span>CQA</span></div></div>
+              <div className="product-bays">{products.map(([a,b,c])=><div key={a}><strong>{a}</strong><div className="product-shape">CQA</div><b>{b}</b><small>{c}</small></div>)}</div>
+              <div className="choose">CHOOSE YOUR STYLE</div>
+            </div>
           </div>
-          <div className="launch-console"><span>STRIPE READY</span><span>AI READY</span><span>OWNER CONTROLLED</span></div>
+
+          <aside className="side-rail right-rail"><strong>CQA</strong><b>CLOTHING<br/><span>&amp; SHOES</span></b><div className="runner">CQA RUNNER</div></aside>
         </div>
-      </div>
+      </section>
+
+      <section className="ecosystem">
+        <span>VENDING ECOSYSTEM</span>
+        <h2>Turn a business<br/>into a <em>digital</em><br/><strong>vending machine.</strong></h2>
+        <p>CQA gives businesses a branded, always-on machine for services, bookings, products and subscriptions — with optional AI workers and a private owner dashboard behind it.</p>
+        <Link href="/marketplace" className="marketplace-button">Enter Marketplace <b>›</b></Link>
+      </section>
     </section>
-
-    <section className="container section-block launch-demo-section">
-      <div className="section-heading"><div><span className="eyebrow">SEE WHAT YOU ARE BUYING</span><h2>One machine in front. An AI operating system behind it.</h2></div><p>The customer sees a polished storefront. The owner gets the control layer, connected offers and AI workers that support the business.</p></div>
-      <div className="demo-player">
-        <div className="demo-player-bar"><span><i/> CQA PRODUCT DEMO</span><small>LIVE SYSTEM WALKTHROUGH</small></div>
-        <div className="demo-canvas">
-          <div className="demo-customer"><small>CUSTOMER VIEW</small><h3>Your branded vending machine</h3><div className="demo-products"><span>PRODUCT</span><span>MEMBERSHIP</span><span>SERVICE</span></div><b>SECURE CHECKOUT →</b></div>
-          <div className="demo-flow"><span>ORDER</span><i>→</i><span>AUTOMATION</span><i>→</i><span>DELIVERY</span></div>
-          <div className="demo-backend"><small>AI WORKFORCE</small>{["CONTENT","LEADS","SALES","SUPPORT"].map((x,i)=><div key={x}><i/><span>{x} AI</span><b>{i===0?"Creating assets":i===1?"Qualifying":i===2?"Following up":"Responding"}</b></div>)}</div>
-        </div>
-        <div className="demo-timeline"><i/><span>Storefront</span><span>Checkout</span><span>AI workflow</span><span>Owner dashboard</span></div>
-      </div>
-    </section>
-
-    <section className="dark-band"><div className="container section-block">
-      <div className="section-heading compact"><div><span className="eyebrow">YOUR BACKGROUND TEAM</span><h2>AI workers handle the repeatable work while you stay in control.</h2></div></div>
-      <div className="bot-grid">{bots.map(([n,title,copy])=><article key={title}><span>{n}</span><i/><h3>{title}</h3><p>{copy}</p><small>READY TO CONNECT</small></article>)}</div>
-    </div></section>
-
-    <section className="container section-block">
-      <div className="section-heading"><div><span className="eyebrow">WHAT THE CUSTOMER PAYS FOR</span><h2>A working digital business system—not just a website template.</h2></div></div>
-      <div className="value-grid">
-        <article><span>01</span><h3>Branded sales machine</h3><p>A customisable storefront for products, digital downloads, services and subscriptions.</p></article>
-        <article><span>02</span><h3>Owner control centre</h3><p>Manage offers, machine setup, connected services and the workflows running behind your business.</p></article>
-        <article><span>03</span><h3>AI workforce</h3><p>Add the AI roles your plan supports and automate repeatable content, sales, marketing and support tasks.</p></article>
-        <article><span>04</span><h3>Connected commerce</h3><p>Designed around checkout, integrations and fulfilment so the machine can become an operating sales channel.</p></article>
-      </div>
-    </section>
-
-    <section className="container launch-steps">
-      <div><span>STEP 01</span><h3>Choose your plan</h3><p>Select the level of setup and AI support your business needs.</p></div><b>→</b>
-      <div><span>STEP 02</span><h3>Tell CQA your business</h3><p>Brand, offers, colours, products, services and required integrations.</p></div><b>→</b>
-      <div><span>STEP 03</span><h3>Launch your machine</h3><p>Publish the storefront and manage the system from your owner workspace.</p></div>
-    </section>
-
-    <section className="container final-panel launch-final"><div><span className="eyebrow">READY TO BUILD</span><h2>Turn your business into a digital vending machine.</h2><p>Start the CQA setup and build the system around what you actually sell.</p></div><div className="hero-actions"><Link href="/pricing" className="button ghost">View Plans</Link><Link href="/onboarding" className="button primary">Launch My Machine</Link></div></section>
     <style>{`
-      .launch-hero{display:grid;grid-template-columns:1fr .86fr;gap:54px;align-items:center;padding:78px 0 86px}.launch-proof{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}.launch-proof span{padding:10px 13px;border:1px solid var(--border);border-radius:10px;color:#aeb0b8;font-size:11px}.launch-proof b{color:#fff;font-size:15px;margin-right:4px}.launch-machine{position:relative;padding:18px;border-radius:28px;border:1px solid rgba(32,217,255,.4);background:linear-gradient(145deg,#101c28,#05080d 62%);box-shadow:0 40px 90px #000,0 0 55px rgba(32,217,255,.14),inset 0 0 30px rgba(32,217,255,.04)}.launch-machine:before{content:"";position:absolute;inset:7px;border:1px solid rgba(32,217,255,.18);border-radius:21px;pointer-events:none}.launch-machine-top,.launch-console{display:flex;justify-content:space-between;align-items:center;gap:10px}.launch-cqa{font-size:28px;font-weight:950;letter-spacing:-.08em}.launch-online{font-size:9px;color:#71ffac;letter-spacing:.12em}.launch-online i,.demo-player-bar i,.demo-backend i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5dff9a;box-shadow:0 0 10px #5dff9a;margin-right:6px}.launch-screen{margin:15px 0 10px;padding:24px;border-radius:15px;border:1px solid rgba(215,181,109,.42);background:radial-gradient(circle at 80% 10%,rgba(215,181,109,.18),transparent 38%),#07080b}.launch-screen>*{display:block}.launch-screen small{font-size:8px;letter-spacing:.18em;color:#e3c47f}.launch-screen strong{font-size:25px;line-height:1.08;margin:10px 0}.launch-screen span{font-size:8px;letter-spacing:.18em;color:#8b8e98}.launch-slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}.launch-slots div{min-height:100px;padding:13px;border-radius:12px;border:1px solid rgba(32,217,255,.18);background:linear-gradient(145deg,#091621,#070b11);display:flex;flex-direction:column}.launch-slots b{font-size:9px;color:#36dcff}.launch-slots span{font-weight:850;margin-top:auto}.launch-slots small{font-size:9px;color:#777b85;margin-top:4px}.launch-console{margin-top:10px;padding:12px;border-top:1px solid var(--border);font-size:7px;letter-spacing:.12em;color:#8f929c}.demo-player{border:1px solid rgba(32,217,255,.25);border-radius:25px;background:linear-gradient(160deg,#07111b,#04070b);overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.4)}.demo-player-bar{display:flex;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:.14em}.demo-player-bar small{color:#747782}.demo-canvas{min-height:430px;padding:28px;display:grid;grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;background:radial-gradient(circle at center,rgba(32,217,255,.08),transparent 35%)}.demo-customer,.demo-backend{padding:22px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,#0a1621,#080c12)}.demo-customer small,.demo-backend>small{font-size:8px;letter-spacing:.15em;color:#e3c47f}.demo-customer h3{font-size:25px;margin:9px 0 20px}.demo-products{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}.demo-products span{padding:24px 6px;border:1px solid rgba(215,181,109,.18);border-radius:8px;text-align:center;font-size:7px;background:rgba(19,215,232,.05)}.demo-customer>b{display:block;padding:10px;border-radius:8px;text-align:center;background:#16cfe1;font-size:8px}.demo-flow{display:flex;flex-direction:column;gap:9px;align-items:center}.demo-flow span{font-size:7px;padding:8px;border:1px solid rgba(32,217,255,.3);border-radius:99px;color:#55e4ff}.demo-flow i{font-style:normal;color:#565b65;transform:rotate(90deg)}.demo-backend{display:grid;gap:8px}.demo-backend div{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:7px;padding:9px;border-radius:9px;background:#080a0d}.demo-backend div span{font-size:9px;font-weight:850}.demo-backend div b{font-size:8px;color:#8a8e98}.demo-timeline{display:grid;grid-template-columns:40px repeat(4,1fr);gap:10px;align-items:center;padding:13px 18px;border-top:1px solid var(--border);font-size:8px;color:#858994}.demo-timeline>i{height:3px;background:#20d9ff;border-radius:99px;box-shadow:0 0 12px #20d9ff}.bot-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.bot-grid article,.value-grid article{position:relative;padding:22px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(145deg,#0b1721,#080c12)}.bot-grid article>span,.value-grid article>span{font-size:9px;color:#3ddfff;font-weight:900}.bot-grid article>i{position:absolute;right:18px;top:18px;width:7px;height:7px;border-radius:50%;background:#5dff9a;box-shadow:0 0 9px #5dff9a}.bot-grid h3,.value-grid h3{font-size:20px;margin:24px 0 8px}.bot-grid p,.value-grid p{color:#999ca6;line-height:1.55;font-size:13px}.bot-grid small{display:block;margin-top:18px;color:#5dff9a;font-size:7px;letter-spacing:.12em}.value-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.launch-steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:22px;align-items:center;padding:15px 0 90px}.launch-steps>div{padding:22px;border-top:1px solid rgba(215,181,109,.42)}.launch-steps>div span{font-size:8px;color:#e3c47f;letter-spacing:.14em}.launch-steps h3{margin:10px 0 7px}.launch-steps p{color:#91949e;font-size:12px;line-height:1.5}.launch-steps>b{color:#3ddfff}.launch-final{margin-bottom:90px}.launch-final .hero-actions{margin:0}
-      @media(max-width:900px){.launch-hero{grid-template-columns:1fr}.demo-canvas{grid-template-columns:1fr}.demo-flow{flex-direction:row;justify-content:center}.demo-flow i{transform:none}.bot-grid{grid-template-columns:repeat(2,1fr)}.value-grid{grid-template-columns:repeat(2,1fr)}.launch-steps{grid-template-columns:1fr}.launch-steps>b{display:none}}
-      @media(max-width:560px){.launch-hero{padding:52px 0 64px}.launch-proof{display:grid;grid-template-columns:1fr 1fr}.launch-slots{grid-template-columns:1fr 1fr}.demo-canvas{padding:14px;min-height:0}.demo-products{grid-template-columns:1fr}.demo-timeline{grid-template-columns:1fr 1fr}.demo-timeline>i{display:none}.bot-grid,.value-grid{grid-template-columns:1fr}.launch-console{flex-wrap:wrap}.launch-steps{padding-bottom:65px}}
+      .reference-home{background:#020304;color:#fff;min-height:100vh;padding-bottom:90px}.reference-shell{max-width:980px;margin:auto;background:#030303;overflow:hidden}.brand-banner{height:190px;display:flex;align-items:center;justify-content:center;gap:22px;background:radial-gradient(circle at 50% 50%,rgba(19,215,232,.14),transparent 34%),linear-gradient(90deg,#06111b,#020304 35%,#020304 65%,#06111b);border-bottom:1px solid rgba(19,215,232,.2);position:relative}.brand-banner:before,.brand-banner:after{content:"";position:absolute;width:18%;height:100%;top:0;background:linear-gradient(135deg,rgba(19,215,232,.15),transparent 55%);border-inline:1px solid rgba(227,196,127,.2)}.brand-banner:before{left:3%}.brand-banner:after{right:3%;transform:scaleX(-1)}.brand-mark{font-size:72px;font-weight:1000;letter-spacing:-.12em;font-style:italic;text-shadow:0 0 20px rgba(255,255,255,.3)}.brand-mark span{color:#20d9ff;text-shadow:0 0 20px #20d9ff}.brand-banner div:last-child{display:flex;flex-direction:column;letter-spacing:.34em}.brand-banner b{font-size:17px}.brand-banner small{color:#e3c47f;text-align:center;margin-top:8px;letter-spacing:.55em}.collection{padding:38px 24px 26px}.collection-title{text-align:center;border-inline:2px solid #20d9ff;margin-bottom:22px}.collection-title h1{font-size:43px;line-height:1;margin:0;font-style:italic;font-weight:950}.collection-title em{color:#20d9ff;font-style:italic}.collection-title small{display:block;margin-top:10px;letter-spacing:.42em;font-size:10px}.machine-stage{display:grid;grid-template-columns:140px 1fr 140px;gap:14px}.side-rail{display:flex;flex-direction:column;gap:14px}.rail-card,.shoe-card,.seal,.right-rail{border:1px solid rgba(19,215,232,.4);border-radius:14px;padding:14px;background:#071018;box-shadow:inset 0 0 20px rgba(19,215,232,.05)}.rail-card b{font-size:28px;color:#20d9ff}.rail-card small{display:block;font-size:7px}.rail-card p{font-size:10px;color:#e3c47f;line-height:1.5;margin-top:25px}.shoe-card{min-height:180px;display:flex;flex-direction:column;justify-content:flex-end}.shoe-card span{font-size:54px;color:#20d9ff;transform:rotate(-20deg);margin:auto}.shoe-card b{font-size:9px}.shoe-card small{font-size:9px;color:#e3c47f;margin-top:18px}.seal{border-radius:50%;aspect-ratio:1;display:grid;place-items:center;text-align:center;color:#e3c47f;font-weight:900}.seal small{font-size:6px}.vending-machine{border:2px solid #20d9ff;border-radius:26px;padding:14px;display:grid;grid-template-columns:90px 1fr;background:linear-gradient(145deg,#08141f,#020406);box-shadow:0 0 18px #20d9ff,0 0 48px rgba(19,215,232,.25),inset 0 0 25px rgba(19,215,232,.12)}.machine-left{border:1px solid rgba(227,196,127,.35);border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:7px;text-align:center}.machine-left>b{color:#e3c47f;font-size:21px}.machine-left small{font-size:6px}.machine-left strong{font-size:27px;color:#20d9ff;margin-top:4px}.machine-left span{font-size:7px}.machine-left i{font-style:normal;font-size:6px;border:1px solid #243747;border-radius:5px;padding:7px 2px}.machine-main{padding-left:12px}.model-window{height:270px;border:2px solid #e3c47f;border-radius:18px;background:radial-gradient(circle at center,#123148,#05080d 65%);position:relative;overflow:hidden;box-shadow:inset 0 0 25px rgba(227,196,127,.14)}.model-glow{position:absolute;right:16px;top:12px;font-size:28px;color:#e3c47f;font-weight:950;text-shadow:0 0 12px #e3c47f}.model-silhouette{position:absolute;width:42%;height:78%;left:29%;bottom:-8%;border-radius:45% 45% 12% 12%;background:linear-gradient(#d9b18c 0 24%,#080b0e 25% 100%);box-shadow:0 0 40px rgba(19,215,232,.2)}.model-silhouette span{position:absolute;top:38%;width:100%;text-align:center;color:#20d9ff;font-weight:900}.product-bays{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}.product-bays>div{border:1px solid rgba(19,215,232,.5);border-radius:8px;text-align:center;overflow:hidden;background:#071018}.product-bays strong{display:block;background:#20d9ff;color:#001015;font-size:7px;padding:4px}.product-shape{height:62px;display:grid;place-items:center;font-size:9px;color:#e3c47f}.product-bays b,.product-bays small{display:block;font-size:6px}.choose{text-align:center;font-size:8px;letter-spacing:.18em;margin-top:7px;color:#e3c47f}.right-rail{align-items:center;justify-content:center;text-align:center}.right-rail>strong{writing-mode:vertical-rl;font-size:52px;letter-spacing:.05em;color:#20d9ff;text-shadow:0 0 12px #20d9ff}.right-rail>b{font-size:15px;margin-top:18px}.right-rail b span{color:#e3c47f}.runner{margin-top:auto;border-top:1px solid #243747;padding-top:14px;font-size:8px}.ecosystem{padding:46px 58px 54px;background:radial-gradient(circle at 90% 40%,rgba(19,215,232,.12),transparent 32%),radial-gradient(circle at 10% 100%,rgba(227,196,127,.09),transparent 35%),#030405;border-top:1px solid rgba(19,215,232,.22)}.ecosystem>span{color:#20d9ff;letter-spacing:.17em;font-weight:850}.ecosystem h2{font-size:67px;line-height:.94;letter-spacing:-.045em;margin:20px 0 28px}.ecosystem h2 em{font-family:Georgia,serif;font-weight:400;color:#e3c47f}.ecosystem h2 strong{color:#20d9ff}.ecosystem p{font-size:21px;line-height:1.45;color:#d6d8dc;max-width:790px}.marketplace-button{margin-top:28px;min-height:76px;border-radius:999px;background:linear-gradient(90deg,#0fbfd3,#1d7fd8,#c7a85e);display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:900;text-decoration:none;box-shadow:0 0 32px rgba(19,215,232,.25)}.marketplace-button b{font-size:42px;margin-left:16px}
+      @media(max-width:700px){.reference-shell{width:100%}.brand-banner{height:112px}.brand-mark{font-size:45px}.brand-banner b{font-size:10px}.brand-banner small{font-size:7px}.collection{padding:24px 10px 18px}.collection-title h1{font-size:25px}.machine-stage{grid-template-columns:70px 1fr 70px;gap:6px}.rail-card,.shoe-card,.seal,.right-rail{padding:7px;border-radius:8px}.rail-card b{font-size:15px}.rail-card p{font-size:6px;margin-top:12px}.shoe-card{min-height:115px}.shoe-card span{font-size:30px}.shoe-card small{font-size:5px}.seal{font-size:10px}.vending-machine{grid-template-columns:55px 1fr;padding:7px;border-radius:14px}.machine-left{padding:5px;gap:4px}.machine-left>b{font-size:12px}.machine-left strong{font-size:17px}.machine-left i{font-size:4px;padding:4px 1px}.machine-main{padding-left:6px}.model-window{height:170px;border-radius:10px}.model-glow{font-size:17px;right:8px}.product-bays{gap:3px}.product-shape{height:37px}.right-rail>strong{font-size:28px}.right-rail>b{font-size:8px}.ecosystem{padding:32px 28px 42px}.ecosystem>span{font-size:12px}.ecosystem h2{font-size:45px;margin:14px 0 22px}.ecosystem p{font-size:17px}.marketplace-button{min-height:64px;font-size:20px;margin-top:24px}}
     `}</style>
-  </main>;
+  </main>
 }
