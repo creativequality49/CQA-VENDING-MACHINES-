@@ -1,5 +1,6 @@
 import "server-only";
 import Stripe from "stripe";
+import { Resend } from "resend";
 import { CQA_PLANS, CQA_WORKERS, type PlanKey } from "@/lib/cqa-marketplace";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { getStripeClient } from "@/lib/stripe";
@@ -41,6 +42,22 @@ function normaliseSubscriptionStatus(status: Stripe.Subscription.Status): CqaBil
 function currentPeriodEnd(subscription: Stripe.Subscription) {
   const value = subscription.current_period_end;
   return value ? new Date(value * 1000).toISOString() : null;
+}
+
+async function sendMachineAccessEmail(session: Stripe.Checkout.Session) {
+  const email = session.customer_details?.email || session.customer_email;
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.CQA_AUTOMATION_FROM_EMAIL || process.env.CQA_EMAIL_FROM;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (!email || !apiKey || !from || !siteUrl) return;
+
+  const result = await new Resend(apiKey).emails.send({
+    from,
+    to: email,
+    subject: "Your CQA machine workspace is ready",
+    text: `Thanks for activating your CQA machine. Sign in to your secure owner workspace to complete the AI-guided setup: ${siteUrl}/owner/setup\n\nYour machine remains private while you complete setup and CQA review.`
+  });
+  if (result.error) console.error("[cqa-billing] machine-access email failed", result.error.message);
 }
 
 async function syncPlanSubscription(subscription: Stripe.Subscription) {
@@ -149,6 +166,8 @@ async function recordCheckoutSession(session: Stripe.Checkout.Session) {
     if (kind === "plan") await syncPlanSubscription(subscription);
     else await syncWorkerSubscription(subscription);
   }
+
+  if (kind === "plan") await sendMachineAccessEmail(session);
 
   return true;
 }
