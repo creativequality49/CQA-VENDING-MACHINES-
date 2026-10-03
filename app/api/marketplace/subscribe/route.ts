@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
-import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
-import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
 
 const schema = z.object({
   machineSlug: z.string().min(1).max(100),
@@ -16,28 +14,28 @@ export async function POST(req: Request) {
   try {
     const payload = schema.parse(await req.json());
     const publicClient = getPublicSupabaseClient();
-    const { data: machine, error: machineError } = await publicClient.from("cqa_machines").select("id,business_id,status").eq("slug", payload.machineSlug).eq("status", "live").single();
-    if (machineError || !machine) return NextResponse.json({ error: "This business machine is not available." }, { status: 404 });
 
-    const admin = getCqaSupabaseAdmin();
-    const email = payload.email.trim().toLowerCase();
-    const tags = Array.from(new Set([...(payload.tags || []), "subscriber"]));
-    const { data: contact, error } = await admin.from("cqa_contacts").upsert({
-      business_id: machine.business_id,
-      email,
-      name: payload.name?.trim() || null,
-      status: "subscribed",
-      tags,
-      source: payload.source?.trim() || "machine_optin",
-      metadata: { machine_id: machine.id },
-      updated_at: new Date().toISOString()
-    }, { onConflict: "business_id,email" }).select("id").single();
-    if (error || !contact) return NextResponse.json({ error: "Unable to save this subscription." }, { status: 500 });
+    const { error } = await publicClient.rpc("cqa_machine_subscribe", {
+      p_machine_slug: payload.machineSlug,
+      p_email: payload.email.trim().toLowerCase(),
+      p_name: payload.name?.trim() || null,
+      p_source: payload.source?.trim() || "machine_optin",
+      p_tags: payload.tags || []
+    });
 
-    void triggerBusinessAutomations(machine.business_id, "new_contact", { machineId: machine.id, source: payload.source || "machine_optin" }, contact.id).catch((automationError) => console.error("[automation] new_contact trigger failed", automationError));
+    if (error) {
+      if (error.message?.includes("machine unavailable")) {
+        return NextResponse.json({ error: "This business machine is not available." }, { status: 404 });
+      }
+      console.error("[cqa-subscribe] secure RPC failed", error.message);
+      return NextResponse.json({ error: "Unable to save this subscription." }, { status: 500 });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (error instanceof z.ZodError) return NextResponse.json({ error: error.issues[0]?.message || "Invalid subscription." }, { status: 400 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues[0]?.message || "Invalid subscription." }, { status: 400 });
+    }
     return NextResponse.json({ error: "Unable to subscribe right now." }, { status: 500 });
   }
 }
