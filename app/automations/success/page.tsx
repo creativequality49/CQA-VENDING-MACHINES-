@@ -8,9 +8,9 @@ export default function AutomationSuccessPage() {
   return (
     <main className="container" style={{ paddingTop: "4rem", paddingBottom: "6rem" }}>
       <section className="glass-card" style={{ maxWidth: 760, margin: "0 auto", padding: "2rem" }}>
-        <span className="eyebrow">PAYMENT RECEIVED</span>
-        <h1>Your CQA automation purchase is confirmed.</h1>
-        <p>Stripe has completed your secure checkout. Keep the Stripe email receipt for your records.</p>
+        <span className="eyebrow">CHECKOUT COMPLETED</span>
+        <h1>Your CQA automation checkout is complete.</h1>
+        <p>Stripe has received your checkout. Card payments usually confirm immediately; delayed payment methods can confirm separately. Keep the Stripe email receipt for your records.</p>
         <p className="small">Next, send CQA the business details, workflow requirements and systems you want connected so implementation can be scoped against the automation you purchased.</p>
         <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap", marginTop: "1rem" }}>
           <Link href="/contact" className="button primary">Send My Implementation Brief</Link>
