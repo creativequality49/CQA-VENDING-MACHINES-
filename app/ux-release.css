@@ -423,3 +423,288 @@ input:focus,textarea:focus,select:focus{border-color:rgba(0,207,255,.48)!importa
 .button.primary:active{
   background:linear-gradient(115deg,#08c9dc 0%,#076fa8 48%,#052b4b 100%)!important;
 }
+
+
+/* === CQA AQUA FLOATING-TILE SYSTEM V3 — 2026-10-03 === */
+/*
+  Global CQA shell refresh.
+  The CQA marketing/owner interface uses aqua + deep navy only.
+  Customer machine theme choices remain untouched.
+*/
+:root{
+  --cqa-pink:#24e6f2;
+  --cqa-cyan:#24e6f2;
+  --cqa-violet:#087bb9;
+  --cqa-gold:#55dff5;
+  --cqa-aqua:#24e6f2;
+  --cqa-aqua-soft:#6cf4ff;
+  --cqa-blue:#087bb9;
+  --cqa-blue-deep:#052a49;
+  --cqa-navy:#061019;
+  --cqa-panel:#08151d;
+  --cqa-panel-2:#0a1b26;
+  --cqa-line:rgba(91,226,255,.20);
+  --cqa-shadow:0 28px 72px rgba(0,0,0,.52),0 0 30px rgba(36,230,242,.055);
+}
+
+html{background:#03090e}
+body{
+  background:
+    radial-gradient(circle at 10% -4%,rgba(36,230,242,.12),transparent 28%),
+    radial-gradient(circle at 92% 8%,rgba(8,123,185,.16),transparent 30%),
+    radial-gradient(circle at 50% 110%,rgba(14,79,119,.11),transparent 38%),
+    linear-gradient(180deg,#03090e 0%,#061019 48%,#03080d 100%)!important;
+  background-attachment:fixed!important;
+}
+body:before{
+  opacity:.22!important;
+  background-image:
+    linear-gradient(rgba(91,226,255,.028) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(91,226,255,.028) 1px,transparent 1px)!important;
+  background-size:36px 36px!important;
+}
+
+/* Header, logo, menu and mobile dock */
+.site-header,.cqa-topbar{
+  background:rgba(3,10,16,.78)!important;
+  border-bottom:1px solid rgba(91,226,255,.13)!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.38)!important;
+}
+.cqa-announcement{
+  background:linear-gradient(90deg,#04111a,#062337 50%,#04111a)!important;
+  border-bottom-color:rgba(91,226,255,.14)!important;
+  color:#dffbff!important;
+}
+.brand-mark,.cqa-logo-mark{
+  background:linear-gradient(145deg,#14dce9 0%,#087bb9 52%,#052a49 100%)!important;
+  border-color:rgba(108,244,255,.35)!important;
+  box-shadow:0 0 30px rgba(36,230,242,.18),inset 0 1px rgba(255,255,255,.22)!important;
+}
+.cqa-logo-mark i,.cqa-logo-copy strong{color:#eefdff!important}
+.cqa-logo-copy small{color:#70dff0!important}
+.cqa-dashboard-link{
+  border-color:rgba(91,226,255,.34)!important;
+  background:linear-gradient(145deg,rgba(36,230,242,.12),rgba(5,42,73,.22))!important;
+}
+.cqa-menu-trigger{
+  border-color:rgba(91,226,255,.38)!important;
+  background:linear-gradient(145deg,rgba(36,230,242,.12),rgba(5,42,73,.42))!important;
+  box-shadow:inset 0 0 22px rgba(36,230,242,.07),0 0 24px rgba(36,230,242,.08)!important;
+}
+.cqa-menu-panel{
+  background:
+    radial-gradient(circle at 88% 0%,rgba(36,230,242,.13),transparent 30%),
+    linear-gradient(160deg,rgba(8,24,34,.98),rgba(3,9,14,.985) 72%)!important;
+  border-color:rgba(91,226,255,.23)!important;
+  box-shadow:0 34px 100px rgba(0,0,0,.72),0 0 58px rgba(36,230,242,.09)!important;
+}
+.cqa-menu-panel>a:not(.button):hover{
+  background:linear-gradient(90deg,rgba(36,230,242,.12),rgba(8,123,185,.05))!important;
+}
+.mobile-dock{
+  border-color:rgba(91,226,255,.22)!important;
+  background:linear-gradient(180deg,rgba(7,22,31,.96),rgba(3,10,16,.97))!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.62),0 0 25px rgba(36,230,242,.06)!important;
+}
+.mobile-dock a:hover,.mobile-dock a:focus{
+  background:linear-gradient(145deg,rgba(36,230,242,.13),rgba(8,123,185,.08))!important;
+}
+
+/* Brand accents */
+.eyebrow,.hero-copy .eyebrow,.worker-index,.worker-steps span,.worker-trust i,
+.marketplace-neon-hero .eyebrow,.pricing-neon-hero .eyebrow{
+  color:#61eff9!important;
+}
+.hero-signal-row i{
+  background:#24e6f2!important;
+  box-shadow:0 0 14px rgba(36,230,242,.72)!important;
+}
+.hero-copy h1 span,.worker-hero h1 span{
+  background:linear-gradient(90deg,#ffffff 0%,#8ff8ff 34%,#24e6f2 62%,#158fc7 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  color:transparent!important;
+  filter:drop-shadow(0 0 25px rgba(36,230,242,.11))!important;
+}
+
+/* Primary/secondary actions */
+.button.primary,.activewear-cta,.neon-enter-button{
+  color:#fff!important;
+  background:linear-gradient(115deg,#20e4ee 0%,#0798c9 46%,#06365f 100%)!important;
+  border-color:rgba(108,244,255,.38)!important;
+  box-shadow:0 16px 42px rgba(0,152,204,.22),0 0 22px rgba(36,230,242,.07),inset 0 1px rgba(255,255,255,.15)!important;
+}
+.button.primary:hover,.button.primary:focus-visible,.activewear-cta:hover,.neon-enter-button:hover{
+  background:linear-gradient(115deg,#55f1f6 0%,#0aa9d8 46%,#074776 100%)!important;
+  border-color:rgba(145,249,255,.58)!important;
+  box-shadow:0 20px 52px rgba(0,169,220,.29),0 0 34px rgba(36,230,242,.12),inset 0 1px rgba(255,255,255,.18)!important;
+}
+.button.ghost{
+  border-color:rgba(91,226,255,.18)!important;
+  background:linear-gradient(145deg,rgba(11,35,48,.66),rgba(5,14,22,.72))!important;
+}
+.text-link,.card-link{color:#65eff8!important}
+
+/* Core floating-tile visual language — shared across public + owner pages */
+.glass-card,
+.worker-card,.worker-market-card,.worker-price-card,
+.final-panel,
+.marketplace-neon-hero,
+.marketplace-live-panel,
+.faq-grid article,
+.process-card,.flow-card,
+.integration-card,.integrations-stripe,.custom-connection-form,.integration-next,
+.setup-hero,.setup-chat,.setup-panel,.setup-build-panel,.setup-machine-summary,
+.machine-assistant-panel,
+.revenue-stack>div,
+.proof-item{
+  border:1px solid rgba(91,226,255,.18)!important;
+  background:
+    linear-gradient(145deg,rgba(13,35,47,.88),rgba(5,13,21,.94) 58%,rgba(3,9,15,.97))!important;
+  box-shadow:
+    0 24px 66px rgba(0,0,0,.48),
+    0 0 28px rgba(36,230,242,.045),
+    inset 0 1px rgba(255,255,255,.065)!important;
+  backdrop-filter:blur(20px) saturate(125%)!important;
+}
+.glass-card,
+.worker-card,.worker-market-card,.worker-price-card,
+.final-panel,.marketplace-neon-hero,.integration-card,
+.setup-chat,.setup-panel,.setup-build-panel,.setup-machine-summary{
+  position:relative;
+  transform:translateZ(0);
+  transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease!important;
+}
+.glass-card:hover,
+.worker-card:hover,.worker-market-card:hover,.worker-price-card:hover,
+.integration-card:hover,.setup-panel:hover{
+  transform:translateY(-6px);
+  border-color:rgba(108,244,255,.34)!important;
+  box-shadow:
+    0 34px 88px rgba(0,0,0,.58),
+    0 0 42px rgba(36,230,242,.075),
+    inset 0 1px rgba(255,255,255,.08)!important;
+}
+.glass-card:before{
+  background:linear-gradient(90deg,transparent,rgba(108,244,255,.30),transparent)!important;
+}
+.marketplace-neon-hero{
+  background:
+    radial-gradient(circle at 86% 18%,rgba(36,230,242,.16),transparent 31%),
+    radial-gradient(circle at 72% 110%,rgba(8,123,185,.10),transparent 35%),
+    linear-gradient(145deg,#0b202c,#040b12 70%)!important;
+}
+.marketplace-live-panel{
+  border-color:rgba(91,226,255,.30)!important;
+}
+.worker-badge{
+  background:rgba(36,230,242,.10)!important;
+  border-color:rgba(91,226,255,.34)!important;
+  color:#8af7ff!important;
+}
+.worker-hero{
+  background:
+    radial-gradient(circle at 75% 15%,rgba(36,230,242,.15),transparent 28%),
+    radial-gradient(circle at 24% 58%,rgba(8,123,185,.14),transparent 32%),
+    #061019!important;
+}
+.worker-final{
+  background:
+    radial-gradient(circle at 80% 20%,rgba(36,230,242,.13),transparent 40%),
+    linear-gradient(135deg,rgba(8,123,185,.16),rgba(255,255,255,.025))!important;
+}
+.worker-card.pink,.worker-card.violet,.worker-card.gold,.worker-card.cyan{
+  border-color:rgba(91,226,255,.20)!important;
+}
+
+/* Pricing tiles */
+.neon-plan{
+  --plan-accent:#24e6f2!important;
+  --plan-rgb:36,230,242!important;
+  border-color:rgba(91,226,255,.22)!important;
+  background:linear-gradient(150deg,#102b39 0%,#07151e 16%,#040a10 80%,#0b2534 100%)!important;
+  box-shadow:0 28px 72px rgba(0,0,0,.54),0 0 28px rgba(36,230,242,.055)!important;
+}
+.neon-plan:hover,.neon-plan-featured{
+  border-color:rgba(108,244,255,.48)!important;
+  box-shadow:0 44px 100px rgba(0,0,0,.66),0 0 60px rgba(36,230,242,.14),inset 0 0 28px rgba(36,230,242,.045)!important;
+}
+.plan-popular-badge,.machine-master-badge{
+  background:linear-gradient(110deg,#24e6f2,#0787c8 55%,#052a49)!important;
+  box-shadow:0 0 30px rgba(36,230,242,.18)!important;
+}
+.plan-display span{color:#8ef7ff!important}
+
+/* Hero + vending visual */
+.cqa-neon-hero{
+  background:
+    radial-gradient(circle at 72% 35%,rgba(36,230,242,.15),transparent 25%),
+    radial-gradient(circle at 86% 66%,rgba(8,123,185,.13),transparent 25%),
+    radial-gradient(circle at 10% 5%,rgba(36,230,242,.07),transparent 28%),
+    linear-gradient(180deg,#03090e,#061019)!important;
+}
+.neon-machine,.vending-shell,.machine-detail-shell{
+  border-color:rgba(91,226,255,.24)!important;
+  background:linear-gradient(145deg,#18323f 0%,#09141c 14%,#03080d 80%,#102b39 100%)!important;
+  box-shadow:0 48px 115px rgba(0,0,0,.72),0 0 54px rgba(36,230,242,.09),inset 0 1px rgba(255,255,255,.11)!important;
+}
+.neon-machine-master{
+  box-shadow:0 58px 130px rgba(0,0,0,.76),0 0 90px rgba(36,230,242,.12),0 0 42px rgba(8,123,185,.10)!important;
+}
+.neon-machine-screen,.machine-detail-screen{
+  background:
+    radial-gradient(circle at 72% 10%,rgba(36,230,242,.12),transparent 43%),
+    linear-gradient(145deg,#07141c,#0b202b)!important;
+}
+.machine-theme-pink,.machine-theme-violet,.machine-theme-gold,.machine-theme-cyan{
+  --machine-accent:#24e6f2;
+  --machine-accent-rgb:36,230,242;
+}
+
+/* Forms and focus */
+input:focus,textarea:focus,select:focus{
+  border-color:rgba(91,226,255,.58)!important;
+  box-shadow:0 0 0 4px rgba(36,230,242,.09)!important;
+}
+
+/* Activewear/demo surface follows CQA shell when shown inside the main site */
+.activewear-home,.activewear-shell{background:#03090e!important}
+.activewear-brand{
+  background:
+    radial-gradient(circle at center,rgba(36,230,242,.22),transparent 43%),
+    linear-gradient(100deg,#082335,#03090e 46%,#071a29)!important;
+  border-bottom-color:rgba(91,226,255,.35)!important;
+}
+.activewear-brand>strong span,.activewear-rail span,
+.activewear-title em,.activewear-rail i,
+.activewear-ecosystem h2 em,.activewear-ecosystem h2 strong{
+  color:#42e8f2!important;
+  text-shadow:0 0 15px rgba(36,230,242,.35)!important;
+}
+.activewear-brand small,.activewear-title small,.activewear-bays b,.activewear-ecosystem>span{
+  color:#8bf7ff!important;
+}
+.activewear-title{border-inline-color:#24e6f2!important}
+.activewear-rail,.activewear-showcase,.activewear-bays div{
+  border-color:rgba(91,226,255,.55)!important;
+  background:linear-gradient(160deg,#082333,#03090e)!important;
+  box-shadow:inset 0 0 25px rgba(36,230,242,.08),0 0 18px rgba(36,230,242,.08)!important;
+}
+.activewear-image{border-color:#46ebf4!important;box-shadow:inset 0 0 35px rgba(36,230,242,.16)!important}
+.activewear-ecosystem{
+  background:
+    radial-gradient(circle at 85% 15%,rgba(36,230,242,.20),transparent 32%),
+    radial-gradient(circle at 8% 100%,rgba(8,123,185,.13),transparent 35%),
+    #041018!important;
+  border-top-color:rgba(91,226,255,.34)!important;
+}
+
+/* Mobile: keep the floating effect crisp without oversized shadows */
+@media(max-width:760px){
+  .glass-card,.worker-card,.worker-market-card,.worker-price-card,
+  .marketplace-neon-hero,.final-panel,.neon-plan{
+    box-shadow:0 18px 44px rgba(0,0,0,.52),0 0 20px rgba(36,230,242,.04)!important;
+  }
+  .glass-card:hover,.worker-card:hover,.worker-market-card:hover,.worker-price-card:hover,
+  .integration-card:hover,.setup-panel:hover{transform:none}
+}
