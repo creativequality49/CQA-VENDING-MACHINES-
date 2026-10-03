@@ -11,16 +11,24 @@ const workerMeta: Record<string, { area: string; outputs: string[] }> = {
 };
 
 export default function WorkersPage() {
+  const aiReady = Boolean(
+    (process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY) &&
+      (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)
+  );
+
   return (
     <main className="container" style={{ paddingTop: "2.5rem", paddingBottom: "5rem" }}>
       <section className="glass-card" style={{ padding: "1.6rem", marginBottom: "1.25rem" }}>
         <span className="eyebrow">CQA AI BUSINESS WORKFORCE</span>
-        <h1>Add AI workers to the business machine you already own.</h1>
+        <h1>Specialist AI workers for businesses running on a CQA machine.</h1>
         <p className="small" style={{ maxWidth: 900 }}>
-          CQA workers now operate through one tenant-safe AI core: business knowledge retrieval, persistent memory, approval gates and run logging. The goal is useful operational output without letting the AI invent completed actions or cross customer data.
+          The CQA AI core includes tenant-scoped business knowledge, persistent memory, approval gates and run logging.
+          {aiReady
+            ? " Paid worker activation is available."
+            : " Paid worker activation is paused until the production model provider is connected, so customers cannot be charged for an unavailable AI service."}
         </p>
         <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
-          <Link href="/owner/dashboard" className="button primary">Open Owner Workspace</Link>
+          <Link href="/pricing" className="button primary">Launch a Machine</Link>
           <Link href="/machines" className="button ghost">View CQA Solutions</Link>
         </div>
       </section>
@@ -28,25 +36,19 @@ export default function WorkersPage() {
       <section className="grid grid-3" style={{ marginBottom: "1.25rem" }}>
         <article className="glass-card" style={{ padding: "1rem" }}>
           <span className="eyebrow">GROUNDING</span>
-          <h3>Uses your business knowledge</h3>
-          <p className="small">Policies, FAQs, offers and instructions can be retrieved as context so outputs are based on your machine, not generic guesses.</p>
+          <h3>Business-aware outputs</h3>
+          <p className="small">Stored policies, FAQs, offers and instructions are retrieved as context instead of relying on generic guesses.</p>
         </article>
         <article className="glass-card" style={{ padding: "1rem" }}>
           <span className="eyebrow">MEMORY</span>
-          <h3>Remembers durable business context</h3>
-          <p className="small">Useful long-term facts can be retained per business and owner so repeated tasks do not start from zero.</p>
+          <h3>Durable business context</h3>
+          <p className="small">Long-term facts can be retained per business and owner so repeated workflows do not start from zero.</p>
         </article>
         <article className="glass-card" style={{ padding: "1rem" }}>
           <span className="eyebrow">GUARDRAILS</span>
-          <h3>Sensitive actions stop for approval</h3>
-          <p className="small">Payments, refunds, legal commitments, security changes and irreversible publishing are approval-gated.</p>
+          <h3>Approval before sensitive action</h3>
+          <p className="small">Payments, refunds, legal commitments, security changes and irreversible publishing require approval.</p>
         </article>
-      </section>
-
-      <section className="grid grid-3" style={{ marginBottom: "1.25rem" }}>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">01 · SELECT</span><h3>Choose the job</h3><p className="small">Pick only the operational role your machine needs.</p></article>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">02 · SUBSCRIBE</span><h3>Secure Stripe billing</h3><p className="small">Complete the worker&apos;s monthly CQA subscription.</p></article>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">03 · ACTIVATE</span><h3>Webhook-controlled access</h3><p className="small">The worker enables only after Stripe confirms active billing.</p></article>
       </section>
 
       <section className="grid grid-2">
@@ -56,15 +58,21 @@ export default function WorkersPage() {
             <article className="glass-card" key={id} style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
                 <span className="eyebrow">{meta.area}</span>
-                <strong style={{ color: "#ff7bd3" }}>{"$"}{price} AUD/month</strong>
+                <strong style={{ color: "#ff7bd3" }}>${price} AUD/month</strong>
               </div>
               <h2>{name}</h2>
               <p className="small">{description}</p>
               <div className="revenue-stack" style={{ margin: ".5rem 0 1rem" }}>
-                {meta.outputs.map((output) => <div key={output}><span>✓</span><strong>{output}</strong></div>)}
+                {meta.outputs.map((output) => (
+                  <div key={output}><span>✓</span><strong>{output}</strong></div>
+                ))}
               </div>
               <div style={{ marginTop: "auto" }}>
-                <Link href={"/owner/dashboard?worker=" + id} className="button primary">Subscribe & add to my machine</Link>
+                {aiReady ? (
+                  <Link href={"/owner/dashboard?worker=" + id} className="button primary">Subscribe & add to my machine</Link>
+                ) : (
+                  <Link href="/contact?service=ai-worker" className="button ghost">Request activation</Link>
+                )}
               </div>
             </article>
           );
@@ -73,11 +81,11 @@ export default function WorkersPage() {
 
       <section className="final-panel" style={{ marginTop: "1.5rem" }}>
         <div>
-          <span className="eyebrow">NO MACHINE YET?</span>
-          <h2>Start with the vending machine, then add the AI workforce.</h2>
-          <p>The machine creates the commercial workspace; workers add operational capacity as your business grows.</p>
+          <span className="eyebrow">START SELLING FIRST</span>
+          <h2>The core digital vending machine is available now.</h2>
+          <p>Launch the commerce layer today, then add specialist AI workers when production activation is enabled.</p>
         </div>
-        <Link href="/onboarding" className="button primary">Get My Machine</Link>
+        <Link href="/onboarding?plan=starter" className="button primary">Launch Starter</Link>
       </section>
     </main>
   );

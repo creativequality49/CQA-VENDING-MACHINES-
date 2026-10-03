@@ -73,6 +73,24 @@ export async function POST(req: Request) {
     ]);
 
     const existingCustomerId = planBilling?.stripe_customer_id || workerBilling?.stripe_customer_id || null;
+    const aiWorkforceReady = Boolean(
+      (process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY) &&
+      (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)
+    );
+
+    if (payload.kind === "worker" && !aiWorkforceReady) {
+      return NextResponse.json(
+        { error: "AI worker paid activations are temporarily paused while the production AI provider is being activated." },
+        { status: 503 }
+      );
+    }
+
+    if (payload.kind === "plan" && payload.plan !== "starter" && !aiWorkforceReady) {
+      return NextResponse.json(
+        { error: "Pro and Elite paid activation is temporarily gated until the production AI layer is active. Starter is available now." },
+        { status: 503 }
+      );
+    }
 
     let itemName: string;
     let amountCents: number;
