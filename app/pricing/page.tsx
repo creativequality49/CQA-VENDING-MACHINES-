@@ -1,8 +1,148 @@
 import Link from "next/link";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
 
-const copy = { starter: { intro: "For getting your first AI Worker live.", features: ["1 AI Worker", "Core automation setup", "Up to 250 monthly automations", "Guided self-setup", "Standard support"], cta: "Start Starter" }, pro: { intro: "For businesses ready to create leads and turn demand into sales.", features: ["Up to 3 AI Workers", "Content, lead generation, and sales workflows", "Up to 1,500 monthly automations", "Priority setup support", "Priority support response"], cta: "Start With Growth Plan" }, elite: { intro: "For teams building an always-on AI operating layer.", features: ["Up to 6 AI Workers", "Advanced workflow customization", "Up to 5,000 monthly automations", "Dedicated onboarding support", "Fastest support SLA"], cta: "Talk to Sales" } } as const;
+const planCopy = {
+  starter: {
+    label: "LIVE NOW",
+    intro: "Launch a branded digital vending machine with payments, lead capture and guided setup.",
+    cta: "Launch Starter",
+    href: "/onboarding?plan=starter"
+  },
+  pro: {
+    label: "AI-ASSISTED",
+    intro: "Scale the machine with AI-assisted copy, draft offers and broader business integrations.",
+    cta: "Request Pro Access",
+    href: "/contact?service=pro-ai"
+  },
+  elite: {
+    label: "DONE FOR YOU",
+    intro: "A higher-touch build with advanced setup, integration planning and priority launch support.",
+    cta: "Talk to CQA",
+    href: "/contact?service=elite"
+  }
+} as const;
 
 export default function PricingPage() {
-  return <main className="container neon-pricing-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}><section className="marketplace-neon-hero pricing-neon-hero"><div><span className="eyebrow">CQA AI WORKFORCE PLANS</span><h1>Choose the AI Workforce Built for Your Next Stage</h1><p>Start with one Worker, then scale into a revenue system that supports your growth.</p></div><div className="marketplace-live-panel"><span>LAUNCH FAST</span><strong>3</strong><small>growth stages</small></div></section><section className="neon-plan-grid pricing-plan-grid">{CQA_PLANS.map((plan, index) => { const item = copy[plan.key]; const theme = index === 0 ? "pink" : index === 1 ? "cyan" : "gold"; return <article className={`neon-plan neon-plan-${theme} neon-plan-full ${plan.key === "pro" ? "neon-plan-featured" : ""}`} key={plan.key}>{plan.key === "pro" ? <span className="plan-popular-badge">MOST POPULAR</span> : null}<span className="plan-cap">CQΛ</span><div className="plan-display"><span>{plan.key === "pro" ? "GROWTH" : plan.name.toUpperCase()}</span><strong>${plan.price}</strong><small>AUD / MONTH</small></div><p className="plan-intro">{item.intro}</p><div className="plan-features">{item.features.map((feature) => <span key={feature}>✓ {feature}</span>)}</div><Link href={plan.key === "elite" ? "/contact" : `/onboarding?plan=${plan.key}`} className="neon-enter-button">{item.cta} →</Link></article>; })}</section><section className="glass-card" style={{ padding: "1.4rem", marginTop: "1.25rem", display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}><div><span className="eyebrow">DONE-FOR-YOU AUTOMATIONS</span><h2 style={{ margin: ".35rem 0" }}>Need CQA to build the workflow for you?</h2><p className="small" style={{ margin: 0 }}>Automation packages start at $497 setup + $99/month, with specialist AI workers and full AI Business Operations available.</p></div><Link href="/automations" className="button primary">View Automation Marketplace</Link></section><p className="pricing-reassurance">Launch in under 20 minutes. Upgrade as your workflow grows.</p><section className="faq-section"><span className="eyebrow">FAQ</span><h2>Questions before you deploy?</h2><div className="faq-grid"><article><h3>Do I need technical experience?</h3><p>No. Each Worker is designed for guided setup, with clear steps to connect your brand, offer, and tools.</p></article><article><h3>Can I change plans later?</h3><p>Yes. Upgrade whenever you need more Workers, automations, or support.</p></article><article><h3>What does “AI Worker” mean?</h3><p>An AI Worker is a prebuilt system that handles a specific growth task, such as creating content, capturing leads, or following up with prospects.</p></article><article><h3>How quickly can I launch?</h3><p>Most Workers can be deployed in 10–20 minutes, depending on the integrations you connect.</p></article></div></section></main>;
+  const aiReady = Boolean(
+    (process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY) &&
+      (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)
+  );
+
+  return (
+    <main className="container neon-pricing-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      <section className="marketplace-neon-hero pricing-neon-hero">
+        <div>
+          <span className="eyebrow">CQA DIGITAL VENDING MACHINE PLANS</span>
+          <h1>Launch the business machine first. Add the AI workforce as you scale.</h1>
+          <p>
+            Starter is available for immediate self-serve activation. Pro and Elite include AI-assisted capability and are opened only when the production AI layer is ready.
+          </p>
+        </div>
+        <div className="marketplace-live-panel">
+          <span>CORE COMMERCE</span>
+          <strong>LIVE</strong>
+          <small>Stripe + secure onboarding</small>
+        </div>
+      </section>
+
+      <section className="neon-plan-grid pricing-plan-grid">
+        {CQA_PLANS.map((plan, index) => {
+          const item = planCopy[plan.key];
+          const theme = index === 0 ? "pink" : index === 1 ? "cyan" : "gold";
+          const available = plan.key === "starter" || aiReady;
+          const href =
+            plan.key === "starter"
+              ? item.href
+              : available && plan.key === "pro"
+                ? "/onboarding?plan=pro"
+                : item.href;
+          const cta =
+            plan.key === "starter"
+              ? item.cta
+              : available && plan.key === "pro"
+                ? "Launch Pro"
+                : item.cta;
+
+          return (
+            <article
+              className={`neon-plan neon-plan-${theme} neon-plan-full ${plan.key === "starter" ? "neon-plan-featured" : ""}`}
+              key={plan.key}
+            >
+              <span className="plan-popular-badge">
+                {plan.key === "starter" ? "AVAILABLE NOW" : available ? item.label : "ACCESS BY APPROVAL"}
+              </span>
+              <span className="plan-cap">CQΛ</span>
+              <div className="plan-display">
+                <span>{plan.name.toUpperCase()}</span>
+                <strong>${plan.price}</strong>
+                <small>AUD / MONTH</small>
+              </div>
+              <p className="plan-intro">{item.intro}</p>
+              <div className="plan-features">
+                {plan.features.map((feature) => (
+                  <span key={feature}>✓ {feature}</span>
+                ))}
+              </div>
+              <Link href={href} className="neon-enter-button">
+                {cta} →
+              </Link>
+            </article>
+          );
+        })}
+      </section>
+
+      <section
+        className="glass-card"
+        style={{
+          padding: "1.4rem",
+          marginTop: "1.25rem",
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "1rem",
+          alignItems: "center",
+          flexWrap: "wrap"
+        }}
+      >
+        <div>
+          <span className="eyebrow">CQA AI BUSINESS WORKFORCE</span>
+          <h2 style={{ margin: ".35rem 0" }}>
+            {aiReady ? "Add specialist AI workers to an active machine." : "AI worker architecture is built; paid activation is currently gated."}
+          </h2>
+          <p className="small" style={{ margin: 0 }}>
+            {aiReady
+              ? "Choose specialist roles for sales, support, planning, finance admin and operations."
+              : "This prevents customers being charged for AI capability before the production model provider is active."}
+          </p>
+        </div>
+        <Link href="/workers" className="button primary">View AI Workforce</Link>
+      </section>
+
+      <p className="pricing-reassurance">
+        Starter can be launched now. Stripe subscription state is activated only from signed payment events.
+      </p>
+
+      <section className="faq-section">
+        <span className="eyebrow">FAQ</span>
+        <h2>Questions before you launch?</h2>
+        <div className="faq-grid">
+          <article>
+            <h3>What can I launch today?</h3>
+            <p>The Starter vending machine is open for self-serve signup, billing, setup and Stripe Connect onboarding.</p>
+          </article>
+          <article>
+            <h3>Can I upgrade later?</h3>
+            <p>Yes. Your machine is designed to move into Pro, Elite and specialist AI workers as those capabilities are activated for your account.</p>
+          </article>
+          <article>
+            <h3>Does CQA hold customer card details?</h3>
+            <p>No. Secure checkout and subscription billing are handled through Stripe.</p>
+          </article>
+          <article>
+            <h3>What can the machine sell?</h3>
+            <p>It can present products, services, bookings, subscriptions, quotes and external commerce links based on your setup.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  );
 }
