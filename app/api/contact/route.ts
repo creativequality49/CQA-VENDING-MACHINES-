@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 
 const schema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -15,23 +15,24 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const payload = schema.parse(await req.json());
-    const admin = getCqaSupabaseAdmin();
-    const { error } = await admin.from("cqa_sales_leads").insert({
-      name: payload.name,
-      email: payload.email.toLowerCase(),
-      phone: payload.phone || null,
-      business_name: payload.businessName || null,
-      service: payload.service || "general",
-      quoted_price: payload.price || null,
-      message: payload.message,
-      source: "website",
-      status: "new",
-      metadata: {
-        user_agent: req.headers.get("user-agent") || null,
-        referer: req.headers.get("referer") || null
-      }
+    const publicClient = getPublicSupabaseClient();
+
+    const { error } = await publicClient.rpc("cqa_submit_sales_lead", {
+      p_name: payload.name,
+      p_email: payload.email.toLowerCase(),
+      p_phone: payload.phone || "",
+      p_business_name: payload.businessName || "",
+      p_service: payload.service || "general",
+      p_quoted_price: payload.price || "",
+      p_message: payload.message
     });
-    if (error) throw error;
+
+    if (error) {
+      if (error.message?.includes("too many enquiries")) {
+        return NextResponse.json({ error: "Too many enquiries were submitted. Please try again later." }, { status: 429 });
+      }
+      throw error;
+    }
 
     const webhookUrl = process.env.QUIZ_LEAD_WEBHOOK_URL;
     if (webhookUrl) {
@@ -45,7 +46,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (error instanceof z.ZodError) return NextResponse.json({ error: "Check the enquiry details and try again." }, { status: 400 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Check the enquiry details and try again." }, { status: 400 });
+    }
     console.error("[cqa-contact] failed", error);
     return NextResponse.json({ error: "Your enquiry could not be saved. Please try again." }, { status: 500 });
   }
