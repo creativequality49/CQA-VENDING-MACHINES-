@@ -58,7 +58,7 @@ export default function WorkersPage() {
             <article className="glass-card" key={id} style={{ padding: "1.25rem", display: "flex", flexDirection: "column" }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
                 <span className="eyebrow">{meta.area}</span>
-                <strong style={{ color: "#ff7bd3" }}>${price} AUD/month</strong>
+                <strong style={{ color: "#61eff9" }}>${price} AUD/month</strong>
               </div>
               <h2>{name}</h2>
               <p className="small">{description}</p>
