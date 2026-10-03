@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getPublicSupabaseClient, type PlanKey } from "@/lib/cqa-marketplace";
-import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import {
+  getAuthenticatedSupabaseClient,
+  getPublicSupabaseClient,
+  type PlanKey
+} from "@/lib/cqa-marketplace";
 import { getStripeClient } from "@/lib/stripe";
 import { getPlanDefinition, getWorkerDefinition, isActiveBillingStatus } from "@/lib/cqa-billing";
 
@@ -35,24 +38,40 @@ export async function POST(req: Request) {
     if (!token) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
     const payload = schema.parse(await req.json());
-    const authClient = getPublicSupabaseClient();
-    const { data: userData, error: userError } = await authClient.auth.getUser(token);
+    const publicClient = getPublicSupabaseClient();
+    const { data: userData, error: userError } = await publicClient.auth.getUser(token);
     const user = userData.user;
-    if (userError || !user) return NextResponse.json({ error: "Your login session is no longer valid." }, { status: 401 });
+    if (userError || !user) {
+      return NextResponse.json({ error: "Your login session is no longer valid." }, { status: 401 });
+    }
 
-    const admin = getCqaSupabaseAdmin();
-    const { data: business, error: businessError } = await admin
+    const ownerClient = getAuthenticatedSupabaseClient(token);
+    const { data: business, error: businessError } = await ownerClient
       .from("cqa_businesses")
       .select("id,name,email,owner_id,plan")
       .eq("id", payload.businessId)
       .eq("owner_id", user.id)
       .single();
-    if (businessError || !business) return NextResponse.json({ error: "Business not found or not owned by this account." }, { status: 403 });
+
+    if (businessError || !business) {
+      return NextResponse.json({ error: "Business not found or not owned by this account." }, { status: 403 });
+    }
 
     const [{ data: planBilling }, { data: workerBilling }] = await Promise.all([
-      admin.from("cqa_plan_subscriptions").select("stripe_customer_id,status").eq("business_id", business.id).maybeSingle(),
-      admin.from("cqa_worker_subscriptions").select("stripe_customer_id,status").eq("business_id", business.id).not("stripe_customer_id", "is", null).limit(1).maybeSingle()
+      ownerClient
+        .from("cqa_plan_subscriptions")
+        .select("stripe_customer_id,status")
+        .eq("business_id", business.id)
+        .maybeSingle(),
+      ownerClient
+        .from("cqa_worker_subscriptions")
+        .select("stripe_customer_id,status")
+        .eq("business_id", business.id)
+        .not("stripe_customer_id", "is", null)
+        .limit(1)
+        .maybeSingle()
     ]);
+
     const existingCustomerId = planBilling?.stripe_customer_id || workerBilling?.stripe_customer_id || null;
 
     let itemName: string;
@@ -67,8 +86,10 @@ export async function POST(req: Request) {
       if (isActiveBillingStatus(planBilling?.status)) {
         return NextResponse.json({ error: "This machine plan is already active." }, { status: 409 });
       }
+
       const plan = getPlanDefinition(payload.plan);
       if (!plan) return NextResponse.json({ error: "Unknown CQA plan." }, { status: 400 });
+
       itemName = `CQA ${plan.name} Business Machine`;
       amountCents = plan.price * 100;
       stripePriceId = planPriceId(payload.plan);
@@ -82,12 +103,13 @@ export async function POST(req: Request) {
       const worker = getWorkerDefinition(payload.workerId);
       if (!worker) return NextResponse.json({ error: "Unknown CQA AI worker." }, { status: 400 });
 
-      const { data: currentWorker } = await admin
+      const { data: currentWorker } = await ownerClient
         .from("cqa_worker_subscriptions")
         .select("status")
         .eq("business_id", business.id)
         .eq("worker_id", payload.workerId)
         .maybeSingle();
+
       if (isActiveBillingStatus(currentWorker?.status)) {
         return NextResponse.json({ error: "This AI worker subscription is already active." }, { status: 409 });
       }
@@ -122,48 +144,39 @@ export async function POST(req: Request) {
       mode: "subscription",
       line_items: [lineItem],
       client_reference_id: user.id,
-      ...(existingCustomerId ? { customer: existingCustomerId } : { customer_email: user.email || business.email || undefined }),
+      ...(existingCustomerId
+        ? { customer: existingCustomerId }
+        : { customer_email: user.email || business.email || undefined }),
       allow_promotion_codes: true,
-      success_url: payload.kind === "plan"
-        ? `${origin}/owner/setup?billing=success`
-        : `${origin}/owner/dashboard?billing=success`,
-      cancel_url: payload.kind === "plan"
-        ? `${origin}/owner/setup?billing=cancelled`
-        : `${origin}/owner/dashboard?billing=cancelled`,
+      success_url:
+        payload.kind === "plan"
+          ? `${origin}/owner/setup?billing=success&session_id={CHECKOUT_SESSION_ID}`
+          : `${origin}/owner/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:
+        payload.kind === "plan"
+          ? `${origin}/owner/setup?billing=cancelled`
+          : `${origin}/owner/dashboard?billing=cancelled`,
       metadata,
       subscription_data: { metadata }
     });
 
-    if (!session.url) return NextResponse.json({ error: "Stripe did not return a secure checkout URL." }, { status: 502 });
-
-    if (payload.kind === "plan") {
-      const { error } = await admin.from("cqa_plan_subscriptions").upsert({
-        business_id: business.id,
-        plan: payload.plan,
-        stripe_checkout_session_id: session.id,
-        status: "incomplete",
-        updated_at: new Date().toISOString()
-      }, { onConflict: "business_id" });
-      if (error) throw error;
-    } else {
-      const worker = getWorkerDefinition(payload.workerId)!;
-      const { error } = await admin.from("cqa_worker_subscriptions").upsert({
-        business_id: business.id,
-        worker_id: payload.workerId,
-        stripe_checkout_session_id: session.id,
-        status: "incomplete",
-        price_cents: worker[2] * 100,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "business_id,worker_id" });
-      if (error) throw error;
+    if (!session.url) {
+      return NextResponse.json({ error: "Stripe did not return a secure checkout URL." }, { status: 502 });
     }
 
+    // Subscription state is written only from the signed Stripe webhook running
+    // inside Supabase. The browser never receives permission to self-activate.
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    if (error instanceof z.ZodError) return NextResponse.json({ error: "Invalid billing request." }, { status: 400 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Invalid billing request." }, { status: 400 });
+    }
+
     const message = error instanceof Error ? error.message : "Billing checkout failed.";
-    if (message.includes("STRIPE_SECRET_KEY")) return NextResponse.json({ error: "CQA billing is not configured on this deployment." }, { status: 503 });
-    if (message.includes("Supabase server key")) return NextResponse.json({ error: "Secure database access is not configured." }, { status: 503 });
+    if (message.includes("STRIPE_SECRET_KEY")) {
+      return NextResponse.json({ error: "CQA billing is not configured on this deployment." }, { status: 503 });
+    }
+
     console.error("[cqa-billing] checkout failed", error);
     return NextResponse.json({ error: "Secure subscription checkout could not be started." }, { status: 500 });
   }
