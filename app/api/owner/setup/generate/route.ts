@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireCqaOwner } from "@/lib/cqa-owner-auth";
+import { buildAIExecutionPlan } from "@/lib/ai/model-router";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -83,6 +84,15 @@ export async function POST(req: Request) {
         upgradeRequired: true
       }, { status: 403 });
     }
+
+    const aiPlan = buildAIExecutionPlan({
+      task: "Build a branded storefront and sellable offer draft from the owner questionnaire, then install the draft into the machine workspace",
+      inputTypes: ["text", "structured-data"],
+      outputType: "action-plan",
+      useBusinessKnowledge: true,
+      requiresTools: true,
+      highRiskAction: false,
+    });
 
     const apiKey = process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY;
     const apiUrl = process.env.CQA_CHAT_API_URL || "https://api.openai.com/v1/chat/completions";
@@ -176,7 +186,7 @@ export async function POST(req: Request) {
         source_provider: "cqa_ai",
         fulfillment_type: offer.fulfillmentType,
         shipping_required: offer.shippingRequired,
-        metadata: { generated: true, ai_used: aiUsed, generated_at: now }
+        metadata: { generated: true, ai_used: aiUsed, generated_at: now, ai_plan: aiPlan }
       }));
       const { error: offerError } = await admin.from("cqa_offers").insert(rows);
       if (offerError) throw offerError;
@@ -205,6 +215,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       aiUsed,
+      aiPlan,
       mode: business.plan === "elite" ? "done_for_you" : "assisted",
       draft,
       installedOffers: offers.length,
