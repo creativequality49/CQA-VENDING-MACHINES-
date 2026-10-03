@@ -31,8 +31,9 @@ export function NavBar() {
               <Link href="/machines">Solutions <span>03</span></Link>
               <Link href="/pricing">Plans <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>
-              <Link href="/owner/dashboard">Dashboard <span>06</span></Link>
-              <Link href="/contact">Contact CQA <span>07</span></Link>
+              <Link href="/automations">Automations <span>06</span></Link>
+              <Link href="/owner/dashboard">Dashboard <span>07</span></Link>
+              <Link href="/contact">Contact CQA <span>08</span></Link>
               <div className="menu-panel-actions">
                 <Link href="/login?next=/owner/dashboard" className="button ghost">Owner Login</Link>
                 <Link href="/onboarding" className="button primary">Launch My Machine</Link>
@@ -46,7 +47,7 @@ export function NavBar() {
         <Link href="/marketplace"><b>⌂</b><span>Explore</span></Link>
         <Link href="/onboarding"><b>＋</b><span>Launch</span></Link>
         <Link href="/owner/dashboard"><b>▦</b><span>Workspace</span></Link>
-        <Link href="/workers"><b>✦</b><span>Workers</span></Link>
+        <Link href="/automations"><b>✦</b><span>Automate</span></Link>
       </nav>
     </>
   );
