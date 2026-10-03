@@ -53,7 +53,7 @@ export default function MachinesPage() {
           <article className="glass-card" key={solution.title} style={{ padding: "1.35rem", display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
               <span className="eyebrow">{solution.label}</span>
-              <strong style={{ color: "#ff7bd3" }}>0{index + 1}</strong>
+              <strong style={{ color: "#61eff9" }}>0{index + 1}</strong>
             </div>
             <h2>{solution.title}</h2>
             <p className="small">{solution.description}</p>
