@@ -213,6 +213,15 @@ export function getBrowserSupabaseClient() {
   return createClient(url, key);
 }
 
+export function getAuthenticatedSupabaseClient(token: string) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  return createClient(url, key, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+
 export function formatAud(cents: number | null) {
   if (cents === null) return "Request quote";
   return new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(cents / 100);
