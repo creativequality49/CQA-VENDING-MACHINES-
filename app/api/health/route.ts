@@ -24,17 +24,35 @@ export async function GET() {
   const stripe = configured(process.env.STRIPE_SECRET_KEY);
   const platformWebhook = configured(process.env.STRIPE_WEBHOOK_SECRET);
   const connectWebhook = configured(process.env.STRIPE_CONNECT_WEBHOOK_SECRET);
-  const healthy = database === "ok" && stripe === "ok" && platformWebhook === "ok" && connectWebhook === "ok";
+  const ai = configured(process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY);
+  const embeddings = configured(
+    process.env.CQA_EMBEDDING_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      process.env.CQA_CHAT_API_KEY
+  );
+  const email = configured(process.env.RESEND_API_KEY);
+
+  const commerceReady =
+    database === "ok" &&
+    stripe === "ok" &&
+    platformWebhook === "ok" &&
+    connectWebhook === "ok";
+  const aiWorkforceReady = database === "ok" && ai === "ok";
 
   return NextResponse.json(
     {
-      status: healthy ? "ok" : "degraded",
+      status: commerceReady ? "ok" : "degraded",
       environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
       database,
       stripe,
       stripePlatformWebhook: platformWebhook,
       stripeConnectWebhook: connectWebhook,
+      ai,
+      embeddings,
+      email,
+      commerceReady,
+      aiWorkforceReady
     },
-    { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store" } },
+    { status: commerceReady ? 200 : 503, headers: { "Cache-Control": "no-store" } }
   );
 }
