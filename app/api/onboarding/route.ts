@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
-import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { getAuthenticatedSupabaseClient, getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 
 const schema = z.object({
   name: z.string().trim().min(2).max(120),
@@ -14,7 +13,7 @@ const schema = z.object({
 });
 
 function slugify(value: string) {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 64);
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
 }
 
 export async function POST(req: Request) {
@@ -24,58 +23,43 @@ export async function POST(req: Request) {
     if (!token) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
     const payload = schema.parse(await req.json());
-    const authClient = getPublicSupabaseClient();
-    const { data: userData, error: userError } = await authClient.auth.getUser(token);
+    const publicClient = getPublicSupabaseClient();
+    const { data: userData, error: userError } = await publicClient.auth.getUser(token);
     const user = userData.user;
-    if (userError || !user) return NextResponse.json({ error: "Your login session is no longer valid." }, { status: 401 });
-
-    const admin = getCqaSupabaseAdmin();
-    const { data: existing } = await admin.from("cqa_businesses").select("id").eq("owner_id", user.id).limit(1);
-    if (existing?.length) return NextResponse.json({ businessId: existing[0].id, existing: true });
-
-    const baseSlug = slugify(payload.name);
-    if (!baseSlug) return NextResponse.json({ error: "Enter a valid business name." }, { status: 400 });
-
-    let business: { id: string } | null = null;
-    for (let attempt = 0; attempt < 4 && !business; attempt += 1) {
-      const suffix = attempt === 0 ? "" : `-${Math.floor(1000 + Math.random() * 9000)}`;
-      const { data, error } = await admin.from("cqa_businesses").insert({
-        owner_id: user.id,
-        name: payload.name,
-        slug: `${baseSlug}${suffix}`,
-        category: payload.category,
-        description: payload.description,
-        location_text: payload.location,
-        phone: payload.phone || null,
-        email: payload.businessEmail,
-        plan: payload.plan,
-        status: "review"
-      }).select("id").single();
-
-      if (!error && data) business = data as { id: string };
-      else if (error?.code !== "23505") throw error;
+    if (userError || !user) {
+      return NextResponse.json({ error: "Your login session is no longer valid." }, { status: 401 });
     }
-    if (!business) return NextResponse.json({ error: "That business name is already in use. Adjust it and try again." }, { status: 409 });
 
-    const machineSlug = `${baseSlug}-machine-${business.id.slice(0, 6)}`;
-    const { error: machineError } = await admin.from("cqa_machines").insert({
-      business_id: business.id,
-      slug: machineSlug,
-      title: `${payload.name} Machine`,
-      subtitle: payload.description || `The official ${payload.name} digital vending machine.`,
-      theme: payload.plan === "elite" ? "gold" : payload.plan === "pro" ? "cyan" : "pink",
-      status: "review",
-      assistant_enabled: true
+    const slugBase = slugify(payload.name);
+    if (!slugBase) return NextResponse.json({ error: "Enter a valid business name." }, { status: 400 });
+
+    const ownerClient = getAuthenticatedSupabaseClient(token);
+    const { data, error } = await ownerClient.rpc("cqa_create_business_workspace", {
+      p_name: payload.name,
+      p_slug_base: slugBase,
+      p_category: payload.category,
+      p_description: payload.description,
+      p_location: payload.location,
+      p_phone: payload.phone || "",
+      p_email: payload.businessEmail,
+      p_plan: payload.plan
     });
 
-    if (machineError) {
-      await admin.from("cqa_businesses").delete().eq("id", business.id);
-      throw machineError;
+    if (error) {
+      console.error("[cqa-onboarding] workspace RPC failed", error.message);
+      return NextResponse.json({ error: "The business workspace could not be created." }, { status: 500 });
     }
 
-    return NextResponse.json({ businessId: business.id, existing: false });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row?.business_id) {
+      return NextResponse.json({ error: "The business workspace could not be created." }, { status: 500 });
+    }
+
+    return NextResponse.json({ businessId: row.business_id, existing: Boolean(row.existing) });
   } catch (error) {
-    if (error instanceof z.ZodError) return NextResponse.json({ error: "Check the business details and try again." }, { status: 400 });
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Check the business details and try again." }, { status: 400 });
+    }
     console.error("[cqa-onboarding] failed", error);
     return NextResponse.json({ error: "The business workspace could not be created." }, { status: 500 });
   }
