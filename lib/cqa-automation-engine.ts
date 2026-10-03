@@ -1,6 +1,7 @@
 import "server-only";
 import { Resend } from "resend";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { runCqaAgent } from "@/lib/cqa-ai-core";
 
 type Json = Record<string, unknown>;
 type StepConfig = Record<string, unknown>;
@@ -140,11 +141,10 @@ export async function processAutomationRun(runId: string) {
   if (runError || !run) throw new Error("Automation run not found.");
   if (["succeeded", "failed"].includes(run.status)) return run;
 
-  const [{ data: automation }, { data: business }, { data: contact }, { data: contextItems }, { data: steps }] = await Promise.all([
-    admin.from("cqa_automations").select("id,name,status").eq("id", run.automation_id).single(),
+  const [{ data: automation }, { data: business }, { data: contact }, { data: steps }] = await Promise.all([
+    admin.from("cqa_automations").select("id,name,status,created_by").eq("id", run.automation_id).single(),
     admin.from("cqa_businesses").select("id,name,description,email").eq("id", run.business_id).single(),
     run.contact_id ? admin.from("cqa_contacts").select("id,email,name,tags,status").eq("id", run.contact_id).maybeSingle() : Promise.resolve({ data: null }),
-    admin.from("cqa_context_items").select("kind,title,content").eq("business_id", run.business_id).eq("active", true).limit(30),
     admin.from("cqa_automation_steps").select("id,step_order,step_type,name,config,enabled").eq("automation_id", run.automation_id).eq("enabled", true).order("step_order")
   ]);
   if (!automation || automation.status !== "active" || !business) throw new Error("Automation configuration is unavailable.");
@@ -202,28 +202,41 @@ export async function processAutomationRun(runId: string) {
       }
 
       if (step.step_type === "agent_task") {
-        const apiKey = process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY;
-        const apiUrl = process.env.CQA_CHAT_API_URL || "https://api.openai.com/v1/chat/completions";
-        const model = process.env.CQA_CHAT_MODEL || "gpt-4.1-mini";
-        if (!apiKey) {
+        if (!process.env.CQA_CHAT_API_KEY && !process.env.OPENAI_API_KEY) {
           output = appendOutput(output, { step: step.step_order, type: "agent_task", status: "needs_approval", reason: "ai_provider_not_configured" });
           await admin.from("cqa_automation_runs").update({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() }).eq("id", runId);
           return;
         }
-        const context = (contextItems || []).map((item) => `${item.title}: ${item.content}`).join("\n").slice(0, 12000);
+
         const instruction = render(String(config.instruction || "Complete the requested business task."), values);
-        const response = await fetch(apiUrl, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model, temperature: 0.4, max_tokens: 700, messages: [
-            { role: "system", content: `You are a CQA business operations agent for ${business.name}. Use supplied context only where relevant. Never claim an action was executed unless it actually was. Flag payment, legal, irreversible, or sensitive actions for human approval.\n\nShared context:\n${context || "No additional shared context."}` },
-            { role: "user", content: `${instruction}\n\nTrigger payload:\n${JSON.stringify(run.trigger_payload || {})}` }
-          ] })
+        const agentResult = await runCqaAgent({
+          businessId: run.business_id,
+          userId: automation.created_by || null,
+          agentKey: "business_manager",
+          task: instruction,
+          additionalContext: { triggerPayload: run.trigger_payload || {}, contactId: run.contact_id || null },
+          metadata: { source: "automation", automationId: automation.id, automationRunId: runId, stepOrder: step.step_order }
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(`AI provider failed with status ${response.status}.`);
-        const text = data?.choices?.[0]?.message?.content || data?.output_text || "";
-        output = appendOutput(output, { step: step.step_order, type: "agent_task", status: "completed", result: String(text).slice(0, 8000) });
+
+        output = appendOutput(output, {
+          step: step.step_order,
+          type: "agent_task",
+          status: agentResult.approvalRequired ? "needs_approval" : "completed",
+          result: agentResult.text.slice(0, 8000),
+          ai_run_id: agentResult.runId,
+          next_actions: agentResult.nextActions,
+          sources: agentResult.sources
+        });
+
+        if (agentResult.approvalRequired) {
+          await admin.from("cqa_automation_runs").update({
+            status: "needs_approval",
+            current_step_order: step.step_order,
+            output,
+            updated_at: new Date().toISOString()
+          }).eq("id", runId);
+          return;
+        }
       }
 
       if (step.step_type === "webhook") {
