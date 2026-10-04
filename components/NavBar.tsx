@@ -7,11 +7,11 @@ export function NavBar() {
       <header className="site-header cqa-topbar">
         <div className="nav-shell cqa-nav-shell">
           <Link href="/" className="cqa-logo-lockup" aria-label="Creative Quality Australia home">
-            <span className="cqa-logo-mark" aria-hidden="true"><b>CQ</b><i>Λ</i></span>
-            <span className="cqa-logo-copy">
-              <strong>CREATIVE QUALITY</strong>
-              <small>AUSTRALIA</small>
-            </span>
+            <img
+              src="/cqa-main-logo.svg"
+              alt="Creative Quality Australia"
+              className="cqa-logo-image"
+            />
           </Link>
 
           <Link href="/owner/dashboard" className="cqa-dashboard-link">Dashboard</Link>
