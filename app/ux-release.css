@@ -709,32 +709,33 @@ input:focus,textarea:focus,select:focus{
   .integration-card:hover,.setup-panel:hover{transform:none}
 }
 
+
 /* === CQA APPROVED HEADER LOGO === */
 .cqa-logo-lockup{
   display:flex!important;
   align-items:center!important;
-  min-width:0;
+  justify-content:flex-start!important;
+  min-width:116px!important;
+  min-height:74px!important;
+  overflow:visible!important;
 }
 .cqa-logo-image{
-  display:block;
-  width:auto;
-  height:66px;
-  max-width:190px;
-  object-fit:contain;
-  object-position:left center;
-  border-radius:12px;
-  box-shadow:0 0 24px rgba(36,230,242,.08);
+  display:block!important;
+  width:auto!important;
+  height:82px!important;
+  max-width:150px!important;
+  opacity:1!important;
+  visibility:visible!important;
+  object-fit:contain!important;
+  object-position:left center!important;
+  border-radius:10px!important;
+  box-shadow:0 0 28px rgba(36,230,242,.10)!important;
 }
 @media(max-width:760px){
-  .cqa-logo-image{
-    height:58px;
-    max-width:150px;
-    border-radius:10px;
-  }
+  .cqa-logo-lockup{min-width:112px!important;min-height:80px!important}
+  .cqa-logo-image{height:78px!important;max-width:138px!important}
 }
 @media(max-width:420px){
-  .cqa-logo-image{
-    height:54px;
-    max-width:138px;
-  }
+  .cqa-logo-lockup{min-width:104px!important}
+  .cqa-logo-image{height:72px!important;max-width:126px!important}
 }
