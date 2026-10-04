@@ -708,3 +708,33 @@ input:focus,textarea:focus,select:focus{
   .glass-card:hover,.worker-card:hover,.worker-market-card:hover,.worker-price-card:hover,
   .integration-card:hover,.setup-panel:hover{transform:none}
 }
+
+/* === CQA APPROVED HEADER LOGO === */
+.cqa-logo-lockup{
+  display:flex!important;
+  align-items:center!important;
+  min-width:0;
+}
+.cqa-logo-image{
+  display:block;
+  width:auto;
+  height:66px;
+  max-width:190px;
+  object-fit:contain;
+  object-position:left center;
+  border-radius:12px;
+  box-shadow:0 0 24px rgba(36,230,242,.08);
+}
+@media(max-width:760px){
+  .cqa-logo-image{
+    height:58px;
+    max-width:150px;
+    border-radius:10px;
+  }
+}
+@media(max-width:420px){
+  .cqa-logo-image{
+    height:54px;
+    max-width:138px;
+  }
+}
