@@ -8,13 +8,20 @@ export function NavBar() {
         <div className="nav-shell cqa-nav-shell">
           <Link href="/" className="cqa-logo-lockup" aria-label="Creative Quality Australia home">
             <img
-              src="/cqa-main-logo.svg"
+              src="/cqa-logo.svg"
               alt="Creative Quality Australia"
               className="cqa-logo-image"
             />
           </Link>
 
           <Link href="/owner/dashboard" className="cqa-dashboard-link">Dashboard</Link>
+
+          <nav className="cqa-desktop-links" aria-label="Primary navigation">
+            <Link href="/marketplace">Marketplace</Link>
+            <Link href="/machines">Solutions</Link>
+            <Link href="/pricing">Plans</Link>
+            <Link href="/workers">AI Workers</Link>
+          </nav>
 
           <details className="cqa-menu">
             <summary className="cqa-menu-trigger" aria-label="Open navigation menu">
