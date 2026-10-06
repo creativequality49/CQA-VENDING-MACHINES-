@@ -16,7 +16,7 @@ type WorkerSubscription = { worker_id: string; status: string; current_period_en
 
 export default function OwnerDashboardPage() {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
-  const router = useRouter();  const router = useRouter();  const search = useSearchParams();
+  const router = useRouter();  const search = useSearchParams();
   const [checking, setChecking] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
