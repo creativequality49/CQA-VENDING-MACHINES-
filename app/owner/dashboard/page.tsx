@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { CQA_PLANS, CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 
 type Business = { id: string; name: string; slug: string; category: string; plan: "starter" | "pro" | "elite"; status: string; verified: boolean };
@@ -16,7 +16,7 @@ type WorkerSubscription = { worker_id: string; status: string; current_period_en
 
 export default function OwnerDashboardPage() {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
-  const search = useSearchParams();
+  const router = useRouter();  const router = useRouter();  const search = useSearchParams();
   const [checking, setChecking] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
@@ -67,9 +67,9 @@ export default function OwnerDashboardPage() {
     supabase.auth.getSession().then(({ data }) => {
       const id = data.session?.user.id ?? null;
       setUserId(id);
-      if (id) load(id); else setChecking(false);
+      if (id) load(id); else router.replace("/login?next=/owner/dashboard");
     });
-  }, [supabase]);
+  }, [router, supabase]);
 
   useEffect(() => {
     if (search.get("created") === "1") setMessage("Your business machine has been created. Activate the CQA plan below to continue launch setup.");
