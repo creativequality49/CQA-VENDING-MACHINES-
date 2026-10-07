@@ -1,6 +1,6 @@
 import "server-only";
 import Stripe from "stripe";
-import { Resend } from "resend";
+import { sendCqaTransactionalEmail } from "@/lib/cqa-transactional-email";
 import { CQA_PLANS, CQA_WORKERS, type PlanKey } from "@/lib/cqa-marketplace";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { getStripeClient } from "@/lib/stripe";
@@ -20,7 +20,13 @@ export function getPlanDefinition(plan: PlanKey) {
 }
 
 export function getWorkerDefinition(workerId: string) {
-  return CQA_WORKERS.find(([id]) => id === workerId) || null;
+  const legacyWorkers = [
+    ["business-planner", "AI Business Planner", 49, "Business planning drafts"],
+    ["stocktake", "AI Stocktake Worker", 59, "Inventory summaries"],
+    ["finance", "AI Finance Assistant", 79, "Finance admin drafts"],
+    ["support", "AI Customer Support", 59, "Customer reply drafts"]
+  ] as const;
+  return CQA_WORKERS.find(([id]) => id === workerId) || legacyWorkers.find(([id]) => id === workerId) || null;
 }
 
 export function isActiveBillingStatus(status: string | null | undefined) {
@@ -52,21 +58,12 @@ async function isSupersededSubscription(subscription: Stripe.Subscription, exist
 
 async function sendMachineAccessEmail(session: Stripe.Checkout.Session) {
   const email = session.customer_details?.email || session.customer_email;
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.CQA_AUTOMATION_FROM_EMAIL || process.env.CQA_EMAIL_FROM;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (!email || !apiKey || !from || !siteUrl) return;
-
-  const result = await new Resend(apiKey).emails.send({
-    from,
-    to: email,
-    subject: "Your CQA machine workspace is ready",
-    text: `Thanks for activating your CQA machine. Sign in to your secure owner workspace to complete the AI-guided setup: ${siteUrl}/owner/setup\n\nYour machine remains private while you complete setup and CQA review.`
-  });
-  if (result.error) console.error("[cqa-billing] machine-access email failed", result.error.message);
+  if (!email || !siteUrl) throw new Error("Machine access email needs a customer email and site URL.");
+  await sendCqaTransactionalEmail(`machine/${session.id}/access`, email, "Your CQA machine workspace is ready", `Thanks for activating your CQA machine. Complete your setup here: ${siteUrl}/owner/setup\n\nAdd your first offer, connect Stripe, preview and publish when ready.`);
 }
 
-async function syncPlanSubscription(subscription: Stripe.Subscription) {
+async function syncPlanSubscription(subscription: Stripe.Subscription, eventId?: string) {
   const businessId = subscription.metadata.cqaBusinessId;
   const plan = subscription.metadata.cqaPlan as PlanKey | undefined;
   if (!businessId || !plan || !getPlanDefinition(plan)) return false;
@@ -105,6 +102,13 @@ async function syncPlanSubscription(subscription: Stripe.Subscription) {
     if (businessError) throw businessError;
   }
 
+  if (eventId && (status === "cancelled" || subscription.cancel_at_period_end)) {
+    const { data: business, error: contactError } = await admin.from("cqa_businesses").select("name,email").eq("id", businessId).single();
+    if (contactError) throw contactError;
+    if (business.email) await sendCqaTransactionalEmail(`subscription/${eventId}/cancellation`, business.email, "CQA plan cancellation confirmation", subscription.cancel_at_period_end && status !== "cancelled"
+      ? `Your ${business.name} CQA plan will end at the close of the current billing period${currentPeriodEnd(subscription) ? ` (${currentPeriodEnd(subscription)})` : ""}. Manage billing in your owner dashboard.`
+      : `Your ${business.name} CQA plan has ended. Your machine is no longer published. You can reactivate your plan from the owner dashboard.`);
+  }
   return true;
 }
 
@@ -219,7 +223,7 @@ export async function handleCqaBillingStripeEvent(event: Stripe.Event) {
       ? eventSubscription
       : await getStripeClient().subscriptions.retrieve(eventSubscription.id);
     const kind = subscription.metadata.cqaBillingType as CqaBillingKind | undefined;
-    if (kind === "plan") return syncPlanSubscription(subscription);
+    if (kind === "plan") return syncPlanSubscription(subscription, event.type === "customer.subscription.deleted" || (event.data.previous_attributes && "cancel_at_period_end" in event.data.previous_attributes && subscription.cancel_at_period_end) ? event.id : undefined);
     if (kind === "worker") return syncWorkerSubscription(subscription);
   }
 

@@ -106,10 +106,7 @@ export const CQA_PLANS = [
 export const CQA_WORKERS = [
   ["receptionist", "AI Receptionist", 49, "Answers common questions, captures leads and prepares booking requests."],
   ["sales", "AI Sales Worker", 69, "Qualifies leads, recommends offers and prepares follow-ups for approval."],
-  ["business-planner", "AI Business Planner", 49, "Builds business plans, SWOTs, goals and review actions from owner input."],
-  ["stocktake", "AI Stocktake Worker", 59, "Tracks stock signals and prepares reorder recommendations."],
-  ["finance", "AI Finance Assistant", 79, "Summarises sales and finance admin and flags items requiring human review."],
-  ["support", "AI Customer Support", 59, "Triages support requests and drafts customer replies for approval."]
+  ["marketing", "AI Marketing Worker", 69, "Drafts grounded campaigns, captions and email copy for owner review."]
 ] as const;
 
 export const DEMO_MACHINES: MarketplaceMachine[] = [

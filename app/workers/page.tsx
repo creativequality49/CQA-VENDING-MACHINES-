@@ -4,6 +4,7 @@ import { CQA_WORKERS } from "@/lib/cqa-marketplace";
 const workerMeta: Record<string, { area: string; outputs: string[] }> = {
   receptionist: { area: "Front desk", outputs: ["FAQ responses", "Lead capture", "Booking preparation"] },
   sales: { area: "Revenue", outputs: ["Lead qualification", "Offer matching", "Follow-up preparation"] },
+  marketing: { area: "Marketing", outputs: ["Campaign drafts", "Social captions", "Email copy"] },
   "business-planner": { area: "Strategy", outputs: ["Business plans", "SWOT reviews", "Goal actions"] },
   stocktake: { area: "Operations", outputs: ["Stock signals", "Reorder flags", "Inventory summaries"] },
   finance: { area: "Finance admin", outputs: ["Sales summaries", "Admin flags", "Review queues"] },

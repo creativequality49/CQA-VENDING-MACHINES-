@@ -1,3 +1,4 @@
+import { notifyCqaOrder } from "@/lib/cqa-transactional-email";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripeClient } from "@/lib/stripe";
@@ -65,11 +66,15 @@ export async function POST(req: Request) {
 
         let contactId: string | null = null;
         if (email) {
+          const { data: existingContact, error: existingContactError } = await admin.from("cqa_contacts")
+            .select("status").eq("business_id", businessId).eq("email", email).maybeSingle();
+          if (existingContactError) throw existingContactError;
           const { data: contact, error: contactError } = await admin.from("cqa_contacts").upsert({
             business_id: businessId,
             email,
             name: session.customer_details?.name || null,
-            status: "subscribed",
+            // A purchase is not permission to send marketing or reverse an opt-out.
+            status: existingContact?.status || "unsubscribed",
             source: "purchase",
             tags: ["customer"],
             metadata: { latest_order_id: order?.id || null, stripe_checkout_session_id: session.id },
@@ -78,6 +83,8 @@ export async function POST(req: Request) {
           if (contactError) throw contactError;
           contactId = contact?.id || null;
         }
+
+        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency });
 
         await triggerBusinessAutomations(businessId, "purchase", {
           orderId: order?.id || null,

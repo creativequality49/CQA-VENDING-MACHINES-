@@ -113,6 +113,7 @@ export async function POST(req: Request) {
         cqaLaunchPackage: String(payload.launchPackage)
       };
     } else {
+      if (!["receptionist", "sales", "marketing"].includes(payload.workerId)) return NextResponse.json({ error: "This worker is unavailable for new subscriptions." }, { status: 409 });
       const worker = getWorkerDefinition(payload.workerId);
       if (!worker) return NextResponse.json({ error: "Unknown CQA AI worker." }, { status: 400 });
 

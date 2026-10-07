@@ -245,6 +245,7 @@ export default function OwnerDashboardPage() {
                 <p className="small">{description}</p>
                 <strong>{"$"}{price} AUD/month</strong>
                 <div style={{ marginTop: ".7rem" }}>
+                  {active ? <Link href={`/owner/workers?worker=${id}`} className="button primary">Open worker</Link> : null}
                   {active
                     ? <button type="button" className="button ghost" onClick={manageBilling} disabled={Boolean(billingBusy)}>Manage subscription</button>
                     : <button type="button" className="button primary" disabled={!activePlan || Boolean(billingBusy)} onClick={() => startBilling("worker", id)}>{!activePlan ? "Activate plan first" : billingBusy === `worker:${id}` ? "Opening Stripe…" : "Subscribe & Activate"}</button>}

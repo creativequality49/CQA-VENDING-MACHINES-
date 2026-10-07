@@ -169,6 +169,7 @@ export default function OwnerSetupPage() {
 
     const b = businesses[0] as Business;
     setBusiness(b);
+    setBusinessSummary(b.description || "");
     const token = sessionData.session?.access_token || "";
     const response = await fetch(`/api/owner/setup?businessId=${encodeURIComponent(b.id)}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -231,7 +232,7 @@ export default function OwnerSetupPage() {
         secondaryColor,
         designNotes,
         answers: { catalogBrief, integrationPriorities },
-        completedSteps: ["identity","sales","fulfilment","brand","catalog","integrations"]
+        completedSteps: ["basics", "brand", "first_offer"].slice(0, step + 1)
       })
     });
     const result = await response.json().catch(() => ({}));
@@ -326,7 +327,7 @@ export default function OwnerSetupPage() {
   if (!userId) return <main className="container owner-setup-page"><section className="glass-card setup-panel"><h1>Owner login required.</h1><Link href="/login?next=/owner/setup" className="button primary">Log in</Link></section></main>;
   if (!business) return <main className="container owner-setup-page"><section className="glass-card setup-panel"><h1>No machine shell yet.</h1><Link href="/onboarding" className="button primary">Start onboarding</Link></section></main>;
 
-  const questions = [
+  const advancedQuestions = [
     {
       title: "First, confirm the business identity.",
       body: "This information stays in the owner workspace. CQA does not invent legal details.",
@@ -364,6 +365,11 @@ export default function OwnerSetupPage() {
     }
   ];
 
+  const questions = [
+    { title: "Confirm your business basics", body: "Your business details are already saved. Add a short summary and audience if useful.", content: advancedQuestions[1].content },
+    { title: "Choose your brand", body: "Choose colours and upload your logo or hero image beside this form.", content: advancedQuestions[4].content },
+    { title: "Add your first offer", body: "Describe your first offer here for an AI draft, or add and activate it in the owner dashboard. Then connect Stripe, preview and publish.", content: <div className="setup-fields">{advancedQuestions[5].content}<Link href="/owner/dashboard" className="button primary">Add and review offers</Link><details><summary>Optional business details and connections</summary>{[0,2,3,6].map((index) => <section key={index}><h3>{advancedQuestions[index].title}</h3>{advancedQuestions[index].content}</section>)}</details></div> }
+  ];
   const current = questions[step];
 
   return (
@@ -371,7 +377,7 @@ export default function OwnerSetupPage() {
       <section className="setup-hero">
         <div>
           <span className="eyebrow">CQA BUSINESS-IN-A-BOX BUILDER</span>
-          <h1>Tell CQA about the business. We prepare the machine.</h1>
+          <h1>Launch your machine in three steps.</h1>
           <p>{plan?.setupMode} · {plan?.automationLevel}</p>
         </div>
         <div className="setup-template-lock"><span>LOCKED MASTER TEMPLATE</span><strong>ACTIVEWEAR MASTER V1</strong><small>Structure locked · brand content editable</small></div>
@@ -389,7 +395,7 @@ export default function OwnerSetupPage() {
             <button type="button" className="button ghost" disabled={step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>Back</button>
             {step < questions.length - 1
               ? <button type="button" className="button primary" onClick={() => setStep((value) => Math.min(questions.length - 1, value + 1))}>Next question</button>
-              : <button type="button" className="button primary" disabled={saving} onClick={() => void saveSetup()}>{saving ? "Saving…" : "Save questionnaire"}</button>}
+              : <button type="button" className="button primary" disabled={saving} onClick={() => void saveSetup()}>{saving ? "Saving…" : "Save setup"}</button>}
           </div>
         </article>
 
@@ -439,10 +445,10 @@ export default function OwnerSetupPage() {
           {business.plan === "starter"
             ? <Link href="/pricing" className="button primary">Upgrade for AI build</Link>
             : <button type="button" className="button primary" disabled={!activeBilling || building} onClick={() => void buildMachine()}>{building ? "Building machine…" : "Build & install draft"}</button>}
-          <Link href="/owner/integrations" className="button ghost">Connections</Link>
+          <Link href="/owner/dashboard" className="button ghost">Connect Stripe</Link>
           <Link href="/owner/dashboard" className="button ghost">Owner dashboard</Link>
           <button type="button" className="button primary" disabled={!activeBilling || saving} onClick={() => void publishMachine()}>{saving ? "Saving…" : machine?.status === "live" ? "Publish changes" : "Publish machine"}</button>
-          {machine?.status === "live" ? <Link href={`/machine/${machine.slug}`} className="button ghost">View live machine</Link> : null}
+          {machine ? <Link href={machine.status === "live" ? `/machine/${machine.slug}` : "/owner/preview"} className="button ghost">{machine.status === "live" ? "View live machine" : "Preview machine"}</Link> : null}
         </div>
       </section>
 
