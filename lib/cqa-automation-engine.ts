@@ -197,6 +197,7 @@ export async function processAutomationRun(runId: string) {
           const subject = render(String(config.subject || "Message from {{business_name}}"), values);
           const body = render(String(config.body || ""), values);
           const result = await resend.emails.send({ from, to: contact.email, reply_to: business.email || undefined, subject, text: body });
+          if (result.error) throw new Error(result.error.message);
           output = appendOutput(output, { step: step.step_order, type: "email", status: "sent", provider_id: result.data?.id || null });
         }
       }

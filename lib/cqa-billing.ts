@@ -44,6 +44,12 @@ function currentPeriodEnd(subscription: Stripe.Subscription) {
   return value ? new Date(value * 1000).toISOString() : null;
 }
 
+async function isSupersededSubscription(subscription: Stripe.Subscription, existingId?: string | null) {
+  if (!existingId || existingId === subscription.id) return false;
+  const existing = await getStripeClient().subscriptions.retrieve(existingId);
+  return existing.created >= subscription.created;
+}
+
 async function sendMachineAccessEmail(session: Stripe.Checkout.Session) {
   const email = session.customer_details?.email || session.customer_email;
   const apiKey = process.env.RESEND_API_KEY;
@@ -67,6 +73,10 @@ async function syncPlanSubscription(subscription: Stripe.Subscription) {
 
   const admin = getCqaSupabaseAdmin();
   const status = normaliseSubscriptionStatus(subscription.status);
+  const { data: existing, error: readError } = await admin.from("cqa_plan_subscriptions")
+    .select("stripe_subscription_id").eq("business_id", businessId).maybeSingle();
+  if (readError) throw readError;
+  if (await isSupersededSubscription(subscription, existing?.stripe_subscription_id)) return true;
   const { error } = await admin.from("cqa_plan_subscriptions").upsert({
     business_id: businessId,
     plan,
@@ -85,6 +95,14 @@ async function syncPlanSubscription(subscription: Stripe.Subscription) {
       .update({ plan, updated_at: new Date().toISOString() })
       .eq("id", businessId);
     if (businessError) throw businessError;
+  } else {
+    // A cancelled or failed subscription cannot retain a selling storefront.
+    const { error: machineError } = await admin.from("cqa_machines")
+      .update({ status: "review", updated_at: new Date().toISOString() }).eq("business_id", businessId);
+    if (machineError) throw machineError;
+    const { error: businessError } = await admin.from("cqa_businesses")
+      .update({ status: "review", updated_at: new Date().toISOString() }).eq("id", businessId);
+    if (businessError) throw businessError;
   }
 
   return true;
@@ -98,6 +116,10 @@ async function syncWorkerSubscription(subscription: Stripe.Subscription) {
 
   const admin = getCqaSupabaseAdmin();
   const status = normaliseSubscriptionStatus(subscription.status);
+  const { data: existing, error: readError } = await admin.from("cqa_worker_subscriptions")
+    .select("stripe_subscription_id").eq("business_id", businessId).eq("worker_id", workerId).maybeSingle();
+  if (readError) throw readError;
+  if (await isSupersededSubscription(subscription, existing?.stripe_subscription_id)) return true;
   const { error } = await admin.from("cqa_worker_subscriptions").upsert({
     business_id: businessId,
     worker_id: workerId,
@@ -126,10 +148,19 @@ async function recordCheckoutSession(session: Stripe.Checkout.Session) {
   const kind = session.metadata?.cqaBillingType as CqaBillingKind | undefined;
   const businessId = session.metadata?.cqaBusinessId;
   if (!kind || !businessId) return false;
+  if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") return true;
 
   const admin = getCqaSupabaseAdmin();
   const subscriptionId = stripeId(session.subscription);
   const customerId = stripeId(session.customer);
+  const subscription = subscriptionId ? await getStripeClient().subscriptions.retrieve(subscriptionId) : null;
+  const status = subscription ? normaliseSubscriptionStatus(subscription.status) : "incomplete";
+  let existingQuery = admin.from(kind === "plan" ? "cqa_plan_subscriptions" : "cqa_worker_subscriptions")
+    .select("stripe_subscription_id").eq("business_id", businessId);
+  if (kind === "worker") existingQuery = existingQuery.eq("worker_id", session.metadata?.cqaWorkerId || "");
+  const { data: existingBilling, error: existingError } = await existingQuery.maybeSingle();
+  if (existingError) throw existingError;
+  if (subscription && await isSupersededSubscription(subscription, existingBilling?.stripe_subscription_id)) return true;
 
   if (kind === "plan") {
     const plan = session.metadata?.cqaPlan as PlanKey | undefined;
@@ -140,7 +171,7 @@ async function recordCheckoutSession(session: Stripe.Checkout.Session) {
       stripe_customer_id: customerId,
       stripe_subscription_id: subscriptionId,
       stripe_checkout_session_id: session.id,
-      status: "incomplete",
+      status,
       updated_at: new Date().toISOString()
     }, { onConflict: "business_id" });
     if (error) throw error;
@@ -154,26 +185,25 @@ async function recordCheckoutSession(session: Stripe.Checkout.Session) {
       stripe_customer_id: customerId,
       stripe_subscription_id: subscriptionId,
       stripe_checkout_session_id: session.id,
-      status: "incomplete",
+      status,
       price_cents: worker[2] * 100,
       updated_at: new Date().toISOString()
     }, { onConflict: "business_id,worker_id" });
     if (error) throw error;
   }
 
-  if (subscriptionId) {
-    const subscription = await getStripeClient().subscriptions.retrieve(subscriptionId);
+  if (subscription) {
     if (kind === "plan") await syncPlanSubscription(subscription);
     else await syncWorkerSubscription(subscription);
   }
 
-  if (kind === "plan") await sendMachineAccessEmail(session);
+  if (kind === "plan" && isActiveBillingStatus(status)) await sendMachineAccessEmail(session);
 
   return true;
 }
 
 export async function handleCqaBillingStripeEvent(event: Stripe.Event) {
-  if (event.type === "checkout.session.completed") {
+  if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
     return recordCheckoutSession(event.data.object as Stripe.Checkout.Session);
   }
 
@@ -182,7 +212,12 @@ export async function handleCqaBillingStripeEvent(event: Stripe.Event) {
     event.type === "customer.subscription.updated" ||
     event.type === "customer.subscription.deleted"
   ) {
-    const subscription = event.data.object as Stripe.Subscription;
+    const eventSubscription = event.data.object as Stripe.Subscription;
+    // Fetch current state so delayed/out-of-order events cannot reactivate a
+    // cancelled subscription or revoke a recovered payment.
+    const subscription = event.type === "customer.subscription.deleted"
+      ? eventSubscription
+      : await getStripeClient().subscriptions.retrieve(eventSubscription.id);
     const kind = subscription.metadata.cqaBillingType as CqaBillingKind | undefined;
     if (kind === "plan") return syncPlanSubscription(subscription);
     if (kind === "worker") return syncWorkerSubscription(subscription);

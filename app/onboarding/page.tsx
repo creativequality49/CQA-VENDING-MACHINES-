@@ -20,6 +20,7 @@ function OnboardingForm() {
   const [phone, setPhone] = useState("");
   const [businessEmail, setBusinessEmail] = useState("");
   const [plan, setPlan] = useState<PlanKey>(initialPlan);
+  const [launchPackage, setLaunchPackage] = useState(initialPlan === "pro" && search.get("package") === "launch");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +37,7 @@ function OnboardingForm() {
     if (!userId) return;
     setLoading(true);
     setError("");
-
+    try {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
     if (!token) {
@@ -57,15 +58,10 @@ function OnboardingForm() {
       return;
     }
 
-    if (result.existing) {
-      router.push("/owner/setup");
-      return;
-    }
-
     const billingResponse = await fetch("/api/cqa-billing/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ kind: "plan", businessId: result.businessId, plan })
+      body: JSON.stringify({ kind: "plan", businessId: result.businessId, plan, launchPackage: plan === "pro" && launchPackage })
     });
     const billing = await billingResponse.json().catch(() => ({}));
     if (billingResponse.ok && billing.url) {
@@ -73,8 +69,16 @@ function OnboardingForm() {
       return;
     }
 
-    router.push("/owner/setup?created=1&billing=required");
-    router.refresh();
+    if (billingResponse.status === 409 && billing.error === "This machine plan is already active.") {
+      router.push("/owner/setup");
+      return;
+    }
+    setError(billing.error || "Your workspace is saved. Retry secure checkout to activate it.");
+    setLoading(false);
+    } catch {
+      setError("Secure checkout could not be reached. Your saved workspace can be retried.");
+      setLoading(false);
+    }
   }
 
   if (checking) return <p>Checking secure owner access…</p>;
@@ -84,7 +88,7 @@ function OnboardingForm() {
         <span className="eyebrow">OWNER ACCOUNT REQUIRED</span>
         <h1>Create or log in to your CQA owner account first.</h1>
         <p className="small">Your owner account protects your business data and ensures only you can manage your machine.</p>
-        <Link href="/login?next=/onboarding" className="button primary">Continue to secure login</Link>
+        <Link href={`/login?next=${encodeURIComponent(`/onboarding?plan=${plan}${launchPackage ? "&package=launch" : ""}`)}`} className="button primary">Continue to secure login</Link>
       </section>
     );
   }
@@ -94,7 +98,7 @@ function OnboardingForm() {
       <div>
         <span className="eyebrow">CQA BUSINESS ONBOARDING</span>
         <h1>Build and activate your business machine.</h1>
-        <p className="small">Submit your business details, then complete the selected monthly CQA plan in secure Stripe Checkout. Your machine remains private and in review until CQA verification and payment onboarding are complete.</p>
+        <p className="small">Submit your business details, then activate the selected plan in secure Stripe Checkout. Add your first offer and connect Stripe to publish your machine.</p>
       </div>
       <label><span className="small">Business name</span><input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Example: Summit Plumbing Co." /></label>
       <label><span className="small">Business category</span><select value={category} onChange={(e) => setCategory(e.target.value)}><option>Trades & Services</option><option>Beauty</option><option>Fitness</option><option>Coaching</option><option>Professional Services</option><option>Retail</option><option>Creator</option><option>Other</option></select></label>
@@ -115,9 +119,13 @@ function OnboardingForm() {
           ))}
         </div>
       </fieldset>
+      {plan === "pro" ? <label className="glass-card" style={{ padding: "1rem" }}>
+        <input type="checkbox" checked={launchPackage} onChange={(event) => setLaunchPackage(event.target.checked)} /> <strong>Add Pro Launch Package — $997 one-time setup</strong>
+        <p className="small">Branded setup, offers loaded, payment connection, automation, basic AI receptionist and launch configuration. Pro remains $297/month.</p>
+      </label> : null}
       {error ? <div role="alert" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(255,70,100,.4)" }}>{error}</div> : null}
       <button className="button primary" type="submit" disabled={loading} style={{ justifyContent: "center" }}>{loading ? "Creating secure checkout…" : "Create Machine & Continue to Stripe"}</button>
-      <p className="small">The CQA plan is billed monthly through Stripe. Public publication and customer payments stay disabled until CQA review and the business’s own Stripe Connect onboarding are complete.</p>
+      <p className="small">The CQA plan is billed monthly through Stripe. The optional Pro Launch Package adds a one-time $997 setup charge to the first payment. Connect your own Stripe account before publishing and accepting customer payments.</p>
     </form>
   );
 }

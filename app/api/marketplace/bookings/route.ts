@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 
 const schema = z.object({
@@ -45,7 +47,26 @@ export async function POST(req: Request) {
     }
 
     const row = Array.isArray(data) ? data[0] : data;
-    return NextResponse.json({ ok: true, bookingId: row?.booking_id || null });
+    if (!row?.booking_id) {
+      return NextResponse.json({ error: "The request could not be saved. Please try again." }, { status: 500 });
+    }
+    // Resolve the business from the saved booking, never from browser input.
+    // An automation failure must not invite a second submission of a saved booking.
+    try {
+      const admin = getCqaSupabaseAdmin();
+      const { data: booking, error: bookingError } = await admin.from("cqa_bookings")
+        .select("business_id,machine_id,offer_id").eq("id", row.booking_id).single();
+      if (bookingError || !booking) throw new Error("Saved booking context unavailable.");
+      await triggerBusinessAutomations(booking.business_id, "new_booking", {
+        bookingId: row.booking_id,
+        machineId: booking.machine_id,
+        offerId: booking.offer_id,
+        requestedAt: requestedAt?.toISOString() || null
+      }, row.contact_id || null);
+    } catch (automationError) {
+      console.error("[cqa-booking] follow-up trigger failed", automationError);
+    }
+    return NextResponse.json({ ok: true, bookingId: row.booking_id });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues[0]?.message || "Invalid request." }, { status: 400 });

@@ -8,6 +8,7 @@ import { CQA_PLANS, CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/l
 type Business = { id: string; name: string; slug: string; category: string; plan: "starter" | "pro" | "elite"; status: string; verified: boolean };
 type Machine = { id: string; slug: string; title: string; status: string };
 type Offer = { id: string; name: string; offer_type: string; price_cents: number | null; active: boolean };
+type Order = { id: string; customer_email: string | null; status: string; amount_cents: number; currency: string; created_at: string };
 type Booking = { id: string; customer_name: string; customer_email: string; status: string; created_at: string; notes: string | null };
 type ConnectedAccount = { stripe_account_id: string | null; onboarding_complete: boolean; charges_enabled: boolean; payouts_enabled: boolean };
 type Worker = { worker_id: string; enabled: boolean };
@@ -22,6 +23,8 @@ export default function OwnerDashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [machine, setMachine] = useState<Machine | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [orderError, setOrderError] = useState("");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [account, setAccount] = useState<ConnectedAccount | null>(null);
   const [workers, setWorkers] = useState<Worker[]>([]);
@@ -44,14 +47,15 @@ export default function OwnerDashboardPage() {
     setBusiness(first);
     if (!first) { setChecking(false); return; }
 
-    const [machineResult, offerResult, bookingResult, accountResult, workerResult, planBillingResult, workerBillingResult] = await Promise.all([
+    const [machineResult, offerResult, bookingResult, accountResult, workerResult, planBillingResult, workerBillingResult, orderResult] = await Promise.all([
       supabase.from("cqa_machines").select("id,slug,title,status").eq("business_id", first.id).limit(1),
       supabase.from("cqa_offers").select("id,name,offer_type,price_cents,active").eq("business_id", first.id).order("sort_order"),
       supabase.from("cqa_bookings").select("id,customer_name,customer_email,status,created_at,notes").eq("business_id", first.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("cqa_connected_accounts").select("stripe_account_id,onboarding_complete,charges_enabled,payouts_enabled").eq("business_id", first.id).maybeSingle(),
       supabase.from("cqa_business_workers").select("worker_id,enabled").eq("business_id", first.id),
       supabase.from("cqa_plan_subscriptions").select("status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id).maybeSingle(),
-      supabase.from("cqa_worker_subscriptions").select("worker_id,status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id)
+      supabase.from("cqa_worker_subscriptions").select("worker_id,status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id),
+      supabase.from("cqa_orders").select("id,customer_email,status,amount_cents,currency,created_at").eq("business_id", first.id).order("created_at", { ascending: false }).limit(20)
     ]);
     setMachine((machineResult.data?.[0] as Machine | undefined) || null);
     setOffers((offerResult.data as Offer[] | null) || []);
@@ -60,6 +64,8 @@ export default function OwnerDashboardPage() {
     setWorkers((workerResult.data as Worker[] | null) || []);
     setPlanSubscription((planBillingResult.data as PlanSubscription | null) || null);
     setWorkerSubscriptions((workerBillingResult.data as WorkerSubscription[] | null) || []);
+    setOrders((orderResult.data as Order[] | null) || []);
+    setOrderError(orderResult.error ? "Orders could not be loaded. Refresh to try again." : "");
     setChecking(false);
   }
 
@@ -248,6 +254,8 @@ export default function OwnerDashboardPage() {
           })}
         </div>
       </section>
+
+      <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}><span className="eyebrow">CUSTOMER PAYMENTS</span><h2>Recent orders</h2><p className="small">Payment status is confirmed by Stripe. Pending orders are not paid revenue.</p>{orderError ? <p role="alert">{orderError}</p> : orders.length ? <div className="revenue-stack">{orders.map((order) => <div key={order.id}><span>{order.status.toUpperCase()}</span><strong>{new Intl.NumberFormat("en-AU", { style: "currency", currency: order.currency.toUpperCase() }).format(order.amount_cents / 100)}</strong><small>{order.customer_email || "Customer email unavailable"} · {new Date(order.created_at).toLocaleDateString("en-AU")}</small></div>)}</div> : <p className="small">No customer orders yet.</p>}</section>
 
       <section className="glass-card" style={{ padding: "1.25rem" }}><span className="eyebrow">LATEST CUSTOMER REQUESTS</span><h2>Bookings and enquiries</h2>{bookings.length ? <div className="revenue-stack">{bookings.map((booking) => <div key={booking.id}><span>{booking.status.toUpperCase()}</span><strong>{booking.customer_name}</strong><small>{booking.customer_email} · {new Date(booking.created_at).toLocaleDateString("en-AU")}{booking.notes ? ` · ${booking.notes.slice(0, 90)}` : ""}</small></div>)}</div> : <p className="small">No customer requests yet.</p>}</section>
     </main>

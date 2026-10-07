@@ -17,7 +17,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
-  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/owner/dashboard";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
   const confirmationUrl = `${typeof window === "undefined" ? "" : window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
 
   async function resendConfirmation() {
@@ -62,7 +62,7 @@ function LoginForm() {
         setLoading(false);
         return;
       }
-      router.push("/onboarding");
+      router.push(next);
       router.refresh();
       return;
     }
@@ -106,6 +106,7 @@ function LoginForm() {
       </form>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", marginTop: "1.2rem" }}>
+        <Link className="text-link" href="/reset-password">Forgot password?</Link>
         <Link className="text-link" href="/">← Back to CQA</Link>
         <Link className="text-link" href="/pricing">View plans</Link>
       </div>

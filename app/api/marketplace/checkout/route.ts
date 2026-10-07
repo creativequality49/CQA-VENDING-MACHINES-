@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getStripeClient } from "@/lib/stripe";
+import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { isActiveBillingStatus } from "@/lib/cqa-billing";
 import {
   getPublicSupabaseClient,
   platformFeePercent,
@@ -35,6 +37,12 @@ export async function POST(req: Request) {
     const context = Array.isArray(data) ? data[0] : data;
     if (!context) {
       return NextResponse.json({ error: "This offer is not available for checkout." }, { status: 404 });
+    }
+    const { data: billing, error: billingError } = await getCqaSupabaseAdmin().from("cqa_plan_subscriptions")
+      .select("status").eq("business_id", context.business_id).maybeSingle();
+    if (billingError) throw billingError;
+    if (!isActiveBillingStatus(billing?.status)) {
+      return NextResponse.json({ error: "This machine is not currently accepting payments." }, { status: 409 });
     }
 
     if (!context.connected_account_id || !context.charges_enabled || !context.onboarding_complete) {

@@ -12,7 +12,8 @@ const schema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("plan"),
     businessId: z.string().uuid(),
-    plan: z.enum(["starter", "pro", "elite"])
+    plan: z.enum(["starter", "pro", "elite"]),
+    launchPackage: z.boolean().optional().default(false)
   }),
   z.object({
     kind: z.literal("worker"),
@@ -85,21 +86,14 @@ export async function POST(req: Request) {
       );
     }
 
-    if (payload.kind === "plan" && payload.plan !== "starter" && !aiWorkforceReady) {
-      return NextResponse.json(
-        { error: "Pro and Elite paid activation is temporarily gated until the production AI layer is active. Starter is available now." },
-        { status: 503 }
-      );
-    }
-
     let itemName: string;
     let amountCents: number;
     let stripePriceId: string | undefined;
     let metadata: Record<string, string>;
 
     if (payload.kind === "plan") {
-      if (business.plan !== payload.plan) {
-        return NextResponse.json({ error: "The requested plan does not match this business." }, { status: 409 });
+      if (payload.launchPackage && payload.plan !== "pro") {
+        return NextResponse.json({ error: "The Launch Package is available with Pro." }, { status: 400 });
       }
       if (isActiveBillingStatus(planBilling?.status)) {
         return NextResponse.json({ error: "This machine plan is already active." }, { status: 409 });
@@ -115,7 +109,8 @@ export async function POST(req: Request) {
         cqaBillingType: "plan",
         cqaBusinessId: business.id,
         cqaPlan: payload.plan,
-        cqaOwnerId: user.id
+        cqaOwnerId: user.id,
+        cqaLaunchPackage: String(payload.launchPackage)
       };
     } else {
       const worker = getWorkerDefinition(payload.workerId);
@@ -145,6 +140,12 @@ export async function POST(req: Request) {
     }
 
     const stripe = getStripeClient();
+    if (stripePriceId) {
+      const configuredPrice = await stripe.prices.retrieve(stripePriceId);
+      if (!configuredPrice.active || configuredPrice.currency !== "aud" || configuredPrice.unit_amount !== amountCents || configuredPrice.recurring?.interval !== "month" || configuredPrice.recurring.interval_count !== 1) {
+        return NextResponse.json({ error: "The configured Stripe price does not match the current monthly AUD offer. Contact CQA support." }, { status: 503 });
+      }
+    }
     const origin = siteUrl(req);
     const lineItem = stripePriceId
       ? { price: stripePriceId, quantity: 1 }
@@ -160,7 +161,14 @@ export async function POST(req: Request) {
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [lineItem],
+      line_items: [lineItem, ...(payload.kind === "plan" && payload.launchPackage ? [{
+        price_data: {
+          currency: "aud",
+          unit_amount: 99700,
+          product_data: { name: "CQA Pro Launch Package — one-time implementation" }
+        },
+        quantity: 1
+      }] : [])],
       client_reference_id: user.id,
       ...(existingCustomerId
         ? { customer: existingCustomerId }

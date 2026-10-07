@@ -13,7 +13,7 @@ function ConfirmEmailContent() {
   const [error, setError] = useState("");
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
-  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/owner/dashboard";
+  const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
 
   useEffect(() => {
     let active = true;
@@ -54,7 +54,7 @@ function ConfirmEmailContent() {
       if (data.session) {
         finish();
       } else {
-        setStatus("Your email is confirmed. Log in once to open your CQA owner dashboard.");
+        setStatus("We could not verify an active session from this link. Log in to check your account, or request a fresh confirmation email.");
       }
     }, 4500);
 

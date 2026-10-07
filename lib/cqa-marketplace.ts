@@ -50,7 +50,7 @@ export const CQA_PLANS = [
   {
     key: "starter" as const,
     name: "Starter",
-    price: 49,
+    price: 97,
     fee: 5,
     slots: "4 selling slots",
     setupMode: "Guided Shell",
@@ -68,7 +68,7 @@ export const CQA_PLANS = [
   {
     key: "pro" as const,
     name: "Pro",
-    price: 99,
+    price: 297,
     fee: 3,
     slots: "20 selling slots",
     setupMode: "AI-Assisted Build",
@@ -85,8 +85,8 @@ export const CQA_PLANS = [
   },
   {
     key: "elite" as const,
-    name: "Elite",
-    price: 249,
+    name: "Enterprise",
+    price: 997,
     fee: 1,
     slots: "Unlimited selling slots",
     setupMode: "Done-For-You Machine",

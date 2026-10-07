@@ -3,44 +3,9 @@ import Stripe from "stripe";
 import { getStripeClient } from "@/lib/stripe";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
+import { claimCqaWebhookEvent, finishCqaWebhookEvent } from "@/lib/cqa-webhook-events";
 
 export const runtime = "nodejs";
-
-async function claimWebhookEvent(
-  admin: ReturnType<typeof getCqaSupabaseAdmin>,
-  event: Stripe.Event,
-) {
-  const { error } = await admin.from("cqa_stripe_webhook_events").insert({
-    event_id: event.id,
-    event_type: event.type,
-    status: "processing",
-  });
-
-  if (!error) return "claimed" as const;
-  if (error.code !== "23505") throw error;
-
-  const { data: existing, error: existingError } = await admin
-    .from("cqa_stripe_webhook_events")
-    .select("status,processed_at")
-    .eq("event_id", event.id)
-    .single();
-  if (existingError) throw existingError;
-  if (existing.status === "processed") return "processed" as const;
-
-  if (existing.status === "failed") {
-    const { data: reclaimed, error: reclaimError } = await admin
-      .from("cqa_stripe_webhook_events")
-      .update({ status: "processing", last_error: null, processed_at: new Date().toISOString() })
-      .eq("event_id", event.id)
-      .eq("status", "failed")
-      .select("event_id")
-      .maybeSingle();
-    if (reclaimError) throw reclaimError;
-    if (reclaimed) return "claimed" as const;
-  }
-
-  throw new Error("Webhook event is already being processed.");
-}
 
 export async function POST(req: Request) {
   const signature = req.headers.get("stripe-signature");
@@ -56,37 +21,51 @@ export async function POST(req: Request) {
   }
 
   const admin = getCqaSupabaseAdmin();
+  let claimedAt: string | null = null;
   try {
-    const claim = await claimWebhookEvent(admin, event);
-    if (claim === "processed") return NextResponse.json({ received: true, duplicate: true });
+    const claim = await claimCqaWebhookEvent(event);
+    if (claim.duplicate) return NextResponse.json({ received: true, duplicate: true });
+    claimedAt = claim.claimedAt;
 
     if (event.type === "account.updated") {
       const account = event.data.object as Stripe.Account;
-      await admin.from("cqa_connected_accounts").update({
+      const { error: accountError } = await admin.from("cqa_connected_accounts").update({
         charges_enabled: account.charges_enabled,
         payouts_enabled: account.payouts_enabled,
         details_submitted: account.details_submitted,
         onboarding_complete: Boolean(account.details_submitted && account.charges_enabled),
         updated_at: new Date().toISOString()
       }).eq("stripe_account_id", account.id);
+      if (accountError) throw accountError;
     }
 
-    if (event.type === "checkout.session.completed") {
+    if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       const session = event.data.object as Stripe.Checkout.Session;
       const businessId = session.metadata?.cqaBusinessId;
-      if (businessId) {
+      if (businessId && (session.payment_status === "paid" || session.payment_status === "no_payment_required")) {
+        const { data: account, error: accountError } = await admin.from("cqa_connected_accounts")
+          .select("stripe_account_id").eq("business_id", businessId).single();
+        if (accountError) throw accountError;
+        if (!event.account || account.stripe_account_id !== event.account) throw new Error("Checkout account does not match business.");
         const email = (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
         const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null;
-        const { data: order } = await admin.from("cqa_orders").update({
+        const { data: order, error: orderError } = await admin.from("cqa_orders").upsert({
+          business_id: businessId,
+          machine_id: session.metadata?.cqaMachineId,
+          offer_id: session.metadata?.cqaOfferId,
+          amount_cents: session.amount_total ?? 0,
+          currency: session.currency || "aud",
+          stripe_checkout_session_id: session.id,
           status: "paid",
           stripe_payment_intent_id: paymentIntentId,
           customer_email: email || null,
           updated_at: new Date().toISOString()
-        }).eq("stripe_checkout_session_id", session.id).eq("business_id", businessId).select("id,machine_id,offer_id,amount_cents,currency").maybeSingle();
+        }, { onConflict: "stripe_checkout_session_id" }).select("id,machine_id,offer_id,amount_cents,currency").single();
+        if (orderError) throw orderError;
 
         let contactId: string | null = null;
         if (email) {
-          const { data: contact } = await admin.from("cqa_contacts").upsert({
+          const { data: contact, error: contactError } = await admin.from("cqa_contacts").upsert({
             business_id: businessId,
             email,
             name: session.customer_details?.name || null,
@@ -96,10 +75,11 @@ export async function POST(req: Request) {
             metadata: { latest_order_id: order?.id || null, stripe_checkout_session_id: session.id },
             updated_at: new Date().toISOString()
           }, { onConflict: "business_id,email" }).select("id").single();
+          if (contactError) throw contactError;
           contactId = contact?.id || null;
         }
 
-        void triggerBusinessAutomations(businessId, "purchase", {
+        await triggerBusinessAutomations(businessId, "purchase", {
           orderId: order?.id || null,
           machineId: order?.machine_id || session.metadata?.cqaMachineId || null,
           offerId: order?.offer_id || session.metadata?.cqaOfferId || null,
@@ -107,29 +87,22 @@ export async function POST(req: Request) {
           currency: order?.currency || session.currency || "aud",
           checkoutSessionId: session.id,
           paymentIntentId
-        }, contactId).catch((automationError) => console.error("[automation] purchase trigger failed", automationError));
+        }, contactId);
       }
     }
 
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
-      await admin.from("cqa_orders").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("stripe_checkout_session_id", session.id);
+      const { error: expiredError } = await admin.from("cqa_orders").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("stripe_checkout_session_id", session.id).neq("status", "paid");
+      if (expiredError) throw expiredError;
     }
 
-    const { error: completeError } = await admin
-      .from("cqa_stripe_webhook_events")
-      .update({ status: "processed", processed_at: new Date().toISOString(), last_error: null })
-      .eq("event_id", event.id);
-    if (completeError) throw completeError;
+    if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt);
 
     return NextResponse.json({ received: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Webhook processing failed.";
-    await admin
-      .from("cqa_stripe_webhook_events")
-      .update({ status: "failed", last_error: message.slice(0, 500) })
-      .eq("event_id", event.id)
-      .eq("status", "processing");
+    if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt, message);
     return NextResponse.json({ error: "Webhook processing failed." }, { status: 500 });
   }
 }

@@ -104,6 +104,28 @@ export default function OwnerSetupPage() {
     return data.session?.access_token || "";
   }
 
+  async function publishMachine() {
+    if (!business) return;
+    setSaving(true);
+    setError("");
+    try {
+      const token = await accessToken();
+      const response = await fetch("/api/owner/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ businessId: business.id })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not publish your machine.");
+      setMessage("Your Digital Vending Machine is live.");
+      await load();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not publish your machine.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function loadSetup(profile: SetupProfile | null) {
     if (!profile) return;
     if (profile.setup_mode) setSetupMode(profile.setup_mode);
@@ -178,7 +200,7 @@ export default function OwnerSetupPage() {
   useEffect(() => { void load(); }, [supabase]);
 
   useEffect(() => {
-    if (search.get("billing") === "success") setMessage("Payment received. Complete the questions and build your machine.");
+    if (search.get("billing") === "success") setMessage("Checkout returned successfully. Your plan activates after Stripe confirms payment; refresh if it is still pending.");
     if (search.get("billing") === "cancelled") setMessage("Checkout was cancelled. Your machine shell is saved.");
     if (search.get("billing") === "required") setMessage("Your shell is saved. Activate the plan before AI build or Stripe Connect.");
   }, [search]);
@@ -419,6 +441,8 @@ export default function OwnerSetupPage() {
             : <button type="button" className="button primary" disabled={!activeBilling || building} onClick={() => void buildMachine()}>{building ? "Building machine…" : "Build & install draft"}</button>}
           <Link href="/owner/integrations" className="button ghost">Connections</Link>
           <Link href="/owner/dashboard" className="button ghost">Owner dashboard</Link>
+          <button type="button" className="button primary" disabled={!activeBilling || saving} onClick={() => void publishMachine()}>{saving ? "Saving…" : machine?.status === "live" ? "Publish changes" : "Publish machine"}</button>
+          {machine?.status === "live" ? <Link href={`/machine/${machine.slug}`} className="button ghost">View live machine</Link> : null}
         </div>
       </section>
 

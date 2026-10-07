@@ -15,6 +15,7 @@ export async function GET() {
   let database: ComponentStatus = "missing";
   let legacyServiceRole: ComponentStatus = "missing";
   let stripeWebhookEdge: ComponentStatus = "missing";
+  let commerceSchema: ComponentStatus = "missing";
 
   try {
     const publicClient = getPublicSupabaseClient();
@@ -28,6 +29,14 @@ export async function GET() {
     const admin = getCqaSupabaseAdmin();
     const { error } = await admin.from("cqa_businesses").select("id").limit(1);
     legacyServiceRole = error ? "error" : "ok";
+    if (!error) {
+      const checks = await Promise.all([
+        admin.from("cqa_orders").select("id,stripe_checkout_session_id,status,amount_cents,currency").limit(1),
+        admin.from("cqa_plan_subscriptions").select("business_id,stripe_subscription_id,status").limit(1),
+        admin.from("cqa_stripe_webhook_events").select("event_id,status,processed_at,last_error").limit(1)
+      ]);
+      commerceSchema = checks.some(check => check.error) ? "error" : "ok";
+    }
   } catch {
     legacyServiceRole = "missing";
   }
@@ -54,11 +63,20 @@ export async function GET() {
       process.env.CQA_CHAT_API_KEY
   );
   const email = configured(process.env.RESEND_API_KEY);
+  const emailSender = configured(process.env.CQA_AUTOMATION_FROM_EMAIL || process.env.CQA_EMAIL_FROM);
+  const platformWebhookSecret = configured(process.env.STRIPE_WEBHOOK_SECRET);
+  const connectWebhookSecret = configured(process.env.STRIPE_CONNECT_WEBHOOK_SECRET);
 
   const commerceReady =
     database === "ok" &&
     stripe === "ok" &&
-    stripeWebhookEdge === "ok";
+    legacyServiceRole === "ok" &&
+    commerceSchema === "ok" &&
+    platformWebhookSecret === "ok" &&
+    connectWebhookSecret === "ok";
+
+  // Configuration checks do not prove delivery or successful real payments.
+  const launchConfigurationReady = commerceReady && email === "ok" && emailSender === "ok";
 
   const aiWorkforceReady =
     database === "ok" &&
@@ -67,20 +85,25 @@ export async function GET() {
 
   return NextResponse.json(
     {
-      status: commerceReady ? "ok" : "degraded",
+      status: launchConfigurationReady ? "ok" : "degraded",
       environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown",
       database,
       stripe,
       stripeWebhookEdge,
       legacyServiceRole,
+      commerceSchema,
       ai,
       embeddings,
       email,
+      emailSender,
+      platformWebhookSecret,
+      connectWebhookSecret,
+      launchConfigurationReady,
       commerceReady,
       aiWorkforceReady
     },
     {
-      status: commerceReady ? 200 : 503,
+      status: launchConfigurationReady ? 200 : 503,
       headers: { "Cache-Control": "no-store" }
     }
   );
