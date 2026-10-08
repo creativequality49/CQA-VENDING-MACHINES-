@@ -1,3 +1,4 @@
+import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireCqaOwner } from "@/lib/cqa-owner-auth";
@@ -94,9 +95,10 @@ export async function POST(req: Request) {
       highRiskAction: false,
     });
 
-    const apiKey = process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY;
-    const apiUrl = process.env.CQA_CHAT_API_URL || "https://api.openai.com/v1/chat/completions";
-    const model = process.env.CQA_CHAT_MODEL || "gpt-4.1-mini";
+    const provider = getCqaChatProvider();
+    const apiKey = provider?.apiKey;
+    const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
+    const model = provider?.model || "gpt-4.1-mini";
     let draft: z.infer<typeof generatedSchema> = fallbackDraft(business, setup as Record<string, unknown>);
     let aiUsed = false;
 

@@ -1,4 +1,5 @@
 import "server-only";
+import { getCqaChatProvider, getCqaEmbeddingProvider } from "@/lib/cqa-ai-provider";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 
 export type CqaAgentKey =
@@ -96,16 +97,9 @@ function parseAgentPayload(raw: string) {
 }
 
 export async function embedText(text: string) {
-  const apiKey =
-    process.env.CQA_EMBEDDING_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    process.env.CQA_CHAT_API_KEY;
-  if (!apiKey) throw new Error("Embedding provider is not configured.");
-
-  const apiUrl =
-    process.env.CQA_EMBEDDINGS_API_URL ||
-    "https://api.openai.com/v1/embeddings";
-  const model = process.env.CQA_EMBEDDING_MODEL || "text-embedding-3-small";
+  const provider = getCqaEmbeddingProvider();
+  if (!provider) throw new Error("Embedding provider is not configured.");
+  const { apiKey, apiUrl, model } = provider;
 
   const response = await fetch(apiUrl, {
     method: "POST",
@@ -252,11 +246,10 @@ export async function runCqaAgent(input: {
   const { data: business, error: businessError } = await businessQuery.single();
   if (businessError || !business) throw new Error("Business workspace is unavailable.");
 
-  const apiKey = process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY;
-  const apiUrl =
-    process.env.CQA_CHAT_API_URL ||
-    "https://api.openai.com/v1/chat/completions";
-  const model = process.env.CQA_CHAT_MODEL || "gpt-4.1-mini";
+  const provider = getCqaChatProvider();
+  const apiKey = provider?.apiKey;
+  const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
+  const model = provider?.model || "gpt-4.1-mini";
 
   const { data: run } = await admin
     .from("cqa_ai_runs")

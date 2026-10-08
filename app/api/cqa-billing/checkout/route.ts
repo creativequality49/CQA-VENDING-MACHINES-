@@ -1,3 +1,4 @@
+import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
 
     const existingCustomerId = planBilling?.stripe_customer_id || workerBilling?.stripe_customer_id || null;
     const aiWorkforceReady = Boolean(
-      (process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY) &&
+      getCqaChatProvider() &&
       (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)
     );
 

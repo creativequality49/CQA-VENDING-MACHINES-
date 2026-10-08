@@ -1,3 +1,4 @@
+import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import { NextRequest, NextResponse } from "next/server";
 import { AGE_COOKIE, verifyAgeToken } from "../../../../lib/age-assurance";
 
@@ -17,10 +18,11 @@ async function runChat(body: CreatorRequest) {
   const message = (body.message ?? body.prompt ?? "").trim();
   if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400 });
   if(blockProhibited(message)) return NextResponse.json({error:"This request is not permitted on FanXFantasy."},{status:403});
-  const apiKey = process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY;
-  const apiUrl = process.env.CQA_CHAT_API_URL || "https://api.openai.com/v1/chat/completions";
-  const model = process.env.CQA_CHAT_MODEL || "gpt-4.1-mini";
-  if (!apiKey) return NextResponse.json({ error: "Chat provider is not configured.", missing: ["CQA_CHAT_API_KEY (or OPENAI_API_KEY)"] }, { status: 503 });
+  const provider = getCqaChatProvider();
+    const apiKey = provider?.apiKey;
+  const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
+  const model = provider?.model || "gpt-4.1-mini";
+  if (!apiKey) return NextResponse.json({ error: "Chat provider is not configured.", missing: ["CQA_CHAT_API_KEY, OPENAI_API_KEY, AI_GATEWAY_API_KEY or VERCEL_OIDC_TOKEN"] }, { status: 503 });
   const response = await fetch(apiUrl, { method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ model, messages: [{ role: "system", content: SCARLETT_PERSONA }, ...cleanConversation(body.conversation), { role: "user", content: message.slice(0, 4000) }], temperature: 0.9, max_tokens: 320 }), cache: "no-store" });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) return NextResponse.json({ error: "Chat provider request failed.", providerStatus: response.status }, { status: 502 });
@@ -42,5 +44,5 @@ async function runMedia(body: CreatorRequest, mode: "image" | "video", ageVerifi
   return NextResponse.json({ok:true,mode,result:data});
 }
 
-export async function GET(){return NextResponse.json({ok:true,configured:{chat:Boolean(process.env.CQA_CHAT_API_KEY||process.env.OPENAI_API_KEY),image:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_IMAGE_MODEL),video:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_VIDEO_MODEL),fanvueMessaging:Boolean(process.env.FANVUE_API_KEY),ageAssurance:Boolean(process.env.YOTI_AGE_API_KEY&&process.env.YOTI_SDK_ID&&process.env.AGE_GATE_SECRET)}})}
+export async function GET(){return NextResponse.json({ok:true,configured:{chat:Boolean(getCqaChatProvider()),image:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_IMAGE_MODEL),video:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_VIDEO_MODEL),fanvueMessaging:Boolean(process.env.FANVUE_API_KEY),ageAssurance:Boolean(process.env.YOTI_AGE_API_KEY&&process.env.YOTI_SDK_ID&&process.env.AGE_GATE_SECRET)}})}
 export async function POST(request:NextRequest){const body=(await request.json().catch(()=>({}))) as CreatorRequest;const ageVerified=verifyAgeToken(request.cookies.get(AGE_COOKIE)?.value);if(body.mode==="chat"){if(!ageVerified)return NextResponse.json({error:"Verified 18+ age assurance is required for FanXFantasy messaging."},{status:403});return runChat(body)}if(body.mode==="image"||body.mode==="video")return runMedia(body,body.mode,ageVerified);return NextResponse.json({error:"mode must be chat, image or video."},{status:400})}

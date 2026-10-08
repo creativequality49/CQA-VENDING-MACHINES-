@@ -1,3 +1,4 @@
+import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import "server-only";
 import { Resend } from "resend";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
@@ -203,7 +204,7 @@ export async function processAutomationRun(runId: string) {
       }
 
       if (step.step_type === "agent_task") {
-        if (!process.env.CQA_CHAT_API_KEY && !process.env.OPENAI_API_KEY) {
+        if (!getCqaChatProvider()) {
           output = appendOutput(output, { step: step.step_order, type: "agent_task", status: "needs_approval", reason: "ai_provider_not_configured" });
           await admin.from("cqa_automation_runs").update({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() }).eq("id", runId);
           return;

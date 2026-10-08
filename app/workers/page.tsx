@@ -1,5 +1,8 @@
+import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import Link from "next/link";
 import { CQA_WORKERS } from "@/lib/cqa-marketplace";
+
+export const dynamic = "force-dynamic";
 
 const workerMeta: Record<string, { area: string; outputs: string[] }> = {
   receptionist: { area: "Front desk", outputs: ["FAQ responses", "Lead capture", "Booking preparation"] },
@@ -13,7 +16,7 @@ const workerMeta: Record<string, { area: string; outputs: string[] }> = {
 
 export default function WorkersPage() {
   const aiReady = Boolean(
-    (process.env.CQA_CHAT_API_KEY || process.env.OPENAI_API_KEY) &&
+    getCqaChatProvider() &&
       (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)
   );
 
