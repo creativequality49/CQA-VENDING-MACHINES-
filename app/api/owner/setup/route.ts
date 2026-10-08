@@ -95,7 +95,10 @@ export async function POST(req: Request) {
       .single();
     if (error) throw error;
 
+    const { data: currentMachine, error: currentMachineError } = await admin.from("cqa_machines").select("customization").eq("business_id", business.id).maybeSingle();
+    if (currentMachineError) throw currentMachineError;
     const customization = {
+      ...(currentMachine?.customization || {}),
       primaryColor: payload.primaryColor || null,
       secondaryColor: payload.secondaryColor || null,
       brandDirection: payload.brandDirection || null,

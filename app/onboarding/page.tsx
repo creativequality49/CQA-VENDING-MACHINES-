@@ -121,7 +121,7 @@ function OnboardingForm() {
       </fieldset>
       {plan === "pro" ? <label className="glass-card" style={{ padding: "1rem" }}>
         <input type="checkbox" checked={launchPackage} onChange={(event) => setLaunchPackage(event.target.checked)} /> <strong>Add Pro Launch Package — $997 one-time setup</strong>
-        <p className="small">Branded setup, offers loaded, payment connection, automation, basic AI receptionist and launch configuration. Pro remains $297/month.</p>
+        <p className="small">Branded setup, offers loaded, payment connection, automation, receptionist and sales follow-up drafts, and launch configuration. Pro remains $297/month.</p>
       </label> : null}
       {error ? <div role="alert" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(255,70,100,.4)" }}>{error}</div> : null}
       <button className="button primary" type="submit" disabled={loading} style={{ justifyContent: "center" }}>{loading ? "Creating secure checkout…" : "Create Machine & Continue to Stripe"}</button>

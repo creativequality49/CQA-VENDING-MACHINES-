@@ -97,7 +97,7 @@ function parseAgentPayload(raw: string) {
 }
 
 export async function embedText(text: string) {
-  const provider = getCqaEmbeddingProvider();
+  const provider = await getCqaEmbeddingProvider();
   if (!provider) throw new Error("Embedding provider is not configured.");
   const { apiKey, apiUrl, model } = provider;
 
@@ -246,7 +246,7 @@ export async function runCqaAgent(input: {
   const { data: business, error: businessError } = await businessQuery.single();
   if (businessError || !business) throw new Error("Business workspace is unavailable.");
 
-  const provider = getCqaChatProvider();
+  const provider = await getCqaChatProvider();
   const apiKey = provider?.apiKey;
   const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
   const model = provider?.model || "gpt-4.1-mini";

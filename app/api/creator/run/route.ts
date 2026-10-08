@@ -18,7 +18,7 @@ async function runChat(body: CreatorRequest) {
   const message = (body.message ?? body.prompt ?? "").trim();
   if (!message) return NextResponse.json({ error: "Message is required." }, { status: 400 });
   if(blockProhibited(message)) return NextResponse.json({error:"This request is not permitted on FanXFantasy."},{status:403});
-  const provider = getCqaChatProvider();
+  const provider = await getCqaChatProvider();
     const apiKey = provider?.apiKey;
   const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
   const model = provider?.model || "gpt-4.1-mini";
@@ -44,5 +44,5 @@ async function runMedia(body: CreatorRequest, mode: "image" | "video", ageVerifi
   return NextResponse.json({ok:true,mode,result:data});
 }
 
-export async function GET(){return NextResponse.json({ok:true,configured:{chat:Boolean(getCqaChatProvider()),image:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_IMAGE_MODEL),video:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_VIDEO_MODEL),fanvueMessaging:Boolean(process.env.FANVUE_API_KEY),ageAssurance:Boolean(process.env.YOTI_AGE_API_KEY&&process.env.YOTI_SDK_ID&&process.env.AGE_GATE_SECRET)}})}
+export async function GET(){return NextResponse.json({ok:true,configured:{chat:Boolean(await getCqaChatProvider()),image:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_IMAGE_MODEL),video:Boolean(process.env.CQA_MEDIA_API_URL&&process.env.CQA_MEDIA_API_KEY&&process.env.CQA_VIDEO_MODEL),fanvueMessaging:Boolean(process.env.FANVUE_API_KEY),ageAssurance:Boolean(process.env.YOTI_AGE_API_KEY&&process.env.YOTI_SDK_ID&&process.env.AGE_GATE_SECRET)}})}
 export async function POST(request:NextRequest){const body=(await request.json().catch(()=>({}))) as CreatorRequest;const ageVerified=verifyAgeToken(request.cookies.get(AGE_COOKIE)?.value);if(body.mode==="chat"){if(!ageVerified)return NextResponse.json({error:"Verified 18+ age assurance is required for FanXFantasy messaging."},{status:403});return runChat(body)}if(body.mode==="image"||body.mode==="video")return runMedia(body,body.mode,ageVerified);return NextResponse.json({error:"mode must be chat, image or video."},{status:400})}

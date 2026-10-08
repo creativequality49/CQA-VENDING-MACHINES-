@@ -117,7 +117,7 @@ export default function OwnerSetupPage() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not publish your machine.");
-      setMessage("Your Digital Vending Machine is live.");
+      setMessage(result.notificationWarning || "Your Digital Vending Machine is live.");
       await load();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Could not publish your machine.");

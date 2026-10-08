@@ -7,7 +7,7 @@ If no direct key exists, CQA uses `AI_GATEWAY_API_KEY`, then `VERCEL_OIDC_TOKEN`
 - Chat: `openai/gpt-4.1-mini` (`AI_GATEWAY_MODEL` override).
 - Embeddings: `openai/text-embedding-3-small` (`AI_GATEWAY_EMBEDDING_MODEL` override).
 
-Vercel deployments provide their project OIDC token. Local tokens pulled with `vercel env pull` expire after 12 hours; refresh them rather than committing them. This HTTP implementation reads the environment token for each call; long-running processes with external token rotation should use Vercel's request-time OIDC helper.
+Vercel builds provide `VERCEL_OIDC_TOKEN`; runtime Functions receive `x-vercel-oidc-token` in the platform request context. CQA uses the official `@vercel/oidc` request-time helper to retrieve the current token. Local tokens pulled with `vercel env pull` expire after 12 hours; refresh them rather than committing them. The helper prioritises runtime request context and refreshes expired local tokens when Vercel CLI credentials are available. No token is cached by CQA.
 
 Configured authentication does not confirm account credits or provider availability. Verify a real request on the target deployment and inspect Gateway Logs before claiming AI launch readiness. Gateway billing/verification failures may still need account action.
 

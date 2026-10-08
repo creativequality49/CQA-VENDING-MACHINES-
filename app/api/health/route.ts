@@ -57,8 +57,8 @@ export async function GET() {
   }
 
   const stripe = configured(process.env.STRIPE_SECRET_KEY);
-  const ai: ComponentStatus = getCqaChatProvider() ? "ok" : "missing";
-  const embeddings: ComponentStatus = getCqaEmbeddingProvider() ? "ok" : "missing";
+  const ai: ComponentStatus = (await getCqaChatProvider()) ? "ok" : "missing";
+  const embeddings: ComponentStatus = (await getCqaEmbeddingProvider()) ? "ok" : "missing";
   const email = configured(process.env.RESEND_API_KEY);
   const emailSender = configured(process.env.CQA_AUTOMATION_FROM_EMAIL || process.env.CQA_EMAIL_FROM);
   const platformWebhookSecret = configured(process.env.STRIPE_WEBHOOK_SECRET);

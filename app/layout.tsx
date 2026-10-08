@@ -1,3 +1,5 @@
+import { Analytics } from "@vercel/analytics/next";
+import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./ux-release.css";
@@ -50,6 +52,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <NavBar />
         {children}
+        <footer className="container" style={{ padding: "1.5rem", display: "flex", gap: "1.5rem", flexWrap: "wrap" }}><Link href="/contact">Contact & support</Link><Link href="/pricing">Plans</Link></footer>
+        <Analytics />
       </body>
     </html>
   );

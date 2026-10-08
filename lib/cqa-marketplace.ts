@@ -80,7 +80,7 @@ export const CQA_PLANS = [
       "Products, bookings, subscriptions and fulfilment fields",
       "Up to 6 connected business tools",
       "Custom colours, hero image and product imagery",
-      "Sales/support worker upgrades available"
+      "Receptionist, sales and marketing drafts included"
     ]
   },
   {
@@ -97,14 +97,14 @@ export const CQA_PLANS = [
       "Full done-for-you machine draft from questionnaire",
       "AI assistant and integration recommendations",
       "Advanced fulfilment and external commerce links",
-      "Finance/marketing worker upgrades available",
+      "Three AI draft workers included",
       "Priority CQA review and launch support"
     ]
   }
 ]
 
 export const CQA_WORKERS = [
-  ["receptionist", "AI Receptionist", 49, "Answers common questions, captures leads and prepares booking requests."],
+  ["receptionist", "AI Receptionist", 49, "Drafts FAQ replies, enquiry summaries and booking requests for owner review."],
   ["sales", "AI Sales Worker", 69, "Qualifies leads, recommends offers and prepares follow-ups for approval."],
   ["marketing", "AI Marketing Worker", 69, "Drafts grounded campaigns, captions and email copy for owner review."]
 ] as const;

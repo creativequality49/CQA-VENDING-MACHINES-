@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { hasIncludedCqaWorker } from "@/lib/cqa-worker-access";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CQA_PLANS, CQA_WORKERS, formatAud, getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
@@ -12,7 +13,7 @@ type Order = { id: string; customer_email: string | null; status: string; amount
 type Booking = { id: string; customer_name: string; customer_email: string; status: string; created_at: string; notes: string | null };
 type ConnectedAccount = { stripe_account_id: string | null; onboarding_complete: boolean; charges_enabled: boolean; payouts_enabled: boolean };
 type Worker = { worker_id: string; enabled: boolean };
-type PlanSubscription = { status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
+type PlanSubscription = { plan: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
 type WorkerSubscription = { worker_id: string; status: string; current_period_end: string | null; cancel_at_period_end: boolean; stripe_customer_id: string | null };
 
 export default function OwnerDashboardPage() {
@@ -53,7 +54,7 @@ export default function OwnerDashboardPage() {
       supabase.from("cqa_bookings").select("id,customer_name,customer_email,status,created_at,notes").eq("business_id", first.id).order("created_at", { ascending: false }).limit(20),
       supabase.from("cqa_connected_accounts").select("stripe_account_id,onboarding_complete,charges_enabled,payouts_enabled").eq("business_id", first.id).maybeSingle(),
       supabase.from("cqa_business_workers").select("worker_id,enabled").eq("business_id", first.id),
-      supabase.from("cqa_plan_subscriptions").select("status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id).maybeSingle(),
+      supabase.from("cqa_plan_subscriptions").select("plan,status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id).maybeSingle(),
       supabase.from("cqa_worker_subscriptions").select("worker_id,status,current_period_end,cancel_at_period_end,stripe_customer_id").eq("business_id", first.id),
       supabase.from("cqa_orders").select("id,customer_email,status,amount_cents,currency,created_at").eq("business_id", first.id).order("created_at", { ascending: false }).limit(20)
     ]);
@@ -198,7 +199,7 @@ export default function OwnerDashboardPage() {
       <section className="grid grid-3" style={{ marginBottom: "1rem" }}>
         <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">OFFERS</span><h2>{offers.length}</h2><p className="small">Products, services and bookings configured.</p></article>
         <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">LEADS / BOOKINGS</span><h2>{bookings.length}</h2><p className="small">Most recent requests visible below.</p></article>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">AI WORKERS</span><h2>{enabledWorkerIds.size}</h2><p className="small">Operational workers enabled.</p></article>
+        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">AI WORKERS</span><h2>{activePlan && ["pro", "elite"].includes(planSubscription?.plan || "") ? 3 : enabledWorkerIds.size}</h2><p className="small">Operational workers enabled.</p></article>
       </section>
 
       <section className="grid grid-2" style={{ marginBottom: "1rem" }}>
@@ -232,18 +233,19 @@ export default function OwnerDashboardPage() {
 
       <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "end" }}>
-          <div><span className="eyebrow">AI WORKER STORE</span><h2>Paid operational add-ons</h2><p className="small">Workers activate only after Stripe confirms the monthly CQA subscription. Cancelling billing disables the worker automatically.</p></div>
+          <div><span className="eyebrow">AI WORKER STORE</span><h2>Receptionist, sales and marketing drafts</h2><p className="small">Three draft workers are included in active Pro and Enterprise. Starter can add individual subscriptions. Review outputs before sending or publishing.</p></div>
           {planSubscription?.stripe_customer_id ? <button className="button ghost" type="button" onClick={manageBilling} disabled={Boolean(billingBusy)}>Manage billing</button> : null}
         </div>
         <div className="grid grid-2">
           {CQA_WORKERS.map(([id, name, price, description]) => {
             const billing = workerBillingById.get(id);
-            const active = ["active", "trialing"].includes(billing?.status || "") && enabledWorkerIds.has(id);
+            const included = hasIncludedCqaWorker(planSubscription?.plan, planSubscription?.status, id);
+            const active = included || (["active", "trialing"].includes(billing?.status || "") && enabledWorkerIds.has(id) && activePlan);
             return (
               <article key={id} className="glass-card" style={{ padding: "1rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: ".7rem", alignItems: "center" }}><h3 style={{ margin: 0 }}>{name}</h3><span className="eyebrow">{active ? "ACTIVE" : billing?.status || "AVAILABLE"}</span></div>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: ".7rem", alignItems: "center" }}><h3 style={{ margin: 0 }}>{name}</h3><span className="eyebrow">{included ? "INCLUDED" : active ? "ACTIVE" : billing?.status || "AVAILABLE"}</span></div>
                 <p className="small">{description}</p>
-                <strong>{"$"}{price} AUD/month</strong>
+                <strong>{included ? "Included in your plan" : `$${price} AUD/month on Starter`}</strong>
                 <div style={{ marginTop: ".7rem" }}>
                   {active ? <Link href={`/owner/workers?worker=${id}`} className="button primary">Open worker</Link> : null}
                   {active

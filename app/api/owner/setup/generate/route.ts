@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     const [{ data: billing }, { data: setup }, { data: machine }] = await Promise.all([
       admin.from("cqa_plan_subscriptions").select("status").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_machine_setup_profiles").select("*").eq("business_id", business.id).maybeSingle(),
-      admin.from("cqa_machines").select("id,slug").eq("business_id", business.id).maybeSingle()
+      admin.from("cqa_machines").select("id,slug,customization").eq("business_id", business.id).maybeSingle()
     ]);
 
     if (!billing || !["active","trialing"].includes(billing.status)) {
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       highRiskAction: false,
     });
 
-    const provider = getCqaChatProvider();
+    const provider = await getCqaChatProvider();
     const apiKey = provider?.apiKey;
     const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
     const model = provider?.model || "gpt-4.1-mini";
@@ -147,6 +147,7 @@ export async function POST(req: Request) {
     const offers = draft.offers.slice(0, offerLimit);
     const now = new Date().toISOString();
     const customization = {
+      ...(machine?.customization || {}),
       storefrontHeadline: draft.storefrontHeadline,
       storefrontSubheadline: draft.storefrontSubheadline,
       assistantBrief: draft.assistantBrief,

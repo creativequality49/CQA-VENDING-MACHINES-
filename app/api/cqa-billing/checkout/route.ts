@@ -1,3 +1,4 @@
+import { hasIncludedCqaWorker } from "@/lib/cqa-worker-access";
 import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -59,10 +60,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Business not found or not owned by this account." }, { status: 403 });
     }
 
-    const [{ data: planBilling }, { data: workerBilling }] = await Promise.all([
+    const [{ data: planBilling, error: planBillingError }, { data: workerBilling, error: workerBillingError }] = await Promise.all([
       ownerClient
         .from("cqa_plan_subscriptions")
-        .select("stripe_customer_id,status")
+        .select("stripe_customer_id,plan,status")
         .eq("business_id", business.id)
         .maybeSingle(),
       ownerClient
@@ -74,9 +75,12 @@ export async function POST(req: Request) {
         .maybeSingle()
     ]);
 
+    if (planBillingError || workerBillingError) throw planBillingError || workerBillingError;
+    if (payload.kind === "worker" && hasIncludedCqaWorker(planBilling?.plan, planBilling?.status, payload.workerId)) return NextResponse.json({ error: "This worker is included in your active plan. Open it from your owner dashboard." }, { status: 409 });
+
     const existingCustomerId = planBilling?.stripe_customer_id || workerBilling?.stripe_customer_id || null;
     const aiWorkforceReady = Boolean(
-      getCqaChatProvider() &&
+      (await getCqaChatProvider()) &&
       (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY)
     );
 
