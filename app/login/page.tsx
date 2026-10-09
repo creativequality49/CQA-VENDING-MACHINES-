@@ -15,67 +15,64 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [messageAction, setMessageAction] = useState<"confirmation" | "signin" | null>(null);
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
   const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
   const confirmationUrl = `${typeof window === "undefined" ? "" : window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
 
+  function switchMode(value: "login" | "signup") {
+    if (loading) return;
+    setMode(value); setError(""); setMessage(""); setMessageAction(null);
+  }
+
+  async function runAuthAction(action: () => Promise<void>) {
+    setError(""); setMessage(""); setMessageAction(null); setLoading(true);
+    try { await action(); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : "Account service could not be reached. Please try again."); }
+    finally { setLoading(false); }
+  }
+
   async function resendConfirmation() {
-    setError("");
-    setMessage("");
-    setLoading(true);
-
-    const { error: authError } = await supabase.auth.resend({
-      type: "signup",
-      email: email.trim(),
-      options: { emailRedirectTo: confirmationUrl }
+    await runAuthAction(async () => {
+      const { error: authError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: confirmationUrl } });
+      if (authError) throw authError;
+      setMessageAction("confirmation");
+      setMessage("If this address needs confirmation, check Inbox and Spam for a fresh confirmation link.");
     });
+  }
 
-    if (authError) setError(authError.message);
-    else setMessage("If this address needs confirmation, we sent a fresh confirmation link. Check Inbox and Spam, then return here to log in.");
-    setLoading(false);
+  async function sendSignInLink() {
+    await runAuthAction(async () => {
+      const address = email.trim();
+      if (!address || !/^[^\s@]+@[^\s@]+$/.test(address)) throw new Error("Enter a valid email address first.");
+      const { error: authError } = await supabase.auth.signInWithOtp({ email: address, options: { shouldCreateUser: false, emailRedirectTo: confirmationUrl } });
+      if (authError) throw new Error("The sign-in email could not be sent. Check your account email, or wait a moment and retry.");
+      setMessageAction("signin");
+      setMessage("If this address has an existing CQA account, check Inbox and Spam for your sign-in link. Open the latest email link to securely log in.");
+    });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
-
-    if (mode === "signup") {
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: confirmationUrl }
-      });
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
+    await runAuthAction(async () => {
+      if (mode === "signup") {
+        const { data, error: authError } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: confirmationUrl } });
+        if (authError) throw authError;
+        if (!data.session) {
+          const existingAccount = (data.user?.identities?.length ?? 0) === 0;
+          setMessage(existingAccount ? "This email may already have a CQA account. Try Log in, or request a fresh confirmation link." : "Account created. Check your email for the confirmation link to continue to CQA.");
+          setMessageAction("confirmation");
+          setMode("login");
+          return;
+        }
+      } else {
+        const { data, error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+        if (authError) throw new Error(authError.message === "Invalid login credentials" ? "Incorrect email or password. You can use an email sign-in link below." : authError.message);
+        if (!data.session) throw new Error("No authenticated session was returned. Please try again.");
       }
-      if (!data.session) {
-        const existingAccount = (data.user?.identities?.length ?? 0) === 0;
-        setMessage(existingAccount
-          ? "This email may already have a CQA account. Try Log in, or resend a confirmation link if it has not been confirmed yet."
-          : "Account created. Check your email and tap Confirm your mail. The link will return you to your CQA dashboard.");
-        setMode("login");
-        setLoading(false);
-        return;
-      }
-      router.push(next);
-      router.refresh();
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (authError) {
-      setError(authError.message === "Invalid login credentials" ? "Incorrect email or password." : authError.message);
-      setLoading(false);
-      return;
-    }
-
-    router.push(next);
-    router.refresh();
+      router.push(next); router.refresh();
+    });
   }
 
   return (
@@ -87,8 +84,8 @@ function LoginForm() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".5rem", marginBottom: "1rem" }}>
-        <button className={`button ${mode === "login" ? "primary" : "ghost"}`} type="button" onClick={() => setMode("login")}>Log in</button>
-        <button className={`button ${mode === "signup" ? "primary" : "ghost"}`} type="button" onClick={() => setMode("signup")}>Create account</button>
+        <button className={`button ${mode === "login" ? "primary" : "ghost"}`} type="button" disabled={loading} onClick={() => switchMode("login")}>Log in</button>
+        <button className={`button ${mode === "signup" ? "primary" : "ghost"}`} type="button" disabled={loading} onClick={() => switchMode("signup")}>Create account</button>
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: "grid", gap: "1rem" }}>
@@ -98,10 +95,11 @@ function LoginForm() {
         </label>
         <label style={{ display: "grid", gap: ".45rem" }}>
           <span className="small">Password</span>
-          <input type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" style={{ width: "100%", padding: ".9rem 1rem", borderRadius: 12, border: "1px solid rgba(255,255,255,.14)", background: "rgba(255,255,255,.04)", color: "inherit" }} />
+          <input type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} required minLength={mode === "signup" ? 8 : undefined} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Minimum 8 characters" style={{ width: "100%", padding: ".9rem 1rem", borderRadius: 12, border: "1px solid rgba(255,255,255,.14)", background: "rgba(255,255,255,.04)", color: "inherit" }} />
         </label>
         {error ? <div role="alert" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(255,70,100,.4)", background: "rgba(255,70,100,.08)" }}><span className="small">{error}</span></div> : null}
-        {message ? <div role="status" style={{ display: "grid", gap: ".75rem", padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(80,255,180,.35)", background: "rgba(80,255,180,.07)" }}><span className="small">{message}</span><button className="button ghost" type="button" disabled={loading || !email} onClick={resendConfirmation}>Resend confirmation email</button></div> : null}
+        {message ? <div role="status" style={{ display: "grid", gap: ".75rem", padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(80,255,180,.35)", background: "rgba(80,255,180,.07)" }}><span className="small">{message}</span><button className="button ghost" type="button" disabled={loading || !email} onClick={messageAction === "signin" ? sendSignInLink : resendConfirmation}>{messageAction === "signin" ? "Send a fresh sign-in link" : "Resend confirmation email"}</button></div> : null}
+        {mode === "login" ? <button className="button ghost" type="button" disabled={loading || !email.trim()} onClick={sendSignInLink}>Email me a sign-in link</button> : null}
         <button className="button primary" type="submit" disabled={loading} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Working…" : mode === "login" ? "Log in" : "Create owner account"}</button>
       </form>
 

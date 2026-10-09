@@ -43,7 +43,8 @@ function ConfirmEmailContent() {
       {status ? <p>{status}</p> : null}
       {error ? <div role="alert" style={{ padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(255,70,100,.4)", background: "rgba(255,70,100,.08)", marginBottom: "1rem" }}>{error}</div> : null}
       <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
-        <Link className="button primary" href={`/login?next=${encodeURIComponent(next)}`}>Log in</Link>
+        <Link className="button primary" href={`/login?next=${encodeURIComponent(next)}`}>Log in or request a fresh email</Link>
+        <Link className="button ghost" href="/reset-password">Password recovery</Link>
         <Link className="button ghost" href="/">CQA Home</Link>
       </div>
     </section>

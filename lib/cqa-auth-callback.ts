@@ -3,7 +3,7 @@ import type { SupabaseClient, Session } from "@supabase/supabase-js";
 export function authCallbackError(url: URL) {
   const hash = new URLSearchParams(url.hash.slice(1));
   const code = url.searchParams.get("error_code") || hash.get("error_code");
-  if (code === "otp_expired") return "This email link has expired or was already used. Request a fresh confirmation or password recovery email.";
+  if (code === "otp_expired") return "This email link has expired or was already used. Request a fresh sign-in, confirmation or password recovery email.";
   return url.searchParams.get("error_description") || hash.get("error_description") || (code || url.searchParams.get("error") || hash.get("error") ? "This email link could not be verified. Request a fresh email." : "");
 }
 
