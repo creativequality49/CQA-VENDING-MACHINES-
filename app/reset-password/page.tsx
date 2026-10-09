@@ -1,11 +1,13 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { completeCqaAuthCallback, clearCqaRecoveryMarker, requireCqaRecoverySession } from "@/lib/cqa-auth-callback";
 import { getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 
 export default function ResetPasswordPage() {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
+  const callbackSnapshot = useRef<URL | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -16,17 +18,18 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     let active = true;
-    const hash = new URLSearchParams(window.location.hash.slice(1));
-    const recoveryLink = hash.get("type") === "recovery";
-    if (hash.get("error_description")) setError(hash.get("error_description")!);
+    const url = callbackSnapshot.current ||= new URL(window.location.href);
+    // Keep only the in-memory snapshot while verification runs, including failures.
+    if (url.hash || url.searchParams.has("code") || url.searchParams.has("token_hash") || url.searchParams.has("error") || url.searchParams.has("error_code") || url.searchParams.has("error_description")) window.history.replaceState(null, "", window.location.pathname);
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (active && session && (event === "PASSWORD_RECOVERY" || recoveryLink)) setRecovery(true);
+      if (active && session && event === "PASSWORD_RECOVERY") setRecovery(true);
     });
-    void supabase.auth.getSession().then(({ data: sessionData, error: sessionError }) => {
+    void completeCqaAuthCallback(supabase, url).then(({ session, recovery: recoveryFlow }) => {
       if (!active) return;
-      if (sessionError) setError(sessionError.message);
-      if (recoveryLink && sessionData.session) setRecovery(true);
-    });
+      if (session && recoveryFlow) setRecovery(true);
+      if (recoveryFlow && !session) setError("This recovery link has no active session. Request a fresh email.");
+      if (session && recoveryFlow) window.history.replaceState(null, "", "/reset-password?flow=recovery");
+    }).catch(failure => { if (active) setError(failure instanceof Error ? failure.message : "This recovery link could not be verified."); });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, [supabase]);
 
@@ -37,8 +40,10 @@ export default function ResetPasswordPage() {
     setLoading(true);
     try {
       if (recovery) {
+        await requireCqaRecoverySession(supabase);
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
+        clearCqaRecoveryMarker();
         await supabase.auth.signOut();
         setRecovery(false); setPassword(""); setConfirmation("");
         setMessage("Password updated. Log in with your new password.");

@@ -27,7 +27,7 @@ function LoginForm() {
 
     const { error: authError } = await supabase.auth.resend({
       type: "signup",
-      email,
+      email: email.trim(),
       options: { emailRedirectTo: confirmationUrl }
     });
 
@@ -44,7 +44,7 @@ function LoginForm() {
 
     if (mode === "signup") {
       const { data, error: authError } = await supabase.auth.signUp({
-        email,
+        email: email.trim(),
         password,
         options: { emailRedirectTo: confirmationUrl }
       });
@@ -67,7 +67,7 @@ function LoginForm() {
       return;
     }
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (authError) {
       setError(authError.message === "Invalid login credentials" ? "Incorrect email or password." : authError.message);
       setLoading(false);

@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export type PlanKey = "starter" | "pro" | "elite";
 export type OfferType = "service" | "booking" | "physical_product" | "digital_product" | "subscription" | "quote" | "consultation";
@@ -204,10 +204,15 @@ export function getPublicSupabaseClient() {
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
+let browserSupabaseClient: SupabaseClient | undefined;
+
 export function getBrowserSupabaseClient() {
+  if (typeof window !== "undefined" && browserSupabaseClient) return browserSupabaseClient;
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
-  return createClient(url, key);
+  const client = createClient(url, key, { auth: { detectSessionInUrl: false } });
+  if (typeof window !== "undefined") browserSupabaseClient = client;
+  return client;
 }
 
 export function getAuthenticatedSupabaseClient(token: string) {
