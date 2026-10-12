@@ -7,9 +7,6 @@ function isAdminRole(role?: string | null) {
 function isAdminPath(pathname: string) {
   return pathname === "/admin" || pathname.startsWith("/admin/");
 }
-function isProtectedPath(pathname: string) {
-  return pathname === "/vault" || pathname.startsWith("/api/signed-download");
-}
 function isAgeRestrictedPath(pathname:string){
   return ["/fanxfantasy/unlock","/fanxfantasy/messages","/fanxfantasy/checkout","/fanxfantasy/success","/fanxfantasy/library","/fanxfantasy/character-studio","/fanxfantasy/create","/creator-studio"].some(p=>pathname===p||pathname.startsWith(`${p}/`));
 }
@@ -30,7 +27,9 @@ export async function middleware(request: NextRequest) {
   if(isAgeRestrictedPath(pathname) && !(await verifiedAge(request.cookies.get("cqa_age_verified")?.value))){
     const url=request.nextUrl.clone();url.pathname="/age-check";url.searchParams.set("returnTo",pathname);return NextResponse.redirect(url);
   }
-  if (!isAdminPath(pathname) && !isProtectedPath(pathname)) return NextResponse.next();
+  // Vault is a public shell; its APIs verify Supabase bearer sessions and entitlements.
+  // Requiring a NextAuth cookie here would reject valid Supabase customers.
+  if (!isAdminPath(pathname)) return NextResponse.next();
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   if (!token?.sub) {
     if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
@@ -42,4 +41,4 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/admin/:path*", "/vault", "/api/signed-download", "/creator-studio/:path*", "/fanxfantasy/:path*"] };
+export const config = { matcher: ["/admin/:path*", "/creator-studio/:path*", "/fanxfantasy/:path*"] };

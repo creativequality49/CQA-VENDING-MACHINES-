@@ -53,3 +53,11 @@ for (const test of [{name:'vault uses verified identity and active expiry filter
   if(response.status===200){assert.equal(response.body.products.length,1);assert.equal(response.body.products[0].downloadable,true)}
   console.log('PASS '+test.name);
 }
+for (const path of ['/vault','/api/signed-download','/admin']) {
+  let legacyReads=0;
+  const run=new Function('NextResponse','getToken',compile('middleware.ts')+';return middleware;')({next:()=>({kind:'next'}),redirect:()=>({kind:'redirect'}),json:()=>({kind:'denied'})},async()=>{legacyReads++;return null});
+  const response=await run({nextUrl:{pathname:path,clone:()=>new URL('https://example.test'+path)},cookies:{get:()=>undefined}});
+  assert.equal(response.kind,path==='/admin'?'redirect':'next');
+  assert.equal(legacyReads,path==='/admin'?1:0);
+  console.log('PASS middleware '+path+' authentication boundary');
+}
