@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "test:login-cooldown": "node tests/login-cooldown-check.mjs",
     "test:vault-auth": "node tests/vault-auth-check.mjs",
     "dev": "next dev",
     "build": "next build",
