@@ -15,7 +15,7 @@ export async function GET(req: Request) {
 
   let session;
   try {
-    session = await requireUserSession();
+    session = await requireUserSession(req);
   } catch {
     return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   }
@@ -34,6 +34,10 @@ export async function GET(req: Request) {
       userAgent
     });
     return NextResponse.json({ error: "Access denied" }, { status: 403 });
+  }
+
+  if (!product.assetKey.trim()) {
+    return NextResponse.json({ error: "This download is not ready. Contact CQA support." }, { status: 409 });
   }
 
   const { url, expiresIn, expiresAt } = await createSignedDownloadUrl(product.assetKey);

@@ -149,53 +149,58 @@ export default function OwnerSetupPage() {
   async function load() {
     setLoading(true);
     setError("");
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user || null;
-    setUserId(user?.id || null);
-    if (!user) { setLoading(false); return; }
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData.session?.user || null;
+      setUserId(user?.id || null);
+      if (!user) { setLoading(false); return; }
 
-    const { data: businesses, error: businessError } = await supabase
-      .from("cqa_businesses")
-      .select("id,name,category,plan,description,logo_url")
-      .eq("owner_id", user.id)
-      .order("created_at", { ascending: true })
-      .limit(1);
+      const { data: businesses, error: businessError } = await supabase
+        .from("cqa_businesses")
+        .select("id,name,category,plan,description,logo_url")
+        .eq("owner_id", user.id)
+        .order("created_at", { ascending: true })
+        .limit(1);
 
-    if (businessError || !businesses?.[0]) {
-      setError(businessError?.message || "No business machine exists yet.");
+      if (businessError || !businesses?.[0]) {
+        setError(businessError?.message || "No business machine exists yet.");
+        setLoading(false);
+        return;
+      }
+
+      const b = businesses[0] as Business;
+      setBusiness(b);
+      setBusinessSummary(b.description || "");
+      const token = sessionData.session?.access_token || "";
+      const response = await fetch(`/api/owner/setup?businessId=${encodeURIComponent(b.id)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store"
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(result.error || "Unable to load machine setup.");
+        setLoading(false);
+        return;
+      }
+
+      setMachine(result.machine || null);
+      setAssets(result.assets || []);
+      setOffers(result.offers || []);
+      if (!productOfferId && result.offers?.[0]?.id) setProductOfferId(result.offers[0].id);
+      if (result.setup) loadSetup(result.setup);
+      else setSetupMode(b.plan === "elite" ? "done_for_you" : b.plan === "pro" ? "assisted" : "guided");
+
+      const { data: billing } = await supabase
+        .from("cqa_plan_subscriptions")
+        .select("status")
+        .eq("business_id", b.id)
+        .maybeSingle();
+      setBillingStatus(billing?.status || "");
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Unable to load machine setup. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const b = businesses[0] as Business;
-    setBusiness(b);
-    setBusinessSummary(b.description || "");
-    const token = sessionData.session?.access_token || "";
-    const response = await fetch(`/api/owner/setup?businessId=${encodeURIComponent(b.id)}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store"
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(result.error || "Unable to load machine setup.");
-      setLoading(false);
-      return;
-    }
-
-    setMachine(result.machine || null);
-    setAssets(result.assets || []);
-    setOffers(result.offers || []);
-    if (!productOfferId && result.offers?.[0]?.id) setProductOfferId(result.offers[0].id);
-    if (result.setup) loadSetup(result.setup);
-    else setSetupMode(b.plan === "elite" ? "done_for_you" : b.plan === "pro" ? "assisted" : "guided");
-
-    const { data: billing } = await supabase
-      .from("cqa_plan_subscriptions")
-      .select("status")
-      .eq("business_id", b.id)
-      .maybeSingle();
-    setBillingStatus(billing?.status || "");
-    setLoading(false);
   }
 
   useEffect(() => { void load(); }, [supabase]);
@@ -210,39 +215,46 @@ export default function OwnerSetupPage() {
     if (!business) return false;
     setSaving(true);
     setError("");
-    const token = await accessToken();
-    if (!token) { setError("Please log in again."); setSaving(false); return false; }
+    setMessage("");
+    try {
+      const token = await accessToken();
+      if (!token) { setError("Please log in again."); return false; }
 
-    const response = await fetch("/api/owner/setup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        businessId: business.id,
-        setupMode,
-        legalName,
-        abn,
-        businessStructure,
-        businessSummary,
-        audience,
-        salesModel,
-        fulfillmentModel: fulfilment,
-        shippingRegions: csv(shippingRegions),
-        brandDirection,
-        primaryColor,
-        secondaryColor,
-        designNotes,
-        answers: { catalogBrief, integrationPriorities },
-        completedSteps: ["basics", "brand", "first_offer"].slice(0, step + 1)
-      })
-    });
-    const result = await response.json().catch(() => ({}));
-    setSaving(false);
-    if (!response.ok) {
-      setError(result.error || "Unable to save setup.");
+      const response = await fetch("/api/owner/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          businessId: business.id,
+          setupMode,
+          legalName,
+          abn,
+          businessStructure,
+          businessSummary,
+          audience,
+          salesModel,
+          fulfillmentModel: fulfilment,
+          shippingRegions: csv(shippingRegions),
+          brandDirection,
+          primaryColor,
+          secondaryColor,
+          designNotes,
+          answers: { catalogBrief, integrationPriorities },
+          completedSteps: ["basics", "brand", "first_offer"].slice(0, step + 1)
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(result.error || "Unable to save setup.");
+        return false;
+      }
+      setMessage("Machine setup saved.");
+      return true;
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Unable to save setup. Please try again.");
       return false;
+    } finally {
+      setSaving(false);
     }
-    setMessage("Machine setup saved.");
-    return true;
   }
 
   async function buildMachine() {
@@ -251,20 +263,26 @@ export default function OwnerSetupPage() {
     if (!saved) return;
     setBuilding(true);
     setError("");
-    const token = await accessToken();
-    const response = await fetch("/api/owner/setup/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ businessId: business.id })
-    });
-    const result = await response.json().catch(() => ({}));
-    setBuilding(false);
-    if (!response.ok) {
-      setError(result.error || "Unable to build the machine.");
-      return;
+    setMessage("");
+    try {
+      const token = await accessToken();
+      const response = await fetch("/api/owner/setup/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ businessId: business.id })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setError(result.error || "Unable to build the machine.");
+        return;
+      }
+      setMessage(result.message || "Draft machine built.");
+      await load();
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Unable to build the machine. Please try again.");
+    } finally {
+      setBuilding(false);
     }
-    setMessage(result.message || "Draft machine built.");
-    await load();
   }
 
   async function uploadFiles(files: File[]) {
@@ -395,7 +413,7 @@ export default function OwnerSetupPage() {
             <button type="button" className="button ghost" disabled={step === 0} onClick={() => setStep((value) => Math.max(0, value - 1))}>Back</button>
             {step < questions.length - 1
               ? <button type="button" className="button primary" onClick={() => setStep((value) => Math.min(questions.length - 1, value + 1))}>Next question</button>
-              : <button type="button" className="button primary" disabled={saving} onClick={() => void saveSetup()}>{saving ? "Saving…" : "Save setup"}</button>}
+              : <button type="button" className="button primary" disabled={saving || building} onClick={() => void saveSetup()}>{saving ? "Saving…" : "Save setup"}</button>}
           </div>
         </article>
 
@@ -441,13 +459,13 @@ export default function OwnerSetupPage() {
           </p>
         </div>
         <div className="setup-build-actions">
-          <button type="button" className="button ghost" disabled={saving} onClick={() => void saveSetup()}>{saving ? "Saving…" : "Save progress"}</button>
+          <button type="button" className="button ghost" disabled={saving || building} onClick={() => void saveSetup()}>{saving ? "Saving…" : "Save progress"}</button>
           {business.plan === "starter"
             ? <Link href="/pricing" className="button primary">Upgrade for AI build</Link>
-            : <button type="button" className="button primary" disabled={!activeBilling || building} onClick={() => void buildMachine()}>{building ? "Building machine…" : "Build & install draft"}</button>}
+            : <button type="button" className="button primary" disabled={!activeBilling || saving || building} onClick={() => void buildMachine()}>{building ? "Building machine…" : "Build & install draft"}</button>}
           <Link href="/owner/dashboard" className="button ghost">Connect Stripe</Link>
           <Link href="/owner/dashboard" className="button ghost">Owner dashboard</Link>
-          <button type="button" className="button primary" disabled={!activeBilling || saving} onClick={() => void publishMachine()}>{saving ? "Saving…" : machine?.status === "live" ? "Publish changes" : "Publish machine"}</button>
+          <button type="button" className="button primary" disabled={!activeBilling || saving || building} onClick={() => void publishMachine()}>{saving ? "Saving…" : machine?.status === "live" ? "Publish changes" : "Publish machine"}</button>
           {machine ? <Link href={machine.status === "live" ? `/machine/${machine.slug}` : "/owner/preview"} className="button ghost">{machine.status === "live" ? "View live machine" : "Preview machine"}</Link> : null}
         </div>
       </section>

@@ -44,6 +44,7 @@ export async function upsertCheckoutEntitlement(input: {
       stripe_checkout_session_id: input.stripeSessionId ?? null,
       source: input.source,
       status: input.status ?? "active",
+      expires_at: (input.status ?? "active") === "active" ? null : new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
     { onConflict: "user_id,product_id,source" }

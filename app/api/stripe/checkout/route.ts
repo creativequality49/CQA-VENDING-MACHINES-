@@ -12,7 +12,7 @@ function getSiteUrl(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await requireUserSession();
+    const session = await requireUserSession(req);
     const { productId, machineSlug } = (await req.json()) as {
       productId?: string;
       machineSlug?: string;
