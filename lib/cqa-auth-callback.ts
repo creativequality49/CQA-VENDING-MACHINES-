@@ -1,5 +1,17 @@
 import type { SupabaseClient, Session } from "@supabase/supabase-js";
 
+export function cqaAuthDestination(url: URL) {
+  const next = url.searchParams.get("next") || "/owner/dashboard";
+  return next.startsWith("/") && !next.startsWith("//") && !/[\\\u0000-\u0020]/.test(next) && new URL(next, url.origin).origin === url.origin ? next : "/owner/dashboard";
+}
+
+export function cqaAuthCleanUrl(url: URL) {
+  const clean = new URL(url.href);
+  clean.hash = "";
+  for (const key of ["code", "token_hash", "error", "error_code", "error_description", "access_token", "refresh_token"]) clean.searchParams.delete(key);
+  return `${clean.pathname}${clean.search}`;
+}
+
 export function authCallbackError(url: URL) {
   const hash = new URLSearchParams(url.hash.slice(1));
   const code = url.searchParams.get("error_code") || hash.get("error_code");

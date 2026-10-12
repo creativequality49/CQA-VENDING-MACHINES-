@@ -2,39 +2,44 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { completeCqaAuthCallback } from "@/lib/cqa-auth-callback";
+import { completeCqaAuthCallback, cqaAuthCleanUrl, cqaAuthDestination } from "@/lib/cqa-auth-callback";
 import { getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 
 function ConfirmEmailContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
   const callbackSnapshot = useRef<URL | null>(null);
   const [status, setStatus] = useState("Confirming your CQA account…");
   const [error, setError] = useState("");
-
-  const requestedNext = searchParams.get("next") || "/owner/dashboard";
-  const nextCandidate = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
-  const next = useRef(nextCandidate).current;
+  const [next, setNext] = useState("/owner/dashboard");
 
   useEffect(() => {
     let active = true;
     const url = callbackSnapshot.current ||= new URL(window.location.href);
-    // Keep only the in-memory snapshot while verification runs, including failures.
-    if (url.hash || url.searchParams.has("code") || url.searchParams.has("token_hash") || url.searchParams.has("error") || url.searchParams.has("error_code") || url.searchParams.has("error_description")) window.history.replaceState(null, "", window.location.pathname);
+    const destination = cqaAuthDestination(url);
+    setNext(destination);
+    // Keep the callback snapshot and next destination independent of Next's history updates.
+    window.history.replaceState(null, "", cqaAuthCleanUrl(url));
+    const timeout = window.setTimeout(() => {
+      if (active) {
+        setStatus("");
+        setError("Confirmation is taking longer than expected. Try logging in, or request a fresh email if needed.");
+      }
+    }, 20000);
     void completeCqaAuthCallback(supabase, url).then(({ session, recovery }) => {
       if (!active) return;
+      window.clearTimeout(timeout);
       if (!session) { setStatus("No active session was found. Log in or request a fresh confirmation email."); return; }
-      // Remove credentials from the address bar before navigating.
-      window.history.replaceState(null, "", window.location.pathname);
-      router.replace(recovery ? "/reset-password?flow=recovery" : next);
-      router.refresh();
+      setError("");
+      setStatus("Account confirmed. Opening your workspace…");
+      // A full document navigation avoids a stalled client-router transition after
+      // scrubbing credentials. setSession has already persisted the verified session.
+      window.location.replace(recovery ? "/reset-password?flow=recovery" : destination);
     }).catch((failure) => {
+      window.clearTimeout(timeout);
       if (active) { setError(failure instanceof Error ? failure.message : "This email link could not be verified."); setStatus(""); }
     });
-    return () => { active = false; };
-  }, [next, router, supabase]);
+    return () => { active = false; window.clearTimeout(timeout); };
+  }, [supabase]);
 
   return (
     <section className="glass-card" style={{ width: "100%", maxWidth: 560, padding: "1.5rem" }}>
