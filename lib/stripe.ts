@@ -12,7 +12,7 @@ export class StripeConfigurationError extends Error {
 // Shape validation only: this never proves that a key is active or permitted.
 export function getStripeKeyConfigurationStatus(key = process.env.STRIPE_SECRET_KEY): "ok" | "missing" | "error" {
   if (!key) return "missing";
-  return /^(?:sk|rk)_(?:test|live)_[A-Za-z0-9]{16,}$/.test(key) ? "ok" : "error";
+  return /^(?:(?:sk|rk)_(?:test|live)|rkcs_test)_[A-Za-z0-9]{16,}$/.test(key) ? "ok" : "error";
 }
 
 export function isStripeConfigurationError(error: unknown) {
@@ -23,7 +23,7 @@ export function isStripeConfigurationError(error: unknown) {
 export function sanitizedStripeError(error: unknown) {
   const value = (typeof error === "object" && error !== null ? error : {}) as { type?: unknown; name?: unknown; code?: unknown; statusCode?: unknown };
   const type = typeof value.type === "string" ? value.type : value.name;
-  const code = typeof value.code === "string" && /^[a-z][a-z0-9_]{0,63}$/.test(value.code) && !/(?:sk|rk|pk|whsec)_/.test(value.code) ? value.code : undefined;
+  const code = typeof value.code === "string" && /^[a-z][a-z0-9_]{0,63}$/.test(value.code) && !/(?:sk|rk|rkcs|pk|whsec)_/.test(value.code) ? value.code : undefined;
   return {
     type: typeof type === "string" && ["Error", "StripeError", "StripeAPIError", "StripeConnectionError", "StripeAuthenticationError", "StripeInvalidRequestError", "StripePermissionError", "StripeRateLimitError", "StripeIdempotencyError", "StripeCardError", "StripeConfigurationError"].includes(type) ? type : "UnknownError",
     ...(code ? { code } : {}),
