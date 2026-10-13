@@ -1,3 +1,4 @@
+import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { hasIncludedCqaWorker } from "@/lib/cqa-worker-access";
 import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
@@ -25,7 +26,7 @@ const schema = z.discriminatedUnion("kind", [
 ]);
 
 function siteUrl(req: Request) {
-  return (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, "");
+  return getCqaSiteUrl(req);
 }
 
 function planPriceId(plan: PlanKey) {

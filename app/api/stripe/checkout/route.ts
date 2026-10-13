@@ -1,13 +1,11 @@
+import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { NextResponse } from "next/server";
 import { requireUserSession } from "@/lib/auth";
 import { getProductById, getProductReadiness } from "@/lib/catalog";
 import { getStripeClient } from "@/lib/stripe";
 
 function getSiteUrl(req: Request) {
-  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (configuredUrl) return configuredUrl.replace(/\/$/, "");
-  if (process.env.NODE_ENV === "production") throw new Error("Missing NEXT_PUBLIC_SITE_URL");
-  return new URL(req.url).origin;
+  return getCqaSiteUrl(req);
 }
 
 export async function POST(req: Request) {

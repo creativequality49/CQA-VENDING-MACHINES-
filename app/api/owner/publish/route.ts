@@ -1,3 +1,4 @@
+import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { sendCqaTransactionalEmail } from "@/lib/cqa-transactional-email";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
     if (!customization.publishConfirmationSentAt) {
       try {
         if (!user.email) throw new Error("Owner email unavailable.");
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+        const siteUrl = getCqaSiteUrl(req);
         if (!siteUrl) throw new Error("Site URL unavailable.");
         await sendCqaTransactionalEmail(`machine/${machine.data.id}/first-publish`, user.email, "Your CQA machine is published", `Your ${business.name} machine is live: ${siteUrl}/machine/${machine.data.slug}\n\nManage offers, orders and your included services from ${siteUrl}/owner/dashboard.`);
         const { data: notifiedMachine, error: notificationError } = await admin.from("cqa_machines").update({ customization: { ...customization, publishConfirmationSentAt: updatedAt } })

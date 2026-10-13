@@ -1,3 +1,4 @@
+import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
@@ -9,7 +10,7 @@ import { getStripeClient } from "@/lib/stripe";
 const schema = z.object({ businessId: z.string().uuid() });
 
 function siteUrl(req: Request) {
-  return (process.env.NEXT_PUBLIC_SITE_URL || new URL(req.url).origin).replace(/\/$/, "");
+  return getCqaSiteUrl(req);
 }
 
 export async function POST(req: Request) {

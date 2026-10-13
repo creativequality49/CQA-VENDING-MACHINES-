@@ -1,3 +1,4 @@
+import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import "server-only";
 import Stripe from "stripe";
 import { sendCqaTransactionalEmail } from "@/lib/cqa-transactional-email";
@@ -58,7 +59,7 @@ async function isSupersededSubscription(subscription: Stripe.Subscription, exist
 
 async function sendMachineAccessEmail(session: Stripe.Checkout.Session) {
   const email = session.customer_details?.email || session.customer_email;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  const siteUrl = getCqaSiteUrl();
   if (!email || !siteUrl) throw new Error("Machine access email needs a customer email and site URL.");
   await sendCqaTransactionalEmail(`machine/${session.id}/access`, email, "Your CQA machine workspace is ready", `Thanks for activating your CQA machine. Complete your setup here: ${siteUrl}/owner/setup\n\nAdd your first offer, connect Stripe, preview and publish when ready.`);
 }
