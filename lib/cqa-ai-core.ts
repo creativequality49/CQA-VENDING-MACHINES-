@@ -251,7 +251,7 @@ export async function runCqaAgent(input: {
   const apiUrl = provider?.apiUrl || "https://api.openai.com/v1/chat/completions";
   const model = provider?.model || "gpt-4.1-mini";
 
-  const { data: run } = await admin
+  const { data: run, error: runError } = await admin
     .from("cqa_ai_runs")
     .insert({
       business_id: business.id,
@@ -264,6 +264,7 @@ export async function runCqaAgent(input: {
     })
     .select("id")
     .single();
+  if (runError || !run?.id) throw new Error("AI run could not be recorded.");
 
   try {
     if (!apiKey) throw new Error("CQA AI provider is not configured.");
@@ -363,8 +364,8 @@ export async function runCqaAgent(input: {
       );
     }
 
-    if (run?.id) {
-      await admin
+    {
+      const { data: completedRun, error: completionError } = await admin
         .from("cqa_ai_runs")
         .update({
           status: parsed.approvalRequired ? "needs_approval" : "succeeded",
@@ -375,11 +376,12 @@ export async function runCqaAgent(input: {
           response_excerpt: parsed.answer.slice(0, 2000),
           completed_at: new Date().toISOString()
         })
-        .eq("id", run.id);
+        .eq("id", run.id).select("id").single();
+      if (completionError || !completedRun?.id) throw new Error("AI run result could not be recorded.");
     }
 
     return {
-      runId: run?.id || null,
+      runId: run.id,
       agentKey: input.agentKey,
       text: parsed.answer,
       approvalRequired: parsed.approvalRequired,
@@ -393,8 +395,8 @@ export async function runCqaAgent(input: {
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : "CQA AI execution failed.";
-    if (run?.id) {
-      await admin
+    {
+      const { data: failedRun, error: failureError } = await admin
         .from("cqa_ai_runs")
         .update({
           status: "failed",
@@ -402,7 +404,8 @@ export async function runCqaAgent(input: {
           latency_ms: Date.now() - startedAt,
           completed_at: new Date().toISOString()
         })
-        .eq("id", run.id);
+        .eq("id", run.id).select("id").single();
+      if (failureError || !failedRun?.id) throw new Error("AI execution failed and its failure could not be recorded.");
     }
     throw error;
   }

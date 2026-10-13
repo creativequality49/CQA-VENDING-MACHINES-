@@ -18,7 +18,7 @@ export default function OwnerWorkersPage() {
       const response = await fetch("/api/owner/workers", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session.access_token}` }, body: JSON.stringify({ workerId, task }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Worker request failed.");
-      setAnswer(result.answer || "The worker returned no answer. Please try again.");
+      setAnswer(result.text || "The worker returned no answer. Please try again.");
     } catch (e) { setError(e instanceof Error ? e.message : "Worker request failed."); }
     finally { setBusy(false); }
   }
