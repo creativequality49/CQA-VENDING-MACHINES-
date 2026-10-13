@@ -38,6 +38,10 @@ export default function OwnerDashboardPage() {
   const [offerType, setOfferType] = useState("service");
   const [price, setPrice] = useState("");
   const [offerDescription, setOfferDescription] = useState("");
+  const [deliveryDescription, setDeliveryDescription] = useState("");
+  const [deliveryTiming, setDeliveryTiming] = useState("");
+  const [supportDetails, setSupportDetails] = useState("");
+  const [refundTerms, setRefundTerms] = useState("");
   const [changeRequest, setChangeRequest] = useState("");
 
   async function load(ownerId: string) {
@@ -94,9 +98,13 @@ export default function OwnerDashboardPage() {
     setError("");
     const cents = price.trim() ? Math.round(Number(price) * 100) : null;
     if (cents !== null && (!Number.isFinite(cents) || cents < 0)) { setError("Enter a valid price."); return; }
-    const { error: insertError } = await supabase.from("cqa_offers").insert({ business_id: business.id, machine_id: machine.id, name: offerName.trim(), description: offerDescription.trim() || null, offer_type: offerType, price_cents: cents, currency: "aud", active: true });
+    const { error: insertError } = await supabase.from("cqa_offers").insert({ business_id: business.id, machine_id: machine.id, name: offerName.trim(), description: offerDescription.trim() || null, offer_type: offerType, price_cents: cents, currency: "aud", active: true, fulfillment_config: {
+      deliveryDescription: deliveryDescription.trim(), deliveryTiming: deliveryTiming.trim(),
+      supportDetails: supportDetails.trim(), refundTerms: refundTerms.trim()
+    } });
     if (insertError) { setError(insertError.message); return; }
     setOfferName(""); setOfferDescription(""); setPrice("");
+    setDeliveryDescription(""); setDeliveryTiming(""); setSupportDetails(""); setRefundTerms("");
     setMessage("Offer added to your machine workspace.");
     await load(userId);
   }
@@ -225,7 +233,7 @@ export default function OwnerDashboardPage() {
       </section>
 
       <section className="grid grid-2" style={{ marginBottom: "1rem" }}>
-        <form onSubmit={addOffer} className="glass-card" style={{ padding: "1.25rem", display: "grid", gap: ".8rem" }}><span className="eyebrow">MACHINE OFFERS</span><h2>Add an offer</h2><input required placeholder="Offer name" value={offerName} onChange={(e) => setOfferName(e.target.value)} /><textarea rows={3} placeholder="Description" value={offerDescription} onChange={(e) => setOfferDescription(e.target.value)} /><div className="grid grid-2"><select value={offerType} onChange={(e) => setOfferType(e.target.value)}><option value="service">Service</option><option value="booking">Booking</option><option value="quote">Quote</option><option value="consultation">Consultation</option><option value="physical_product">Physical product</option><option value="digital_product">Digital product</option><option value="subscription">Subscription</option></select><input type="number" min="0" step="0.01" placeholder="AUD price (optional)" value={price} onChange={(e) => setPrice(e.target.value)} /></div><button className="button primary" type="submit">Add Offer</button></form>
+        <form onSubmit={addOffer} className="glass-card" style={{ padding: "1.25rem", display: "grid", gap: ".8rem" }}><span className="eyebrow">MACHINE OFFERS</span><h2>Add an offer</h2><input required placeholder="Offer name" value={offerName} onChange={(e) => setOfferName(e.target.value)} /><textarea rows={3} placeholder="Description" value={offerDescription} onChange={(e) => setOfferDescription(e.target.value)} /><div className="grid grid-2"><select value={offerType} onChange={(e) => setOfferType(e.target.value)}><option value="service">Service</option><option value="booking">Booking</option><option value="quote">Quote</option><option value="consultation">Consultation</option><option value="physical_product">Physical product</option><option value="digital_product">Digital product</option><option value="subscription">Subscription</option></select><input type="number" min="0" step="0.01" placeholder="AUD price (optional)" value={price} onChange={(e) => setPrice(e.target.value)} /></div><p className="small">Describe how customers receive this offer, when to expect it, how to get help and your refund terms. These details appear on the customer page. Adding these details does not automate delivery.</p><label><span className="small">Delivery method / what customers receive</span><textarea rows={2} maxLength={2000} value={deliveryDescription} onChange={(e) => setDeliveryDescription(e.target.value)} /></label><label><span className="small">Delivery timing</span><input maxLength={500} value={deliveryTiming} onChange={(e) => setDeliveryTiming(e.target.value)} /></label><label><span className="small">Customer support contact / instructions</span><textarea rows={2} maxLength={1000} value={supportDetails} onChange={(e) => setSupportDetails(e.target.value)} /></label><label><span className="small">Refund / cancellation terms</span><textarea rows={3} maxLength={2000} value={refundTerms} onChange={(e) => setRefundTerms(e.target.value)} /></label><button className="button primary" type="submit">Add Offer</button></form>
         <form onSubmit={requestChange} className="glass-card" style={{ padding: "1.25rem", display: "grid", gap: ".8rem" }}><span className="eyebrow">CONVERSATIONAL CHANGES</span><h2>Ask CQA to change your machine</h2><p className="small">Describe the change in normal language. The request is stored for review before sensitive changes are applied.</p><textarea required rows={6} placeholder="Example: Add an emergency call-out service and move it to the first slot." value={changeRequest} onChange={(e) => setChangeRequest(e.target.value)} /><button className="button primary" type="submit">Send Change Request</button></form>
       </section>
 

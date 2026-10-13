@@ -38,6 +38,15 @@ export async function POST(req: Request) {
     if (!context) {
       return NextResponse.json({ error: "This offer is not available for checkout." }, { status: 404 });
     }
+    const { data: offer, error: offerError } = await getCqaSupabaseAdmin().from("cqa_offers")
+      .select("fulfillment_type").eq("id", context.offer_id).eq("business_id", context.business_id).maybeSingle();
+    if (offerError) throw offerError;
+    if (!offer) return NextResponse.json({ error: "This offer is no longer available." }, { status: 404 });
+    // Connect orders currently have no authenticated buyer-to-private-vault
+    // delivery bridge. Do not take money for an undeliverable digital offer.
+    if (context.offer_type === "digital_product" || offer.fulfillment_type === "digital") {
+      return NextResponse.json({ error: "Protected digital delivery is not available for this marketplace offer yet." }, { status: 409 });
+    }
     const { data: billing, error: billingError } = await getCqaSupabaseAdmin().from("cqa_plan_subscriptions")
       .select("status").eq("business_id", context.business_id).maybeSingle();
     if (billingError) throw billingError;

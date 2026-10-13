@@ -8,7 +8,7 @@ async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> 
     const supabase = getPublicSupabaseClient();
     const { data, error } = await supabase
       .from("cqa_machines")
-      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,shipping_required,external_url)")
+      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,fulfillment_config,shipping_required,external_url)")
       .eq("slug", slug)
       .eq("status", "live")
       .single();
@@ -88,6 +88,9 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
           <section className="machine-offer-bay">
             {machine.offers.map((offer, index) => {
               const bookingLike = ["service", "booking", "quote", "consultation"].includes(offer.offer_type);
+              const purchasable = typeof offer.price_cents === "number" && Number.isFinite(offer.price_cents) && offer.price_cents > 0;
+              const deliveryPending = offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
+              const details = offer.fulfillment_config || {};
               return (
                 <article key={offer.id} className="machine-offer-slot">
                   <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
@@ -96,17 +99,23 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                     : <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>}
                   <span className="slot-type">{offer.offer_type.replaceAll("_", " ")}</span>
                   <h2>{offer.name}</h2>
-                  <strong className="slot-price">{formatAud(offer.price_cents)}</strong>
+                  <strong className="slot-price">{purchasable ? `${formatAud(offer.price_cents)}${offer.offer_type === "subscription" ? " / month" : ""}` : "Enquire for pricing"}</strong>
                   <p>{offer.description || "Available through this business machine."}</p>
+                  {([ ["deliveryDescription", "Delivery"], ["deliveryTiming", "Delivery timing"], ["supportDetails", "Customer support"], ["refundTerms", "Refund / cancellation terms"] ] as const).map(([key, label]) => {
+                    const text = details[key];
+                    return typeof text === "string" && text.trim() ? <p key={key} style={{ whiteSpace: "pre-wrap" }}><strong>{label}: </strong>{text}</p> : null;
+                  })}
                   <div className="slot-action">
                     {machine.demo ? (
                       <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`}>
                         TRY DEMO →
                       </Link>
-                    ) : bookingLike ? (
+                    ) : bookingLike || !purchasable ? (
                       <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>
-                        {offer.offer_type === "quote" ? "REQUEST QUOTE →" : "BOOK / ENQUIRE →"}
+                        {offer.offer_type === "quote" || !purchasable ? "REQUEST QUOTE →" : "BOOK / ENQUIRE →"}
                       </Link>
+                    ) : deliveryPending ? (
+                      <button className="neon-enter-button" type="button" disabled>DELIVERY SETUP PENDING</button>
                     ) : (
                       <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "START SUBSCRIPTION" : "BUY WITH STRIPE"} />
                     )}
@@ -117,7 +126,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
           </section>
 
           <footer className="machine-detail-footer">
-            <div><span>INSTANT ACCESS</span><small>Secure customer flow</small></div>
+            <div><span>DELIVERY DETAILS</span><small>See each offer’s terms</small></div>
             <div><span>STRIPE READY</span><small>Connected payments</small></div>
             <div><span>OWNER CONTROLLED</span><small>Private dashboard</small></div>
             <div><span>AI OPTIONAL</span><small>Approval-gated workers</small></div>

@@ -14,6 +14,7 @@ export type MarketplaceOffer = {
   image_url?: string | null;
   source_provider?: string | null;
   fulfillment_type?: string | null;
+  fulfillment_config?: Record<string, unknown> | null;
   shipping_required?: boolean;
   external_url?: string | null;
 };

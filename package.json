@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "test:commerce": "node tests/marketplace-webhook-check.mjs && node tests/billing-cancellation-check.mjs && node tests/webhook-claim-check.mjs && node tests/platform-webhook-check.mjs",
     "test:auth-confirm": "node tests/auth-confirm-check.mjs",
     "test:onboarding-draft": "node tests/onboarding-draft-check.mjs",
     "test:login-cooldown": "node tests/login-cooldown-check.mjs",

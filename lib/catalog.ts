@@ -9,6 +9,21 @@ export const machines: Machine[] = [
     subtitle: "Original CQA systems, playbooks and creator assets. Products only become purchasable after delivery, payment and mobile fulfilment checks pass.",
     products: [
       {
+        id: "business-launch-kit",
+        title: "CQA Business Launch Kit",
+        description: "Six editable files to define one small-business offer, estimate contribution per sale, prepare customer messages and run a measured seven-day launch.",
+        tier: "basic",
+        priceLabel: "$29 AUD",
+        assetKey: "",
+        stripePriceEnv: "STRIPE_PRICE_BUSINESS_LAUNCH_KIT",
+        status: "draft",
+        version: "1.0.0",
+        licence: "Use and edit for your own business. No resale or redistribution of the source kit.",
+        accessPolicy: "One-time purchase of version 1.0. No subscription or promised future updates.",
+        disclaimer: "Templates and examples only. Website building, advertising, coaching and guaranteed income are not included.",
+        deliverables: ["Start-here guide", "One-offer workbook", "Pricing worksheet examples (CSV)", "Customer-message templates", "Seven-day launch tracker (CSV)", "Launch and review checklist"]
+      },
+      {
         id: "money-wealth-system",
         title: "CQA Money & Wealth Operating System",
         description: "A practical personal-money system covering budgeting, debt reduction, savings, income expansion and beginner investing workflows.",

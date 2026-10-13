@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import {
   hasProcessedStripeEvent,
   markStripeEventProcessed,
+  revokeCheckoutEntitlement,
   updateSubscriptionEntitlement,
   upsertCheckoutEntitlement
 } from "@/lib/entitlements";
@@ -57,22 +58,39 @@ export async function POST(req: Request) {
         const tier = session.metadata?.tier;
         const machineSlug = session.metadata?.machineSlug;
         if (userId && productId && tier && machineSlug) {
+          let status: "active" | "cancelled" = "active";
+          const subscriptionId = getStringId(session.subscription);
+          if (subscriptionId) {
+            const current = await getStripeClient().subscriptions.retrieve(subscriptionId);
+            status = current.status === "active" || current.status === "trialing" ? "active" : "cancelled";
+          } else {
+            const paymentIntentId = getStringId(session.payment_intent);
+            if (paymentIntentId) {
+              const current = await getStripeClient().paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
+              const charge = current.latest_charge;
+              // Delayed completion or retry after a full refund must not re-grant access.
+              if (charge && typeof charge !== "string" && charge.refunded) status = "cancelled";
+            }
+          }
           await upsertCheckoutEntitlement({
             userId,
             productId,
             tier,
             machineSlug,
             stripeCustomerId: getStringId(session.customer),
-            stripeSubscriptionId: getStringId(session.subscription),
+            stripeSubscriptionId: subscriptionId,
             stripeSessionId: session.id,
-            source: tier === "subscription" ? "subscription" : "checkout"
+            source: subscriptionId ? "subscription" : "checkout",
+            status
           });
         }
         break;
       }
+      case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        const eventSubscription = event.data.object as Stripe.Subscription;
+        const subscription = event.type === "customer.subscription.deleted" ? eventSubscription : await getStripeClient().subscriptions.retrieve(eventSubscription.id);
         const userId = subscription.metadata?.userId;
         if (userId) {
           await updateSubscriptionEntitlement({
@@ -80,6 +98,18 @@ export async function POST(req: Request) {
             stripeSubscriptionId: subscription.id,
             status: subscription.status === "active" || subscription.status === "trialing" ? "active" : "cancelled"
           });
+        }
+        break;
+      }
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const paymentIntentId = getStringId(charge.payment_intent);
+        // Partial refunds do not imply loss of the purchased product. Subscription
+        // access follows subscription status, not an individual invoice refund.
+        if (!charge.refunded || !paymentIntentId) break;
+        const sessions = await getStripeClient().checkout.sessions.list({ payment_intent: paymentIntentId, limit: 100 });
+        for (const session of sessions.data) {
+          if (session.mode === "payment" && session.metadata?.userId && session.metadata?.productId) await revokeCheckoutEntitlement(session.id);
         }
         break;
       }

@@ -72,6 +72,15 @@ export async function updateSubscriptionEntitlement(input: {
   if (error) throw new Error(error.message);
 }
 
+export async function revokeCheckoutEntitlement(stripeSessionId: string) {
+  const now = new Date().toISOString();
+  const { error } = await getSupabaseAdminClient().from("customer_entitlements")
+    .update({ status: "cancelled", expires_at: now, updated_at: now })
+    .eq("stripe_checkout_session_id", stripeSessionId)
+    .eq("source", "checkout");
+  if (error) throw new Error(error.message);
+}
+
 export async function hasProcessedStripeEvent(eventId: string) {
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase.from("stripe_events").select("id").eq("id", eventId).maybeSingle();
