@@ -7,7 +7,7 @@ import {
   getPublicSupabaseClient,
   type PlanKey
 } from "@/lib/cqa-marketplace";
-import { getStripeClient } from "@/lib/stripe";
+import { getStripeClient, isStripeConfigurationError, sanitizedStripeError } from "@/lib/stripe";
 import { getPlanDefinition, getWorkerDefinition, isActiveBillingStatus } from "@/lib/cqa-billing";
 
 const schema = z.discriminatedUnion("kind", [
@@ -204,12 +204,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid billing request." }, { status: 400 });
     }
 
-    const message = error instanceof Error ? error.message : "Billing checkout failed.";
-    if (message.includes("STRIPE_SECRET_KEY")) {
-      return NextResponse.json({ error: "CQA billing is not configured on this deployment." }, { status: 503 });
+    console.error("[cqa-billing] checkout failed", sanitizedStripeError(error));
+    if (isStripeConfigurationError(error)) {
+      return NextResponse.json({ error: "CQA billing is temporarily unavailable because its payment credentials need attention. Please contact CQA support." }, { status: 503 });
     }
 
-    console.error("[cqa-billing] checkout failed", error);
     return NextResponse.json({ error: "Secure subscription checkout could not be started." }, { status: 500 });
   }
 }

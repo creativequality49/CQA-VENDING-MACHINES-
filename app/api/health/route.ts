@@ -1,3 +1,4 @@
+import { getStripeKeyConfigurationStatus } from "@/lib/stripe";
 import { getCqaChatProvider, getCqaEmbeddingProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
@@ -56,7 +57,7 @@ export async function GET() {
     stripeWebhookEdge = "error";
   }
 
-  const stripe = configured(process.env.STRIPE_SECRET_KEY);
+  const stripe = getStripeKeyConfigurationStatus();
   const ai: ComponentStatus = (await getCqaChatProvider()) ? "ok" : "missing";
   const embeddings: ComponentStatus = (await getCqaEmbeddingProvider()) ? "ok" : "missing";
   const email = configured(process.env.RESEND_API_KEY);
