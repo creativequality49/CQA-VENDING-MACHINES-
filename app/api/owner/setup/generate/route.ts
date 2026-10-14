@@ -104,7 +104,28 @@ export async function POST(req: Request) {
 
     if (apiKey) {
       const maxOffers = business.plan === "elite" ? 30 : 12;
-      const system = `You are the CQA Machine Builder. Convert an Australian business owner's supplied questionnaire into a draft digital vending machine. Never invent an ABN, legal status, shipping promise, stock quantity, product certification, price, social handle, or integration credential. Only create sellable offers that are directly supported by the owner's answers. If a price was not supplied, use null. Return strict JSON only.`;
+      const system = `You are the CQA Machine Builder. Convert an Australian business owner's supplied questionnaire into a draft digital vending machine. Never invent an ABN, legal status, shipping promise, stock quantity, product certification, price, social handle, or integration credential. Only create sellable offers that are directly supported by the owner's answers. If a price was not supplied, use null. Return strict JSON only, using exactly these property names and constraints:
+{
+  "machineTitle": "string, 2-120 characters",
+  "subtitle": "string, 2-280 characters",
+  "theme": "pink | cyan | gold | violet",
+  "storefrontHeadline": "string, 2-120 characters",
+  "storefrontSubheadline": "string, 2-220 characters",
+  "assistantBrief": "string, at most 1600 characters",
+  "offers": [{
+    "name": "string, 2-120 characters",
+    "description": "string, at most 1200 characters",
+    "offerType": "service | booking | physical_product | digital_product | subscription | quote | consultation",
+    "priceCents": "nonnegative integer AUD cents supplied by the owner, or JSON null",
+    "fulfillmentType": "none | digital | shipping | booking | service | subscription | external",
+    "shippingRequired": false
+  }],
+  "integrationRecommendations": [{
+    "provider": "shopify | printify | instagram | facebook | fanvue | xero | quickbooks | bank_feed | custom_api",
+    "reason": "string, at most 300 characters"
+  }]
+}
+The descriptions above specify types, limits and allowed values; replace them with actual values, never copy the descriptions. Enum fields must contain one allowed value. priceCents must be a number or null, never a string. shippingRequired must be a boolean reflecting the owner's supplied fulfillment information. Include every top-level property and every offer property. offers must contain no more than maxOffers items; return [] if no offers are supported. integrationRecommendations must contain at most 12 items, or [] when none are justified. Do not include markdown, commentary or extra properties.`;
       const user = JSON.stringify({
         task: "Build the storefront configuration and offers.",
         plan: business.plan,
@@ -224,7 +245,7 @@ export async function POST(req: Request) {
       installedOffers: offers.length,
       message: aiUsed
         ? "CQA built and installed a draft machine from the questionnaire."
-        : "The machine shell was built, but the AI provider was unavailable. Review the fallback draft before publishing."
+        : "The machine shell was built, but AI did not produce a usable draft. Review the fallback draft before publishing."
     });
   } catch (error) {
     if (error instanceof z.ZodError) return NextResponse.json({ error: "Invalid machine build request." }, { status: 400 });
