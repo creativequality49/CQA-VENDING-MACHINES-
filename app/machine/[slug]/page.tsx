@@ -90,6 +90,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
               const bookingLike = ["service", "booking", "quote", "consultation"].includes(offer.offer_type);
               const purchasable = typeof offer.price_cents === "number" && Number.isFinite(offer.price_cents) && offer.price_cents > 0;
               const deliveryPending = offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
+              const payableService = purchasable && !deliveryPending && ["service", "booking", "consultation"].includes(offer.offer_type);
               const details = offer.fulfillment_config || {};
               return (
                 <article key={offer.id} className="machine-offer-slot">
@@ -111,9 +112,17 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                         TRY DEMO →
                       </Link>
                     ) : bookingLike || !purchasable ? (
-                      <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>
-                        {offer.offer_type === "quote" || !purchasable ? "REQUEST QUOTE →" : "BOOK / ENQUIRE →"}
-                      </Link>
+                      <div style={{ display: "grid", gap: ".75rem" }}>
+                        {payableService ? (
+                          <>
+                            <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="PAY FOR SERVICE" />
+                            <p className="small">Payment covers this service. Arrange the time and details with the business; payment does not reserve an appointment.</p>
+                          </>
+                        ) : null}
+                        <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>
+                          {offer.offer_type === "quote" || !purchasable ? "REQUEST QUOTE →" : "ENQUIRE ABOUT SERVICE →"}
+                        </Link>
+                      </div>
                     ) : deliveryPending ? (
                       <button className="neon-enter-button" type="button" disabled>DELIVERY SETUP PENDING</button>
                     ) : (
