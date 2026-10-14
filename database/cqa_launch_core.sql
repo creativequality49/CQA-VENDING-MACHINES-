@@ -222,12 +222,11 @@ begin
   insert into public.cqa_contacts (
     business_id, email, name, status, source, tags, metadata, updated_at
   ) values (
-    v_business_id, v_email, trim(p_customer_name), 'subscribed', 'booking',
+    v_business_id, v_email, trim(p_customer_name), 'unsubscribed', 'booking',
     array['booking-lead'], jsonb_build_object('latest_booking_id', v_booking_id, 'machine_id', v_machine_id), now()
   )
   on conflict (business_id,email) do update set
     name = excluded.name,
-    status = 'subscribed',
     source = 'booking',
     tags = array(select distinct x from unnest(coalesce(cqa_contacts.tags,array[]::text[]) || array['booking-lead']) x),
     metadata = cqa_contacts.metadata || excluded.metadata,

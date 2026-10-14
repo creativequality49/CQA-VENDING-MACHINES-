@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
+import { sendCqaTransactionalEmail } from "@/lib/cqa-transactional-email";
 
 const schema = z.object({
   machineSlug: z.string().min(1).max(100),
@@ -50,6 +51,20 @@ export async function POST(req: Request) {
     if (!row?.booking_id) {
       return NextResponse.json({ error: "The request could not be saved. Please try again." }, { status: 500 });
     }
+    // Acknowledging this saved request is transactional and does not subscribe
+    // the customer to marketing. Email failure must not invite resubmission.
+    let notificationWarning: string | undefined;
+    try {
+      await sendCqaTransactionalEmail(
+        `booking/${row.booking_id}/request-received`,
+        payload.customerEmail.trim().toLowerCase(),
+        "Your service enquiry has been received",
+        `Your request has been saved and sent to the business for review.\n\nRequest reference: ${row.booking_id}\n\nThis acknowledges your enquiry; it does not confirm an appointment or payment. The business will contact you to discuss availability and details.`
+      );
+    } catch {
+      console.error("[cqa-booking] request acknowledgement delivery failed");
+      notificationWarning = "Your request is saved, but we could not send the acknowledgement email. You do not need to submit it again.";
+    }
     // Resolve the business from the saved booking, never from browser input.
     // An automation failure must not invite a second submission of a saved booking.
     try {
@@ -66,7 +81,7 @@ export async function POST(req: Request) {
     } catch (automationError) {
       console.error("[cqa-booking] follow-up trigger failed", automationError);
     }
-    return NextResponse.json({ ok: true, bookingId: row.booking_id });
+    return NextResponse.json({ ok: true, bookingId: row.booking_id, ...(notificationWarning ? { notificationWarning } : {}) });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues[0]?.message || "Invalid request." }, { status: 400 });
