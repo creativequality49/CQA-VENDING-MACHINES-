@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { MarketplaceCheckoutButton } from "@/components/MarketplaceCheckoutButton";
 import { DEMO_MACHINES, formatAud, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
@@ -33,9 +34,13 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
   if (!machine) notFound();
 
   const theme = themeClass(machine.theme);
+  const primaryColor = machine.customization?.primaryColor;
+  const brandStyle: CSSProperties = typeof primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(primaryColor)
+    ? { "--machine-accent": primaryColor, "--machine-accent-rgb": [1, 3, 5].map((start) => parseInt(primaryColor.slice(start, start + 2), 16)).join(",") } as CSSProperties
+    : {};
 
   return (
-    <main className={`container machine-detail-page machine-theme-${theme}`} style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+    <main className={`container machine-detail-page machine-theme-${theme}`} style={{ ...brandStyle, paddingTop: "2.5rem", paddingBottom: "4rem" }}>
       <section className="machine-detail-shell">
         <aside className="machine-detail-rail" aria-hidden="true">
           <span className="rail-logo">CQΛ</span>

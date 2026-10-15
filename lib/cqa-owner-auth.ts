@@ -12,7 +12,7 @@ export async function requireCqaOwner(req: Request, businessId?: string) {
   if (error || !user) throw Object.assign(new Error("Your login session is no longer valid."), { status: 401 });
 
   const ownerClient = getAuthenticatedSupabaseClient(token);
-  let query = ownerClient.from("cqa_businesses").select("id,name,slug,category,description,plan,status,owner_id");
+  let query = ownerClient.from("cqa_businesses").select("id,name,slug,category,description,location_text,plan,status,owner_id");
   if (businessId) query = query.eq("id", businessId);
   query = query.eq("owner_id", user.id).order("created_at", { ascending: true }).limit(1);
 
