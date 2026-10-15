@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
 
 export function NavBar() {
   return (
     <>
-      <div className="cqa-announcement">Turn your business into a digital vending machine — powered by an AI workforce.</div>
+      <div className="cqa-announcement">{isNewCqaCheckoutAllowed() ? "Turn your business into a digital vending machine — powered by an AI workforce." : <Link href="/founding-customers">Customer launch checks are in progress · Register founding-customer interest →</Link>}</div>
       <header className="site-header cqa-topbar">
         <div className="nav-shell cqa-nav-shell">
           <Link href="/" className="cqa-logo-lockup" aria-label="Creative Quality Australia home">

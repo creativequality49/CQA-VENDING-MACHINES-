@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
+import { isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
 
 const planCopy = {
   starter: { label: "START SIMPLE", intro: "A clear digital front door for a small business getting started.", cta: "Choose Starter", features: ["Branded machine and business profile", "Guided setup and image uploads", "Products, services and lead capture", "Stripe payment connection", "Private owner dashboard"] },
@@ -8,8 +9,10 @@ const planCopy = {
 } as const;
 
 export default function PricingPage() {
+  const launchApproved = isNewCqaCheckoutAllowed();
   return (
     <main className="container neon-pricing-page cqa-offer-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      {!launchApproved ? <aside className="glass-card" style={{ padding: "1.25rem", marginBottom: "1.5rem" }}><strong>Customer launch is not yet approved.</strong><p>Explore the plans and free preview while we finish verification. New live checkouts are paused.</p><Link href="/founding-customers" className="button primary">Register early interest →</Link></aside> : null}
       <section className="marketplace-neon-hero pricing-neon-hero">
         <div>
           <span className="eyebrow">YOUR BUSINESS. OPEN 24/7.</span>
@@ -27,13 +30,13 @@ export default function PricingPage() {
             <div className="plan-display"><span>{plan.name.toUpperCase()}</span><strong>${plan.price}</strong><small>AUD / MONTH</small></div>
             <p className="plan-intro">{item.intro}</p>
             <div className="plan-features">{item.features.map(feature => <span key={feature}>✓ {feature}</span>)}</div>
-            <Link href={`/onboarding?plan=${plan.key}`} className="neon-enter-button">{item.cta} →</Link>
+            <Link href={`/onboarding?plan=${plan.key}`} className="neon-enter-button">{launchApproved ? item.cta : `Preview ${plan.name}`} →</Link>
           </article>;
         })}
       </section>
       <section className="cqa-launch-package glass-card" aria-labelledby="launch-package-title">
         <div><span className="eyebrow">PRO LAUNCH PACKAGE</span><h2 id="launch-package-title">Get your machine ready with CQA.</h2><p>For owners who want help implementing their storefront: business setup, offer structure, branding, receptionist and sales follow-up drafts, and a launch review.</p><p className="cqa-package-price"><strong>$997</strong> AUD one-off setup <span>+ $297 AUD / month for Pro</span></p><p className="small">The setup fee applies when you select this package. Standard Pro is available as a monthly plan above.</p></div>
-        <Link href="/onboarding?plan=pro&package=launch" className="button primary">Choose Pro Launch Package →</Link>
+        <Link href={launchApproved ? "/onboarding?plan=pro&package=launch" : "/founding-customers"} className="button primary">{launchApproved ? "Choose Pro Launch Package" : "Register early interest"} →</Link>
       </section>
       <p className="pricing-reassurance">All prices are in AUD. Payment processing fees and optional Starter worker subscriptions are additional. Review your total in secure checkout.</p>
       <section className="faq-section"><span className="eyebrow">BEFORE YOU LAUNCH</span><h2>A clear next step.</h2><div className="faq-grid">

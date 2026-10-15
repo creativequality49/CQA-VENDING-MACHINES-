@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     const { business, admin } = await requireCqaOwner(req, businessId);
 
     const [{ data: billing }, { data: setup }, { data: machine }] = await Promise.all([
-      admin.from("cqa_plan_subscriptions").select("status").eq("business_id", business.id).maybeSingle(),
+      admin.from("cqa_plan_subscriptions").select("plan,status").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_machine_setup_profiles").select("*").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_machines").select("id,slug,customization").eq("business_id", business.id).maybeSingle()
     ]);
@@ -77,14 +77,15 @@ export async function POST(req: Request) {
     if (!billing || !["active","trialing"].includes(billing.status)) {
       return NextResponse.json({ error: "Activate the CQA machine subscription before generating the build." }, { status: 402 });
     }
-    if (!setup) return NextResponse.json({ error: "Complete and save the setup questionnaire first." }, { status: 409 });
-    if (!machine) return NextResponse.json({ error: "Machine shell not found." }, { status: 404 });
-    if (business.plan === "starter") {
+    if (!["pro", "elite"].includes(billing.plan)) {
       return NextResponse.json({
         error: "Starter includes the guided shell. Automatic AI build-and-install is available on Pro and Elite.",
         upgradeRequired: true
       }, { status: 403 });
     }
+    const buildPlan = billing.plan;
+    if (!setup) return NextResponse.json({ error: "Complete and save the setup questionnaire first." }, { status: 409 });
+    if (!machine) return NextResponse.json({ error: "Machine shell not found." }, { status: 404 });
 
     const aiPlan = buildAIExecutionPlan({
       task: "Build a branded storefront and sellable offer draft from the owner questionnaire, then install the draft into the machine workspace",
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
     let aiUsed = false;
 
     if (apiKey) {
-      const maxOffers = business.plan === "elite" ? 30 : 12;
+      const maxOffers = buildPlan === "elite" ? 30 : 12;
       const system = `You are the CQA Machine Builder. Convert an Australian business owner's supplied questionnaire into a draft digital vending machine. Never invent an ABN, legal status, shipping promise, stock quantity, product certification, price, social handle, or integration credential. Only create sellable offers that are directly supported by the owner's answers. If a price was not supplied, use null. Return strict JSON only, using exactly these property names and constraints:
 {
   "machineTitle": "string, 2-120 characters",
@@ -128,7 +129,7 @@ export async function POST(req: Request) {
 The descriptions above specify types, limits and allowed values; replace them with actual values, never copy the descriptions. Enum fields must contain one allowed value. priceCents must be a number or null, never a string. shippingRequired must be a boolean reflecting the owner's supplied fulfillment information. Include every top-level property and every offer property. offers must contain no more than maxOffers items; return [] if no offers are supported. integrationRecommendations must contain at most 12 items, or [] when none are justified. Do not include markdown, commentary or extra properties.`;
       const user = JSON.stringify({
         task: "Build the storefront configuration and offers.",
-        plan: business.plan,
+        plan: buildPlan,
         maxOffers,
         lockedTemplate: "activewear_master_v1",
         business,
@@ -164,7 +165,7 @@ The descriptions above specify types, limits and allowed values; replace them wi
       }
     }
 
-    const offerLimit = business.plan === "elite" ? 30 : 12;
+    const offerLimit = buildPlan === "elite" ? 30 : 12;
     const offers = draft.offers.slice(0, offerLimit);
     const now = new Date().toISOString();
     const customization = {
@@ -229,7 +230,7 @@ The descriptions above specify types, limits and allowed values; replace them wi
     }
 
     const { error: setupError } = await admin.from("cqa_machine_setup_profiles").update({
-      setup_status: business.plan === "elite" ? "review" : "generated",
+      setup_status: buildPlan === "elite" ? "review" : "generated",
       ai_draft: draft,
       generated_at: now,
       updated_at: now
@@ -240,7 +241,7 @@ The descriptions above specify types, limits and allowed values; replace them wi
       ok: true,
       aiUsed,
       aiPlan,
-      mode: business.plan === "elite" ? "done_for_you" : "assisted",
+      mode: buildPlan === "elite" ? "done_for_you" : "assisted",
       draft,
       installedOffers: offers.length,
       message: aiUsed

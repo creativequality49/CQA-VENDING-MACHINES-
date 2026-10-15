@@ -1,4 +1,5 @@
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
+import { isNewCqaCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { NextResponse } from "next/server";
 import { requireUserSession } from "@/lib/auth";
 import { getProductById, getProductReadiness } from "@/lib/catalog";
@@ -31,6 +32,10 @@ export async function POST(req: Request) {
         { error: "This product has not passed CQA fulfilment and payment quality checks", checks: readiness.checks },
         { status: 409 }
       );
+    }
+
+    if (!isNewCqaCheckoutAllowed()) {
+      return NextResponse.json({ error: CQA_PRELAUNCH_CHECKOUT_MESSAGE, code: "CQA_LAUNCH_PENDING" }, { status: 503 });
     }
 
     const priceId = process.env[product.stripePriceEnv]?.trim();

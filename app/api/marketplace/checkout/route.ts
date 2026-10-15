@@ -1,4 +1,5 @@
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
+import { isNewCqaCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getStripeClient } from "@/lib/stripe";
@@ -47,6 +48,9 @@ export async function POST(req: Request) {
     // delivery bridge. Do not take money for an undeliverable digital offer.
     if (context.offer_type === "digital_product" || offer.fulfillment_type === "digital") {
       return NextResponse.json({ error: "Protected digital delivery is not available for this marketplace offer yet." }, { status: 409 });
+    }
+    if (!isNewCqaCheckoutAllowed()) {
+      return NextResponse.json({ error: CQA_PRELAUNCH_CHECKOUT_MESSAGE, code: "CQA_LAUNCH_PENDING" }, { status: 503 });
     }
     const { data: billing, error: billingError } = await getCqaSupabaseAdmin().from("cqa_plan_subscriptions")
       .select("status").eq("business_id", context.business_id).maybeSingle();

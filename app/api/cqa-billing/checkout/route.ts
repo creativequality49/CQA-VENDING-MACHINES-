@@ -1,4 +1,5 @@
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
+import { isNewCqaCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { hasIncludedCqaWorker } from "@/lib/cqa-worker-access";
 import { getCqaChatProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
@@ -42,6 +43,9 @@ export async function POST(req: Request) {
     if (!token) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
 
     const payload = schema.parse(await req.json());
+    if (!isNewCqaCheckoutAllowed()) {
+      return NextResponse.json({ error: CQA_PRELAUNCH_CHECKOUT_MESSAGE, code: "CQA_LAUNCH_PENDING" }, { status: 503 });
+    }
     const publicClient = getPublicSupabaseClient();
     const { data: userData, error: userError } = await publicClient.auth.getUser(token);
     const user = userData.user;
