@@ -329,6 +329,9 @@ input,textarea,select{
   background:linear-gradient(180deg,#0a0b10,#08090d)!important;
   border-color:rgba(255,255,255,.10)!important;border-radius:15px!important;
 }
+/* Native dropdown menus need an explicit solid surface as well as text colour. */
+select{color-scheme:dark;color:#fff}
+select option,select optgroup{background-color:#101722;color:#fff}
 input:focus,textarea:focus,select:focus{border-color:rgba(0,207,255,.48)!important;box-shadow:0 0 0 4px rgba(0,207,255,.075)!important}
 .button.primary{background:linear-gradient(115deg,#ff008c,#8d4dff 60%,#00cfff)!important;box-shadow:0 16px 40px rgba(255,0,140,.20)!important}
 .button.ghost{border-color:rgba(255,255,255,.10)!important;background:rgba(255,255,255,.028)!important}
