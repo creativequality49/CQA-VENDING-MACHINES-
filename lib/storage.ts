@@ -1,4 +1,4 @@
-import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const signedUrlExpiresIn = 60 * 10;
@@ -40,4 +40,14 @@ export async function createSignedDownloadUrl(assetKey: string) {
     expiresIn: signedUrlExpiresIn,
     expiresAt: new Date(Date.now() + signedUrlExpiresIn * 1000).toISOString()
   };
+}
+
+/** Private server-side upload. Never use the public machine-media bucket. */
+export async function uploadPrivateMarketplaceAsset(key: string, data: Uint8Array, contentType: string) {
+  const bucket = process.env.R2_BUCKET;
+  if (!bucket) throw new Error("Missing R2_BUCKET");
+  await getR2Client().send(new PutObjectCommand({
+    Bucket: bucket, Key: key, Body: data, ContentType: contentType,
+    CacheControl: "private, no-store"
+  }));
 }
