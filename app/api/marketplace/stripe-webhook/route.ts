@@ -107,6 +107,32 @@ export async function POST(req: Request) {
       }
     }
 
+    // Revoke entitlement on fully refunded charges and payment disputes.
+    if (event.type === "charge.refunded" || event.type === "charge.dispute.created") {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId = typeof charge.payment_intent === "string"
+        ? charge.payment_intent : charge.payment_intent?.id || null;
+      if (paymentIntentId && event.account) {
+        const { data: orders, error: lookupError } = await admin.from("cqa_orders")
+          .select("id,business_id").eq("stripe_payment_intent_id", paymentIntentId);
+        if (lookupError) throw lookupError;
+        for (const order of orders || []) {
+          const { data: account, error: accountError } = await admin.from("cqa_connected_accounts")
+            .select("stripe_account_id").eq("business_id", order.business_id).single();
+          if (accountError) throw accountError;
+          if (account.stripe_account_id !== event.account) throw new Error("Refund account mismatch.");
+          if (event.type === "charge.dispute.created" ||
+              (charge.refunded && charge.amount_refunded >= charge.amount)) {
+            const { error: revokeError } = await admin.from("cqa_orders")
+              .update({ status: event.type === "charge.dispute.created" ? "disputed" : "refunded",
+                buyer_user_id: null, updated_at: new Date().toISOString() })
+              .eq("id", order.id);
+            if (revokeError) throw revokeError;
+          }
+        }
+      }
+    }
+
     if (event.type === "checkout.session.expired") {
       const session = event.data.object as Stripe.Checkout.Session;
       const { error: expiredError } = await admin.from("cqa_orders").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("stripe_checkout_session_id", session.id).neq("status", "paid");
