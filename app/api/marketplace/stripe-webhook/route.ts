@@ -109,7 +109,12 @@ export async function POST(req: Request) {
 
     // Revoke entitlement on fully refunded charges and payment disputes.
     if (event.type === "charge.refunded" || event.type === "charge.dispute.created") {
-      const charge = event.data.object as Stripe.Charge;
+      const charge = event.type === "charge.dispute.created"
+        ? await getStripeClient().charges.retrieve(
+            String((event.data.object as Stripe.Dispute).charge),
+            { stripeAccount: event.account || undefined }
+          )
+        : event.data.object as Stripe.Charge;
       const paymentIntentId = typeof charge.payment_intent === "string"
         ? charge.payment_intent : charge.payment_intent?.id || null;
       if (paymentIntentId && event.account) {
