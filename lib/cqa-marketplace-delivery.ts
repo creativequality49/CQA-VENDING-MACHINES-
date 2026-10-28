@@ -8,14 +8,13 @@ export async function resolveMarketplaceDownload(token: string, orderId: string)
   const { data: identity, error: identityError } = await getPublicSupabaseClient().auth.getUser(token);
   const user = identity?.user;
   if (identityError || !user?.id || !user.email || !user.email_confirmed_at) return { status: 401 as const };
-  const email = user.email.trim().toLowerCase();
   const admin = getCqaSupabaseAdmin();
   const { data: order, error: orderError } = await admin.from("cqa_orders")
-    .select("id,business_id,machine_id,offer_id,customer_email,status")
+    .select("id,business_id,machine_id,offer_id,buyer_user_id,status")
     .eq("id", orderId).maybeSingle();
   if (orderError) throw orderError;
   // Never distinguish another tenant's order from a nonexistent one.
-  if (!order || order.status !== "paid" || order.customer_email?.trim().toLowerCase() !== email ||
+  if (!order || order.status !== "paid" || order.buyer_user_id !== user.id ||
       !order.business_id || !order.machine_id || !order.offer_id) return { status: 404 as const };
   const { data: offer, error: offerError } = await admin.from("cqa_offers")
     .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config")
