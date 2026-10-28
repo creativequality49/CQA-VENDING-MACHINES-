@@ -91,11 +91,24 @@ export async function POST(req: Request) {
     const subscription = context.offer_type === "subscription";
     const origin = getSiteUrl(req);
 
+    const authorization = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") || "");
+    let buyerUserId: string | null = null;
+    if (authorization) {
+      const { data: identity, error: identityError } = await publicClient.auth.getUser(authorization[1]);
+      const buyer = identity?.user;
+      if (identityError || !buyer?.id || !buyer.email || !buyer.email_confirmed_at ||
+          (payload.customerEmail && buyer.email.trim().toLowerCase() !== payload.customerEmail.trim().toLowerCase())) {
+        return NextResponse.json({ error: "Buyer account or checkout email is invalid." }, { status: 401 });
+      }
+      buyerUserId = buyer.id;
+    }
+
     const metadata = {
       cqaBusinessId: String(context.business_id),
       cqaMachineId: String(context.machine_id),
       cqaOfferId: String(context.offer_id),
-      cqaPlan: plan
+      cqaPlan: plan,
+      ...(buyerUserId ? { cqaBuyerUserId: buyerUserId } : {})
     };
 
     // Inline price_data is deliberate for Connect direct charges. A Price created
@@ -117,7 +130,7 @@ export async function POST(req: Request) {
       {
         mode: subscription ? "subscription" : "payment",
         line_items: [lineItem],
-        customer_email: payload.customerEmail,
+        customer_email: buyerUserId ? undefined : payload.customerEmail,
         success_url: `${origin}/checkout/success?marketplace=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/machine/${context.machine_slug}`,
         metadata,
