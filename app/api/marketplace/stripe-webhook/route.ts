@@ -49,6 +49,14 @@ export async function POST(req: Request) {
         if (accountError) throw accountError;
         if (!event.account || account.stripe_account_id !== event.account) throw new Error("Checkout account does not match business.");
         const email = (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
+        const claimedBuyerId = session.metadata?.cqaBuyerUserId || null;
+        let buyerUserId: string | null = null;
+        if (claimedBuyerId && email) {
+          const { data: buyerLookup, error: buyerError } = await admin.auth.admin.getUserById(claimedBuyerId);
+          if (buyerError) throw buyerError;
+          const buyer = buyerLookup?.user;
+          if (buyer?.email_confirmed_at && buyer.email?.trim().toLowerCase() === email) buyerUserId = buyer.id;
+        }
         const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null;
         const { data: order, error: orderError } = await admin.from("cqa_orders").upsert({
           business_id: businessId,
@@ -60,6 +68,7 @@ export async function POST(req: Request) {
           status: "paid",
           stripe_payment_intent_id: paymentIntentId,
           customer_email: email || null,
+          buyer_user_id: buyerUserId,
           updated_at: new Date().toISOString()
         }, { onConflict: "stripe_checkout_session_id" }).select("id,machine_id,offer_id,amount_cents,currency").single();
         if (orderError) throw orderError;
