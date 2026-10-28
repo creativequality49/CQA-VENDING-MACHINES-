@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 const orderSchema = z.string().uuid();
 
 export async function GET(req: Request) {
-  const match = /^Bearer\\s+(\\S+)$/i.exec(req.headers.get("authorization") || "");
+  const match = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") || "");
   if (!match) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   const orderId = new URL(req.url).searchParams.get("orderId");
   if (!orderId || !orderSchema.safeParse(orderId).success)
