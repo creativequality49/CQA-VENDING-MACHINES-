@@ -13,8 +13,8 @@ export async function GET(req: Request) {
   try {
     const admin = getCqaSupabaseAdmin();
     const { data: orders, error: ordersError } = await admin.from("cqa_orders")
-      .select("id,business_id,machine_id,offer_id,status,customer_email,created_at")
-      .eq("status", "paid").eq("customer_email", user.email.trim().toLowerCase())
+      .select("id,business_id,machine_id,offer_id,status,buyer_user_id,created_at")
+      .eq("status", "paid").eq("buyer_user_id", user.id)
       .order("created_at", { ascending: false }).limit(100);
     if (ordersError) throw ordersError;
     const products = [];
