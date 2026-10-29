@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { completeCqaAuthCallback, clearCqaRecoveryMarker, requireCqaRecoverySession } from "@/lib/cqa-auth-callback";
 import { getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
+import { cqaRecoveryError } from "@/lib/cqa-auth-error";
 
 export default function ResetPasswordPage() {
   const supabase = useMemo(() => getBrowserSupabaseClient(), []);
@@ -29,7 +30,7 @@ export default function ResetPasswordPage() {
       if (session && recoveryFlow) setRecovery(true);
       if (recoveryFlow && !session) setError("This recovery link has no active session. Request a fresh email.");
       if (session && recoveryFlow) window.history.replaceState(null, "", "/reset-password?flow=recovery");
-    }).catch(failure => { if (active) setError(failure instanceof Error ? failure.message : "This recovery link could not be verified."); });
+    }).catch(failure => { if (active) setError(cqaRecoveryError(failure, "callback")); });
     return () => { active = false; data.subscription.unsubscribe(); };
   }, [supabase]);
 
@@ -55,7 +56,7 @@ export default function ResetPasswordPage() {
         setMessage("If this email has a CQA account, a recovery link has been sent. Check your inbox and spam folder.");
       }
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Unable to reset your password. Please try again.");
+      setError(cqaRecoveryError(failure, recovery ? "update" : "request"));
     } finally { setLoading(false); }
   }
 
