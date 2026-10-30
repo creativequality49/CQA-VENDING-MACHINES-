@@ -48,6 +48,7 @@ export async function uploadPrivateMarketplaceAsset(key: string, data: Uint8Arra
   if (!bucket) throw new Error("Missing R2_BUCKET");
   await getR2Client().send(new PutObjectCommand({
     Bucket: bucket, Key: key, Body: data, ContentType: contentType,
+    ContentLength: data.byteLength, ContentDisposition: "attachment",
     CacheControl: "private, no-store"
   }));
 }
