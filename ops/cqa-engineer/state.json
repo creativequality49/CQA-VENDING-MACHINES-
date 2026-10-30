@@ -1,10 +1,14 @@
 {
   "schemaVersion": 1,
-  "agent": "Astra \u2014 CQA Website Engineer",
+  "agent": "Astra — CQA Website Engineer",
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": null,
+  "lease": {
+    "runId": "setup_state_check_20261030",
+    "startedAt": "2026-10-30T06:19:50.203Z",
+    "expiresAt": "2026-10-30T07:04:50.203Z"
+  },
   "releaseStatus": "NOT_READY",
   "gates": [],
   "backlog": [
@@ -83,5 +87,13 @@
       ],
       "nextAction": "Inspect PR23 private upload and buyer-account library path; implement earliest missing complete repair."
     }
-  ]
+  ],
+  "automation": {
+    "title": "CQA Website Engineer",
+    "enabled": true,
+    "timezone": "Australia/Adelaide",
+    "schedule": "daily morning, flexible around 08:00",
+    "startsOn": "2026-10-31",
+    "scheduledExecution": "not-yet-observed"
+  }
 }
