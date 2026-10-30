@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "origin": "https://www.creativequalityaustralia.tech",
+  "paths": ["/", "/machines", "/pricing", "/login", "/api/health"],
+  "timeoutMs": 15000
+}

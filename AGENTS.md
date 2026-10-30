@@ -68,3 +68,10 @@ Done means:
 - minimal diffs where possible
 - no placeholder business logic
 - fix root causes, not symptoms
+
+## Website engineer
+The scheduled Astra engineer operates under `ops/cqa-engineer/AGENT.md`.
+Persistent coordination state is `ops/cqa-engineer/state.json` on
+`automation/cqa-website-engineer`. Run `node scripts/cqa-engineer/checks.mjs`
+for regression, type, lint and build evidence. Public health is a separate check:
+`node scripts/cqa-engineer/health.mjs`. Neither check establishes paid fulfilment.
