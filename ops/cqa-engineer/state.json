@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "agent": "Astra — CQA Website Engineer",
+  "repository": "creativequality49/CQA-VENDING-MACHINES-",
+  "coordinationBranch": "automation/cqa-website-engineer",
+  "mode": "completion",
+  "lease": null,
+  "releaseStatus": "NOT_READY",
+  "gates": [],
+  "backlog": [
+    {
+      "id": "owner-private-upload",
+      "priority": 1,
+      "status": "needs-current-audit",
+      "workstream": "PR23"
+    },
+    {
+      "id": "account-bound-buyer-library",
+      "priority": 2,
+      "status": "needs-current-audit",
+      "workstream": "PR23"
+    },
+    {
+      "id": "download-refund-isolation",
+      "priority": 3,
+      "status": "needs-current-audit",
+      "workstream": "PR23"
+    },
+    {
+      "id": "regressions-typecheck-build",
+      "priority": 4,
+      "status": "passed-locally-CI-not-verified"
+    },
+    {
+      "id": "stripe-supabase-integration",
+      "priority": 5,
+      "status": "not-verified"
+    },
+    {
+      "id": "branding-mobile-conversion",
+      "priority": 6,
+      "status": "after-commerce"
+    },
+    {
+      "id": "github-actions-billing-lock",
+      "priority": 0,
+      "status": "requires-owner-action",
+      "evidence": "GitHub check 123923189416: job not started because account is locked due to a billing issue."
+    }
+  ],
+  "runs": [
+    {
+      "id": "setup_20261030",
+      "status": "completed",
+      "inspectedCommit": "2b975ae6f7c79c36493c4f72245d4d661c6c44c9",
+      "finishedAt": "2026-10-30T06:12:54.580Z",
+      "checks": [
+        {
+          "name": "main-plus-engineer-local-checks",
+          "result": "passed",
+          "groups": 18,
+          "environment": "local",
+          "source": "ops/cqa-engineer/SETUP-REPORT.md",
+          "uncommittedEngineerFiles": true
+        },
+        {
+          "name": "PR23-cross-checkout-local-checks",
+          "result": "passed",
+          "groups": 18,
+          "commitSha": "e1f12406b52789854521ebf389df28680ceb44d3",
+          "environment": "local",
+          "source": "ops/cqa-engineer/SETUP-REPORT.md"
+        },
+        {
+          "name": "production-public-health",
+          "result": "passed",
+          "observedAt": "2026-10-30T06:07:00.385Z",
+          "environment": "production",
+          "source": "https://www.creativequalityaustralia.tech/api/health",
+          "scope": "configuration-only"
+        }
+      ],
+      "blockers": [
+        "private-owner-upload-needs-current-verification",
+        "buyer-library-needs-current-verification",
+        "real-test-mode-commerce-not-verified",
+        "PR23-GitHub-run-failed-logs-unavailable",
+        "scheduled-run-not-observed"
+      ],
+      "nextAction": "Inspect PR23 private upload and buyer-account library path; implement earliest missing complete repair."
+    },
+    {
+      "id": "setup_state_check_20261030",
+      "status": "completed",
+      "inspectedCommit": "98ff6ef9fde46e3065bf44518d5d160fbda3bf98",
+      "finishedAt": "2026-10-30T06:20:31.740Z",
+      "checks": [
+        {
+          "name": "remote-state-conditional-write",
+          "result": "passed",
+          "source": "GitHub state update accepted with current blob SHA; stale SHA rejected with HTTP 409",
+          "environment": "repository"
+        },
+        {
+          "name": "Vercel-preview",
+          "result": "passed",
+          "source": "Vercel status on 73e96933ce76dc74a5f5c50b7c3b1479dd06947a",
+          "environment": "preview"
+        },
+        {
+          "name": "GitHub-engineer-workflow",
+          "result": "blocked",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41013101785",
+          "environment": "ci"
+        },
+        {
+          "name": "scheduled-execution",
+          "result": "unverified",
+          "source": "CQA Website Engineer task enabled; no recorded run yet",
+          "environment": "task"
+        }
+      ],
+      "nextAction": "Continue private-upload/buyer-library repairs with local checks; GitHub Actions requires owner billing access.",
+      "blockers": [
+        "github-actions-account-billing-lock",
+        "scheduled-run-not-observed",
+        "real-test-mode-commerce-not-verified"
+      ]
+    }
+  ],
+  "automation": {
+    "title": "CQA Website Engineer",
+    "enabled": true,
+    "timezone": "Australia/Adelaide",
+    "schedule": "daily morning, flexible around 08:00",
+    "startsOn": "2026-10-31",
+    "scheduledExecution": "not-yet-observed"
+  }
+}

@@ -1,0 +1,39 @@
+name: CQA engineer checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'automation/cqa-website-engineer', 'astra/**']
+    paths-ignore:
+      - 'ops/cqa-engineer/state.json'
+      - 'ops/cqa-engineer/SETUP-REPORT.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cqa-engineer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out the tested revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Use the production Node major
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install the locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run regressions, lint, types and build
+        run: node scripts/cqa-engineer/checks.mjs
+
+# No secrets, writes, migrations, live transactions or deployment steps.
