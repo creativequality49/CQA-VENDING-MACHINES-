@@ -4,52 +4,69 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "launch_20261030T233831258Z",
-    "startedAt": "2026-10-30T23:38:31.549Z",
-    "expiresAt": "2026-10-31T00:23:31.549Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [],
   "backlog": [
     {
       "id": "owner-private-upload",
       "priority": 1,
-      "status": "needs-current-audit",
-      "workstream": "PR23"
+      "status": "implemented-in-draft-real-storage-unverified",
+      "workstream": "PR23",
+      "commitSha": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
+      "pr": 23
     },
     {
       "id": "account-bound-buyer-library",
       "priority": 2,
-      "status": "needs-current-audit",
-      "workstream": "PR23"
+      "status": "draft-implementation-schema-blocked",
+      "workstream": "PR23",
+      "evidence": "Read-only schema inspection: deployed backend cqa_orders lacks buyer_user_id; migration file is in PR23 and is not applied."
     },
     {
       "id": "download-refund-isolation",
       "priority": 3,
-      "status": "needs-current-audit",
+      "status": "real-integration-unverified",
       "workstream": "PR23"
     },
     {
       "id": "regressions-typecheck-build",
       "priority": 4,
-      "status": "passed-locally-CI-not-verified"
+      "status": "passed-locally-hosted-CI-failed",
+      "evidence": "PR23 and PR26 local 19-group checks passed; PR26 Vercel preview READY; GitHub run 41147020647 failed before steps."
     },
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "not-verified"
+      "status": "real-integration-blocked",
+      "evidence": "Connected Stripe account is sandbox; launch test Supabase project inactive; deployed backend buyer_user_id missing; storage configuration metadata unavailable (Vercel 403)."
     },
     {
       "id": "branding-mobile-conversion",
       "priority": 6,
-      "status": "after-commerce"
+      "status": "implemented-in-draft-browser-viewport-unverified",
+      "pr": 26,
+      "commitSha": "2397c8a597b395b8f8543d2731714aae84404e54"
     },
     {
       "id": "github-actions-billing-lock",
       "priority": 0,
       "status": "requires-owner-action",
-      "evidence": "GitHub check 123923189416: job not started because account is locked due to a billing issue."
+      "evidence": "Earlier check 123923189416 explicitly reported account billing lock. Current run 41147020647 failed with no steps; current annotation unavailable."
+    },
+    {
+      "id": "automations-business-terms",
+      "priority": 2,
+      "status": "requires-business-confirmation",
+      "workstream": "PR26",
+      "evidence": "GST inclusion/registration, delivery scope/timing, ownership/offboarding, third-party fees and cancellation/refund terms unverified. Public /terms, /privacy and /refund-policy are 404."
+    },
+    {
+      "id": "automation-stripe-handoff",
+      "priority": 2,
+      "status": "live-settings-unverified",
+      "workstream": "PR26",
+      "evidence": "Contact-based implementation brief implemented; live Payment Link after-completion redirect and notifications unverified. No Stripe settings changed."
     }
   ],
   "runs": [
@@ -171,6 +188,116 @@
         "hosted-CI-failed"
       ],
       "nextAction": "Finish requested automations page clarity and contact handoff; then validate remaining commerce integration."
+    },
+    {
+      "id": "launch_20261030T233831258Z",
+      "status": "completed",
+      "inspectedCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "pushedCommit": "2397c8a597b395b8f8543d2731714aae84404e54",
+      "pr": 26,
+      "reconciledCommerceCommit": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
+      "checks": [
+        {
+          "name": "automations-local-regressions-types-lint-build",
+          "result": "passed",
+          "groups": 19,
+          "environment": "local",
+          "commitSha": "2397c8a597b395b8f8543d2731714aae84404e54",
+          "source": "docs/AUTOMATIONS_PAGE_REVIEW.md",
+          "scope": "Exact published file set checked in worktree with main HEAD and intended uncommitted changes; no real providers"
+        },
+        {
+          "name": "automations-page-contact-behaviour",
+          "result": "passed",
+          "groups": 6,
+          "environment": "local-mocked",
+          "source": "tests/automations-page-check.mjs"
+        },
+        {
+          "name": "all-ten-existing-Stripe-price-summaries",
+          "result": "passed",
+          "environment": "public-browser-read-only",
+          "source": "docs/AUTOMATIONS_PAGE_REVIEW.md",
+          "scope": "AUD setup/month/first-payment matched; no payment submitted"
+        },
+        {
+          "name": "Vercel-preview",
+          "result": "passed",
+          "environment": "preview",
+          "commitSha": "2397c8a597b395b8f8543d2731714aae84404e54",
+          "source": "dpl_HCYJf2R2eLZUxZi1kD2yXdodj2Xg READY"
+        },
+        {
+          "name": "GitHub-engineer-checks",
+          "result": "failed",
+          "environment": "ci",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41147020647",
+          "scope": "No steps ran; current annotation unavailable; prior billing-lock incident remains open"
+        },
+        {
+          "name": "policies-public-route-check",
+          "result": "failed",
+          "environment": "production",
+          "source": "GET /terms /privacy /refund-policy",
+          "scope": "All 404; corresponding page files absent"
+        },
+        {
+          "name": "buyer-binding-schema",
+          "result": "failed",
+          "environment": "production-read-only-schema",
+          "source": "information_schema.columns",
+          "scope": "cqa_orders.buyer_user_id absent; no customer data queried; no migration run"
+        },
+        {
+          "name": "Vercel-storage-config-metadata",
+          "result": "blocked",
+          "environment": "provider-read-only",
+          "source": "Vercel project environment metadata",
+          "scope": "403; no secret values requested or printed"
+        },
+        {
+          "name": "mobile-visual-overflow",
+          "result": "unverified",
+          "environment": "local-browser",
+          "source": "Local preview connection refused"
+        },
+        {
+          "name": "real-contact-persistence",
+          "result": "unverified",
+          "environment": "integration",
+          "source": "Not submitted to avoid external notification"
+        },
+        {
+          "name": "real-payment-download-refund-expiry-isolation",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "Required integration environment/schema/storage evidence unavailable"
+        },
+        {
+          "name": "live-Stripe-postpayment-redirect",
+          "result": "unverified",
+          "environment": "provider",
+          "source": "Connected Stripe account is sandbox; live link settings not inspected"
+        },
+        {
+          "name": "production-release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No approval of concrete PR23/PR26 release, migration or promotion; holds preserved"
+        }
+      ],
+      "blockers": [
+        "business-GST-and-policies-unconfirmed",
+        "live-Stripe-handoff-unverified",
+        "deployed-buyer-user-id-column-missing",
+        "storage-config-permission-403",
+        "test-project-inactive",
+        "real-test-mode-fulfilment-unverified",
+        "hosted-CI-failed",
+        "visual-viewport-unverified"
+      ],
+      "nextAction": "Confirm GST/service terms and live handoff; prepare an approved test environment/migration/storage verification; then execute genuine payment-to-library/download, expiry/refund revocation and two-account isolation on one release candidate before seeking concrete release approval.",
+      "finishedAt": "2026-10-30T23:53:56.670Z"
     }
   ],
   "automation": {
@@ -179,6 +306,12 @@
     "timezone": "Australia/Adelaide",
     "schedule": "daily morning, flexible around 08:00",
     "startsOn": "2026-10-31",
-    "scheduledExecution": "not-yet-observed"
+    "scheduledExecution": "trigger-not-independently-verified; actual repair runs recorded",
+    "lastObservedExecution": {
+      "runId": "launch_20261030T233831258Z",
+      "context": "authorised implementation session",
+      "observedAt": "2026-10-30T23:53:45.880Z",
+      "source": "PR26 2397c8a and PR23 3305814"
+    }
   }
 }
