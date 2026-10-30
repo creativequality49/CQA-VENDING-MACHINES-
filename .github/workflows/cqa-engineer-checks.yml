@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main, 'automation/cqa-website-engineer', 'astra/**']
+    paths-ignore:
+      - 'ops/cqa-engineer/state.json'
+      - 'ops/cqa-engineer/SETUP-REPORT.md'
   workflow_dispatch:
 
 permissions:

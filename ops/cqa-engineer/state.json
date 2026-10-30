@@ -40,6 +40,12 @@
       "id": "branding-mobile-conversion",
       "priority": 6,
       "status": "after-commerce"
+    },
+    {
+      "id": "github-actions-billing-lock",
+      "priority": 0,
+      "status": "requires-owner-action",
+      "evidence": "GitHub check 123923189416: job not started because account is locked due to a billing issue."
     }
   ],
   "runs": [
@@ -103,7 +109,7 @@
         },
         {
           "name": "GitHub-engineer-workflow",
-          "result": "failed",
+          "result": "blocked",
           "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41013101785",
           "environment": "ci"
         },
@@ -114,7 +120,12 @@
           "environment": "task"
         }
       ],
-      "nextAction": "Complete private-upload/account-bound-library workstream in PR23; inspect CI runner failure."
+      "nextAction": "Continue private-upload/buyer-library repairs with local checks; GitHub Actions requires owner billing access.",
+      "blockers": [
+        "github-actions-account-billing-lock",
+        "scheduled-run-not-observed",
+        "real-test-mode-commerce-not-verified"
+      ]
     }
   ],
   "automation": {
