@@ -5,9 +5,9 @@
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
   "lease": {
-    "runId": "engineer_20261030T165248970Z",
-    "startedAt": "2026-10-30T16:52:49.197Z",
-    "expiresAt": "2026-10-30T17:37:49.197Z"
+    "runId": "launch_20261030T233831258Z",
+    "startedAt": "2026-10-30T23:38:31.549Z",
+    "expiresAt": "2026-10-31T00:23:31.549Z"
   },
   "releaseStatus": "NOT_READY",
   "gates": [],
@@ -130,6 +130,47 @@
         "scheduled-run-not-observed",
         "real-test-mode-commerce-not-verified"
       ]
+    },
+    {
+      "id": "engineer_20261030T165248970Z",
+      "status": "completed",
+      "inspectedCommit": "e1f12406b52789854521ebf389df28680ceb44d3",
+      "pushedCommit": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
+      "pr": 23,
+      "finishedAt": "2026-10-30T17:02:32Z",
+      "reconciledAt": "2026-10-30T23:38:31.258Z",
+      "checks": [
+        {
+          "name": "private-upload-behaviour",
+          "result": "passed",
+          "groups": 30,
+          "environment": "local-mocked",
+          "source": "docs/PRIVATE_PRODUCT_UPLOAD.md"
+        },
+        {
+          "name": "regressions-lint-types-build",
+          "result": "passed",
+          "groups": 19,
+          "environment": "local",
+          "source": "PR23 validation report at 3305814"
+        },
+        {
+          "name": "Vercel-preview",
+          "result": "passed",
+          "environment": "preview",
+          "source": "Vercel status on 3305814321d5a5ad937b2444970cd7dd4b6333d4"
+        },
+        {
+          "name": "real-storage-payment-delivery",
+          "result": "unverified",
+          "environment": "integration"
+        }
+      ],
+      "blockers": [
+        "real-integration-not-verified",
+        "hosted-CI-failed"
+      ],
+      "nextAction": "Finish requested automations page clarity and contact handoff; then validate remaining commerce integration."
     }
   ],
   "automation": {
