@@ -1,0 +1,366 @@
+/* CQA Dark Glass preview theme
+   Shared visual layer only: keeps page copy, routes, forms and actions intact. */
+:root {
+  --bg: #07090c;
+  --panel: rgba(17, 21, 27, .72);
+  --panel-2: rgba(22, 27, 34, .82);
+  --text: #f7f9fb;
+  --muted: #b1bac2;
+  --cyan: #6ce7f2;
+  --border: rgba(117, 224, 237, .17);
+  --cqa-bg: #07090c;
+  --cqa-panel: rgba(17, 21, 27, .72);
+  --cqa-panel-2: rgba(22, 27, 34, .82);
+  --cqa-line: rgba(117, 224, 237, .17);
+  --cqa-cyan: #6ce7f2;
+  --cqa-violet: #6ce7f2;
+  --cqa-radius: 22px;
+  --cqa-shadow: 0 24px 72px rgba(0,0,0,.38);
+}
+html, body { background-color: #07090c; }
+body {
+  background:
+    radial-gradient(ellipse at 14% 0%, rgba(64, 199, 214, .09), transparent 32%),
+    radial-gradient(ellipse at 88% 10%, rgba(255, 47, 179, .055), transparent 27%),
+    #07090c !important;
+  background-attachment: fixed;
+}
+body:before {
+  opacity: .08 !important;
+  background-size: 48px 48px !important;
+}
+.site-header, .cqa-topbar {
+  background: rgba(8, 11, 15, .78) !important;
+  border-bottom: 1px solid rgba(117, 224, 237, .15) !important;
+  backdrop-filter: blur(22px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(135%) !important;
+}
+.brand-mark { background: linear-gradient(145deg, #ff47bd, #b82486) !important; }
+.cqa-menu-trigger, .cqa-menu-panel {
+  border-color: rgba(117,224,237,.22) !important;
+  background: rgba(15,20,26,.78) !important;
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: 0 18px 50px rgba(0,0,0,.38) !important;
+}
+.hero-shell, .cqa-neon-hero {
+  background:
+    radial-gradient(ellipse at 78% 24%, rgba(76,205,220,.10), transparent 30%),
+    radial-gradient(ellipse at 8% 0%, rgba(255,47,179,.055), transparent 25%),
+    linear-gradient(180deg,#080b0f,#07090c) !important;
+}
+.hero-shell:after { color: rgba(255,255,255,.012) !important; }
+.hero-copy h1 span {
+  background: linear-gradient(90deg,#f8fafc 0%,#9deaf0 64%,#ff8dce 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.eyebrow, .cqa-logo-copy small { color: #8ee7ed !important; }
+.button.primary, .neon-enter-button, .neon-machine .neon-enter-button {
+  background: linear-gradient(135deg,#baf6f6,#62d6e1) !important;
+  border: 1px solid rgba(190,250,250,.62) !important;
+  color: #071014 !important;
+  box-shadow: 0 8px 26px rgba(73,199,210,.18) !important;
+}
+.button.primary:after { display: none !important; }
+.button.ghost, .nav-cta {
+  background: rgba(255,255,255,.055) !important;
+  color: #f7f9fb !important;
+  border: 1px solid rgba(117,224,237,.2) !important;
+  backdrop-filter: blur(12px);
+}
+:where(.vending-shell,.machine-card-home,.flow-card,.worker-hero-panel,.worker-card,
+.marketplace-neon-hero,.marketplace-live-panel,.outcome-grid>div,.faq-grid article,
+.neon-machine,.neon-plan,.machine-detail-shell,.machine-detail-screen,
+.machine-offer-slot,.setup-hero,.setup-template-lock,.setup-chat,.setup-panel,
+.setup-build-panel,.setup-machine-summary,.integration-card,.integrations-stripe,
+.custom-connection-form,.integration-next,.final-panel,.revenue-stack>div) {
+  background: linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025)) !important;
+  border: 1px solid rgba(117,224,237,.16) !important;
+  box-shadow: 0 18px 55px rgba(0,0,0,.27), inset 0 1px rgba(255,255,255,.055) !important;
+  backdrop-filter: blur(16px) saturate(125%);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+}
+.vending-shell, .neon-machine, .machine-detail-shell {
+  transform: none !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.08) !important;
+}
+.vending-screen, .neon-machine-screen, .machine-detail-screen,
+.machine-detail-shell:before, .neon-machine:before {
+  border-color: rgba(117,224,237,.22) !important;
+  box-shadow: inset 0 0 28px rgba(91,214,224,.045) !important;
+}
+.vending-slot, .vending-console, .neon-product-slot, .machine-offer-slot,
+.setup-dropzone, .setup-bot-bubble, .machine-detail-footer {
+  background-color: rgba(10,15,20,.52) !important;
+  border-color: rgba(117,224,237,.15) !important;
+}
+.machine-card-home:after { opacity: .07 !important; }
+.machine-card-home.pink, .machine-card-home.cyan, .machine-card-home.violet,
+.machine-card-home.gold { --accent: #78dce5; }
+.worker-card, .worker-card.cyan, .worker-card.gold, .worker-card.violet {
+  --worker-accent: #78dce5 !important;
+}
+.worker-badge { background: rgba(112,222,230,.92) !important; color: #071014 !important; }
+.neon-machine-pink, .neon-machine-cyan, .neon-machine-gold, .neon-machine-violet {
+  --machine-accent: #78dce5 !important;
+  --machine-accent-rgb: 120,220,229 !important;
+}
+.machine-theme-pink, .machine-theme-cyan, .machine-theme-gold, .machine-theme-violet {
+  --machine-accent: #78dce5 !important;
+  --machine-accent-rgb: 120,220,229 !important;
+}
+.live-pill i, .neon-live i, .rail-status { box-shadow: none !important; }
+:where(a,button,input,select,textarea,[tabindex]):focus-visible {
+  outline: 2px solid #8ee7ed !important;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+/* Current CQA component layer: align the live app's newer class names. */
+.cqa-home {
+  background:
+    radial-gradient(ellipse at 82% 8%,rgba(93,210,220,.075),transparent 28%),
+    radial-gradient(ellipse at 8% 42%,rgba(255,47,179,.04),transparent 26%),
+    #07090c !important;
+}
+.cqa-home-hero {
+  background: linear-gradient(180deg,rgba(12,17,22,.58),rgba(7,9,12,.94)) !important;
+  border-bottom-color: rgba(117,224,237,.14) !important;
+}
+.cqa-home-band {
+  background: linear-gradient(180deg,rgba(18,25,31,.7),rgba(8,11,15,.55)) !important;
+  border-block-color: rgba(117,224,237,.14) !important;
+}
+.cqa-command-tile, .cqa-float-tile, .cqa-capability-tile,
+.cqa-owner-tile, .cqa-final-tile, .cqa-announcement,
+.glass-card {
+  background: linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.03)) !important;
+  border: 1px solid rgba(117,224,237,.18) !important;
+  box-shadow: 0 20px 58px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.065) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+.cqa-command-tile, .cqa-owner-tile { transform: none !important; }
+.cqa-command-tile:before, .cqa-float-tile:before, .cqa-capability-tile:before {
+  background: rgba(126,224,232,.52) !important;
+  box-shadow: 0 0 10px rgba(126,224,232,.15) !important;
+}
+.cqa-home h1 span, .cqa-home h2 span {
+  background: linear-gradient(90deg,#f8fafc 0%,#a4ebef 72%,#f1a0d0 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.cqa-kicker, .cqa-tile-screen small, .cqa-tile-screen span,
+.cqa-tile-slots small, .cqa-tile-slots span, .cqa-capability-tile a,
+.cqa-home-signals b, .cqa-owner-tile small, .cqa-owner-tile b {
+  color: #9ce7eb !important;
+}
+.cqa-kicker i { box-shadow: 0 0 7px rgba(120,220,229,.34) !important; }
+.cqa-home-signals span, .cqa-tile-slots>div, .cqa-owner-tile span,
+.cqa-tile-console, .cqa-tile-screen {
+  background: rgba(9,14,19,.46) !important;
+  border-color: rgba(117,224,237,.15) !important;
+}
+.cqa-tile-screen {
+  background: linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025)) !important;
+  backdrop-filter: blur(14px) !important;
+}
+.cqa-float-tile:nth-child(2), .cqa-float-tile:nth-child(3),
+.cqa-capability-tile:nth-child(2) { transform: none !important; }
+.cqa-float-tile:hover, .cqa-float-tile:nth-child(2):hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(117,224,237,.3) !important;
+  box-shadow: 0 24px 58px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.07) !important;
+}
+.cqa-home h1, .cqa-home h2 { color: #f6f8fa; }
+.cqa-home-lede, .cqa-home-section p, .cqa-owner-section>div>p:not(.cqa-kicker) {
+  color: #b9c2c9 !important;
+}
+.cqa-tile-top b { color: #9ce7eb !important; border-color: rgba(117,224,237,.2) !important; }
+.cqa-tile-console a { color: #b8f2f2 !important; }
+.cqa-home .button.primary { color: #071014 !important; }
+.cqa-menu-panel>a:not(.button):hover { background: rgba(117,224,237,.07) !important; }
+.cqa-offer-page .pricing-neon-hero,
+.cqa-offer-page .neon-plan,
+.cqa-launch-package {
+  background: linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.025)) !important;
+  border-color: rgba(117,224,237,.18) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+}
+
+/* Focused launch builder layout: keep the live preview beside a calmer setup form. */
+.cqa-onboarding-page {
+  width: min(1280px, calc(100% - 40px)) !important;
+  padding-top: 42px !important;
+  padding-bottom: 80px !important;
+}
+.cqa-launch-form {
+  display: grid !important;
+  gap: 22px !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.cqa-launch-intro {
+  padding: clamp(24px,4vw,42px) !important;
+  border: 1px solid rgba(117,224,237,.17);
+  border-radius: 24px;
+  background: linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+  box-shadow: 0 18px 55px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.055);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+.cqa-launch-intro h1 {
+  max-width: 760px;
+  margin: 13px 0 12px;
+  font-size: clamp(36px,5vw,58px);
+  line-height: 1.04;
+  letter-spacing: -.045em;
+}
+.cqa-launch-intro p { max-width: 760px; line-height: 1.65; color: #b9c2c9; }
+.cqa-launch-builder-grid {
+  display: grid;
+  grid-template-columns: minmax(0,1.03fr) minmax(340px,.97fr);
+  align-items: start;
+  gap: 22px;
+}
+.cqa-launch-fields { display: grid; gap: 14px; min-width: 0; }
+.cqa-launch-fields > .small { margin: -4px 2px 4px; line-height: 1.55; color: #b1bac2; }
+.cqa-launch-fields > div[id="edit-preview"] {
+  padding: 17px 19px;
+  border-left: 2px solid rgba(117,224,237,.5);
+  background: linear-gradient(90deg,rgba(117,224,237,.07),transparent);
+}
+.cqa-launch-fields > div[id="edit-preview"] h2 {
+  margin: 6px 0 0;
+  font-size: 24px;
+  letter-spacing: -.03em;
+}
+.cqa-launch-fields > label, .cqa-launch-offers, .cqa-launch-fields > .grid {
+  min-width: 0;
+  padding: 16px !important;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  background: rgba(255,255,255,.025);
+}
+.cqa-launch-fields label .small { display: inline-block; margin-bottom: 7px; color: #d4dbe0; }
+.cqa-launch-fields input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.cqa-launch-fields select, .cqa-launch-fields textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid rgba(117,224,237,.16);
+  border-radius: 10px;
+  background: rgba(7,10,14,.76) !important;
+  color: #f7f9fb !important;
+}
+.cqa-launch-fields textarea { resize: vertical; }
+.cqa-launch-fields input::placeholder, .cqa-launch-fields textarea::placeholder { color: #87929a; }
+.cqa-launch-fields :where(input,select,textarea):focus-visible {
+  outline: 2px solid #8ee7ed;
+  outline-offset: 2px;
+}
+.cqa-launch-offers legend { padding: 0 8px; color: #edf2f4; font-weight: 750; }
+.cqa-launch-offers > p { color: #aeb8bf; line-height: 1.6; }
+.cqa-launch-offers .grid { gap: 10px; }
+.cqa-launch-fields input[type="color"] { border: 1px solid rgba(117,224,237,.2); border-radius: 8px; }
+.cqa-launch-preview {
+  position: sticky;
+  top: 96px;
+  min-width: 0;
+  max-height: calc(100vh - 112px);
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid rgba(117,224,237,.17);
+  border-radius: 22px;
+  background: linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.02));
+  box-shadow: 0 18px 55px rgba(0,0,0,.25),inset 0 1px rgba(255,255,255,.055);
+  backdrop-filter: blur(16px) saturate(125%);
+  scrollbar-color: rgba(117,224,237,.35) rgba(255,255,255,.03);
+}
+.cqa-launch-preview > section:first-child { scroll-margin-top: 105px !important; }
+.cqa-launch-preview > section:first-child > h2 {
+  margin: 8px 0;
+  font-size: 24px;
+  letter-spacing: -.03em;
+}
+.cqa-launch-preview > section:first-child > p { line-height: 1.55; color: #aeb8bf; }
+.cqa-launch-preview [aria-label="Your personalised machine template preview"] {
+  border-color: rgba(117,224,237,.2);
+  background: rgba(11,15,20,.85);
+}
+.cqa-launch-preview [aria-label="Your personalised machine template preview"] > div:nth-child(2) { padding: 16px; }
+.cqa-launch-preview [aria-label="Your personalised machine template preview"] > div:nth-child(2) > div:nth-child(2) {
+  margin: 16px 0;
+  padding: 21px 18px;
+}
+.cqa-launch-preview [aria-label="Your personalised machine template preview"] > div:nth-child(2) > div:nth-child(2) h2 {
+  font-size: clamp(22px,2.2vw,32px);
+}
+.cqa-launch-plan-section {
+  display: grid;
+  gap: 17px;
+  padding: clamp(20px,3vw,32px);
+  border: 1px solid rgba(117,224,237,.16);
+  border-radius: 22px;
+  background: linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+}
+.cqa-launch-plan-section > header { padding-bottom: 4px; }
+.cqa-launch-plan-section > header h2 { margin: 8px 0; font-size: clamp(27px,3vw,38px); letter-spacing: -.04em; }
+.cqa-launch-plan-section > header p { margin: 0; color: #aeb8bf; }
+.cqa-plan-options > .grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.cqa-plan-options > .grid > label {
+  display: block;
+  min-height: 150px;
+  border: 1px solid rgba(117,224,237,.14) !important;
+  border-radius: 15px;
+  background: rgba(8,12,17,.55) !important;
+  transition: border-color .18s ease,background .18s ease,transform .18s ease;
+}
+.cqa-plan-options > .grid > label:has(input[type="radio"]:checked) {
+  border-color: rgba(117,224,237,.58) !important;
+  background: rgba(76,180,191,.11) !important;
+  box-shadow: inset 0 0 22px rgba(117,224,237,.05);
+}
+.cqa-plan-options input[type="radio"] { accent-color: #6ce7f2; }
+.cqa-launch-form .cqa-plan-summary {
+  border-color: rgba(117,224,237,.2) !important;
+  background: rgba(8,13,18,.52) !important;
+}
+.cqa-launch-form .cqa-review-confirmation {
+  border-color: rgba(117,224,237,.22) !important;
+  border-radius: 14px !important;
+  background: rgba(117,224,237,.045) !important;
+}
+.cqa-launch-form .cqa-activate-cta, .cqa-launch-form .cqa-save-draft {
+  min-height: 52px;
+  width: 100%;
+}
+.cqa-launch-form .cqa-save-draft { background: rgba(255,255,255,.045) !important; }
+@media(max-width:900px) {
+  .cqa-launch-builder-grid { grid-template-columns: 1fr; }
+  .cqa-launch-preview { position: static; max-height: none; order: -1; }
+}
+@media(max-width:620px) {
+  .cqa-onboarding-page { width: min(100% - 24px,1280px) !important; padding-top: 24px !important; padding-bottom: 55px !important; }
+  .cqa-launch-builder-grid { gap: 16px; }
+  .cqa-launch-preview { padding: 12px; }
+  .cqa-launch-fields > .grid { grid-template-columns: 1fr; }
+  .cqa-launch-fields > .grid > label { padding: 0 !important; border: 0; background: transparent; }
+  .cqa-plan-options > .grid { grid-template-columns: 1fr; }
+  .cqa-plan-options > .grid > label { min-height: 0; }
+  .cqa-launch-plan-section { padding: 18px; }
+  .cqa-launch-intro { padding: 22px !important; }
+  .cqa-launch-intro h1 { font-size: 38px; }
+}
