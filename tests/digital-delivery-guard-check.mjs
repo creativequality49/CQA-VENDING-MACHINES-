@@ -15,12 +15,12 @@ for (const variant of [
   let stripeCalls = 0;
   const tables = [];
   const context = { offer_type: variant.offerType, business_id: 'business', offer_id: 'offer' };
-  const post = new Function('NextResponse', 'z', 'getPublicSupabaseClient', 'getCqaSupabaseAdmin', 'getStripeClient', compiled + ';return POST;')(
+  const post = new Function('NextResponse', 'z', 'getPublicSupabaseClient', 'getCqaSupabaseAdmin', 'getStripeClient', 'isCqaDigitalCheckoutAllowed', compiled + ';return POST;')(
     { json: (body, options) => ({ body, status: options?.status || 200 }) }, z,
     () => ({ rpc: async () => ({ data: context, error: null }) }),
     () => ({ from(table) { tables.push(table); const query = { select() { return query; }, eq() { return query; },
       maybeSingle: async () => ({ data: { fulfillment_type: variant.fulfillmentType }, error: null }) }; return query; } }),
-    () => { stripeCalls++; throw Error('Provider must never be touched for unavailable digital delivery'); }
+    () => { stripeCalls++; throw Error('Provider must never be touched for unavailable digital delivery'); }, () => false
   );
   const response = await post(new Request('https://example.test/api/marketplace/checkout', {
     method: 'POST', body: JSON.stringify({ machineSlug: 'test', offerId: '00000000-0000-4000-8000-000000000001' })
