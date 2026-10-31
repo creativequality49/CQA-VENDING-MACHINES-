@@ -5,9 +5,9 @@
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
   "lease": {
-    "runId": "checkout_20261031T001403939Z",
-    "startedAt": "2026-10-31T00:14:04.368Z",
-    "expiresAt": "2026-10-31T00:59:04.368Z"
+    "runId": "recover_checkout_20261031T131516523Z",
+    "startedAt": "2026-10-31T13:15:17.000Z",
+    "expiresAt": "2026-10-31T14:00:17.000Z"
   },
   "releaseStatus": "NOT_READY",
   "gates": [],
@@ -498,6 +498,28 @@
       ],
       "nextAction": "Prepare authenticated digital checkout test path while preserving production holds; collect ABN/GST confirmation and approval of concrete draft terms; enable secure isolated runtime credentials before real integration tests.",
       "finishedAt": "2026-10-31T00:13:06.159Z"
+    },
+    {
+      "id": "checkout_20261031T001403939Z",
+      "status": "failed",
+      "inspectedCommit": "f5cd392c9b02175c253bd74d63831a4684aa768a",
+      "finishedAt": "2026-10-31T00:59:04.368Z",
+      "reconciledAt": "2026-10-31T13:15:16.523Z",
+      "checks": [
+        {
+          "name": "local-regressions-types-lint-build",
+          "result": "passed",
+          "groups": 21,
+          "environment": "local",
+          "source": ".cqa-reports/checks.json observed 2026-10-31T00:19:45.910Z",
+          "scope": "Unpublished file set; hosted and integration evidence absent"
+        }
+      ],
+      "blockers": [
+        "execution-interrupted-before-publication",
+        "lease-expired"
+      ],
+      "nextAction": "Recover and publish already reviewed checkout/library repair after revalidation; no provider tests claimed."
     }
   ],
   "automation": {
