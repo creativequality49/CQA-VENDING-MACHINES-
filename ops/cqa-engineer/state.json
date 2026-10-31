@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "verification_20261030T235829255Z",
-    "startedAt": "2026-10-30T23:58:29.487Z",
-    "expiresAt": "2026-10-31T00:43:29.487Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [],
   "backlog": [
@@ -23,15 +19,17 @@
     {
       "id": "account-bound-buyer-library",
       "priority": 2,
-      "status": "draft-implementation-schema-blocked",
+      "status": "schema-applied-app-provider-verification-outstanding",
       "workstream": "PR23",
-      "evidence": "Read-only schema inspection: deployed backend cqa_orders lacks buyer_user_id; migration file is in PR23 and is not applied."
+      "evidence": "Migration 20261031000149 verified: nullable buyer UUID, validated FK, valid paid index; RLS/policies/grants unchanged. Real account journey not tested."
     },
     {
       "id": "download-refund-isolation",
       "priority": 3,
-      "status": "real-integration-unverified",
-      "workstream": "PR23"
+      "status": "refund-ordering-repaired-in-draft-real-integration-unverified",
+      "workstream": "PR23",
+      "commitSha": "f5cd392c9b02175c253bd74d63831a4684aa768a",
+      "pr": 23
     },
     {
       "id": "regressions-typecheck-build",
@@ -42,8 +40,8 @@
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "real-integration-blocked",
-      "evidence": "Connected Stripe account is sandbox; launch test Supabase project inactive; deployed backend buyer_user_id missing; storage configuration metadata unavailable (Vercel 403)."
+      "status": "runtime-access-blocked",
+      "evidence": "Buyer migration applied. Existing Free test project restore accepted, last observed COMING_UP. Runtime provider keys absent; Vercel env metadata 403; Stripe connection sandbox only."
     },
     {
       "id": "branding-mobile-conversion",
@@ -71,6 +69,20 @@
       "status": "live-settings-unverified",
       "workstream": "PR26",
       "evidence": "Contact-based implementation brief implemented; live Payment Link after-completion redirect and notifications unverified. No Stripe settings changed."
+    },
+    {
+      "id": "purchase-automation-deduplication",
+      "priority": 1,
+      "status": "verified-gap",
+      "workstream": "PR23",
+      "evidence": "Different completion event IDs can create duplicate automation runs; durable order uniqueness and receipt idempotency do not cover all side effects."
+    },
+    {
+      "id": "outstanding-signed-url-revocation",
+      "priority": 2,
+      "status": "residual-window-unverified",
+      "workstream": "PR23",
+      "evidence": "Refund stops new issuance; an already issued R2 URL remains usable until 600-second expiry. Immediate revocation not implemented."
     }
   ],
   "runs": [
@@ -302,6 +314,117 @@
       ],
       "nextAction": "Confirm GST/service terms and live handoff; prepare an approved test environment/migration/storage verification; then execute genuine payment-to-library/download, expiry/refund revocation and two-account isolation on one release candidate before seeking concrete release approval.",
       "finishedAt": "2026-10-30T23:53:56.670Z"
+    },
+    {
+      "id": "verification_20261030T235829255Z",
+      "status": "completed",
+      "inspectedCommit": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
+      "pushedCommit": "f5cd392c9b02175c253bd74d63831a4684aa768a",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "prepared-buyer-account-migration",
+          "result": "passed",
+          "environment": "production-schema-only",
+          "source": "Supabase migration 20261031000149",
+          "scope": "Metadata verified only; no customer rows queried; no backfill; RLS/policies/grants unchanged"
+        },
+        {
+          "name": "local-regressions-types-lint-production-build",
+          "result": "passed",
+          "groups": 19,
+          "environment": "local",
+          "source": "Cross-checkout harness .cqa-reports/checks.json; docs/REFUND_REVOCATION_REVIEW.md",
+          "commitSha": "f5cd392c9b02175c253bd74d63831a4684aa768a",
+          "scope": "Exact published source file set checked with uncommitted changes in repair checkout"
+        },
+        {
+          "name": "refund-webhook-behaviour",
+          "result": "passed",
+          "groups": 27,
+          "environment": "local-mocked",
+          "source": "tests/marketplace-webhook-check.mjs"
+        },
+        {
+          "name": "independent-delivery-tests",
+          "result": "passed",
+          "groups": 11,
+          "environment": "local-mocked",
+          "source": "Independent Tester; tests/marketplace-delivery-check.mjs"
+        },
+        {
+          "name": "independent-extra-adversarial-replays",
+          "result": "passed",
+          "groups": 4,
+          "environment": "local-mocked",
+          "source": "Independent Tester in-memory executions"
+        },
+        {
+          "name": "production-public-health",
+          "result": "passed",
+          "groups": 5,
+          "environment": "production",
+          "source": "health.mjs observed 2026-10-31T00:02:32.194Z",
+          "scope": "reachability/configuration only"
+        },
+        {
+          "name": "Vercel-preview",
+          "result": "passed",
+          "environment": "preview",
+          "source": "dpl_A4gdMnwFMm924VWQyTm7RjeAhgtq READY",
+          "commitSha": "f5cd392c9b02175c253bd74d63831a4684aa768a"
+        },
+        {
+          "name": "GitHub-hosted-checks",
+          "result": "failed",
+          "environment": "ci",
+          "source": "runs 41148346424 and 41148346483; first checks job has no steps",
+          "scope": "Current detailed failure cause unavailable; no green hosted claim"
+        },
+        {
+          "name": "existing-free-test-project-restore",
+          "result": "started",
+          "environment": "test",
+          "source": "Supabase restore accepted; latest status COMING_UP",
+          "scope": "No paid service/plan started; restore readiness not yet verified"
+        },
+        {
+          "name": "Vercel-storage-configuration-metadata",
+          "result": "blocked",
+          "environment": "provider",
+          "source": "403 forbidden for project env metadata; no installed CLI fallback"
+        },
+        {
+          "name": "live-Stripe-postpayment-handoff",
+          "result": "unverified",
+          "environment": "live",
+          "source": "Only sandbox account accessible; live-account connection requested"
+        },
+        {
+          "name": "genuine-payment-download-expiry-refund-isolation",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "Runtime credentials absent; isolated test environment still restoring"
+        },
+        {
+          "name": "GST-and-business-terms",
+          "result": "unverified",
+          "environment": "business",
+          "source": "No ABN/GST proof or approved terms found in repository or exact-name registry search"
+        }
+      ],
+      "blockers": [
+        "live-Stripe-access-missing",
+        "storage-config-access-forbidden",
+        "runtime-integration-credentials-unavailable",
+        "business-GST-and-terms-unconfirmed",
+        "real-provider-fulfilment-not-evidenced",
+        "purchase-automation-distinct-event-duplication",
+        "issued-url-revocation-window",
+        "hosted-CI-failed"
+      ],
+      "nextAction": "Continue business policy approval draft and verify restored test project; obtain required live Stripe read access and secure test-runtime/storage credentials before genuine end-to-end tests. Do not open checkout or claim paid-launch readiness.",
+      "finishedAt": "2026-10-31T00:09:06.549Z"
     }
   ],
   "automation": {
@@ -316,6 +439,20 @@
       "context": "authorised implementation session",
       "observedAt": "2026-10-30T23:53:45.880Z",
       "source": "PR26 2397c8a and PR23 3305814"
+    }
+  },
+  "schemaEvidence": {
+    "buyerAccountMigration": {
+      "version": "20261031000149",
+      "project": "rjxiuukphwybujuclenn",
+      "column": "buyer_user_id",
+      "fkValidated": true,
+      "indexValid": true,
+      "accessControlsUnchanged": true,
+      "observedAt": "2026-10-31T00:02:13.924Z",
+      "sqlBlob": "e35d0f1cfd103291b79602bedab9d7567d41fa22",
+      "sourceCommit": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
+      "approval": "Brooke explicitly requested applying the prepared buyer-account change in this session"
     }
   }
 }
