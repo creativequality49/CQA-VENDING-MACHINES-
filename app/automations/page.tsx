@@ -113,17 +113,18 @@ export default function AutomationsPage() {
       <section aria-labelledby="compare" style={{ paddingTop: "3rem" }}>
         <span className="eyebrow">PACKAGE COMPARISON</span>
         <h2 id="compare">Compare the core packages</h2>
-        <div className="glass-card" style={{ overflowX: "auto", marginTop: "1rem" }}>
-          <table style={{ width: "100%", minWidth: 620, borderCollapse: "collapse", textAlign: "left" }}>
-            <caption className="small" style={{ textAlign: "left", padding: "1rem" }}>Scope and pricing from the current CQA automation catalogue</caption>
-            <thead><tr>{["", "Automation Starter", "Automation Pro", "AI Business Operations"].map((label) => <th key={label} scope="col" style={{ padding: ".8rem", borderBottom: "1px solid var(--border)" }}>{label}</th>)}</tr></thead>
-            <tbody>
-              <tr><th scope="row" style={{ padding: ".8rem" }}>Scope</th><td style={{ padding: ".8rem" }}>One agreed focused workflow</td><td style={{ padding: ".8rem" }}>Up to 3 connected automations</td><td style={{ padding: ".8rem" }}>Connected AI operations layer</td></tr>
-              <tr><th scope="row" style={{ padding: ".8rem" }}>Setup</th><td style={{ padding: ".8rem" }}>AUD $497</td><td style={{ padding: ".8rem" }}>AUD $897</td><td style={{ padding: ".8rem" }}>AUD $1,997</td></tr>
-              <tr><th scope="row" style={{ padding: ".8rem" }}>Monthly</th><td style={{ padding: ".8rem" }}>AUD $99</td><td style={{ padding: ".8rem" }}>AUD $249</td><td style={{ padding: ".8rem" }}>AUD $449</td></tr>
-              <tr><th scope="row" style={{ padding: ".8rem" }}>First payment</th><td style={{ padding: ".8rem" }}>AUD $596</td><td style={{ padding: ".8rem" }}>AUD $1,146</td><td style={{ padding: ".8rem" }}>AUD $2,446</td></tr>
-            </tbody>
-          </table>
+        <div className="grid grid-3" style={{ marginTop: "1rem" }}>
+          {[
+            { name: "Automation Starter", scope: "One agreed focused workflow", setup: 497, monthly: 99, first: 596 },
+            { name: "Automation Pro", scope: "Up to 3 connected automations", setup: 897, monthly: 249, first: 1146 },
+            { name: "AI Business Operations", scope: "Connected AI operations layer", setup: 1997, monthly: 449, first: 2446 }
+          ].map((plan) => (
+            <article className="glass-card" key={plan.name} style={{ padding: "1.15rem", minWidth: 0 }}>
+              <h3>{plan.name}</h3>
+              <p className="small">{plan.scope}</p>
+              <p className="small">Setup: <strong>AUD ${plan.setup}</strong><br />Monthly: <strong>AUD ${plan.monthly}</strong><br />First payment: <strong>AUD ${plan.first}</strong></p>
+            </article>
+          ))}
         </div>
         <p className="small">A specialist worker is separately scoped around a named, pre-defined job. Its current price is shown on its offer card.</p>
       </section>
