@@ -30,7 +30,7 @@ export default function AutomationsPage() {
         <div className="revenue-stack" style={{ marginBottom: "1rem" }}>
           {offer.features.map((feature) => <div key={feature}><span>✓</span><strong>{feature}</strong></div>)}
         </div>
-        <p className="small">Scope and implementation requirements should be agreed with CQA. <Link href="/contact">Ask a question</Link> before purchasing if unsure.</p><a href={offer.paymentUrl!} className="button primary" style={{ marginTop: "auto", textAlign: "center" }}>Buy securely with Stripe</a>
+        <p className="small">Scope and implementation requirements should be agreed with CQA. <Link href="/contact">Ask a question</Link> before purchasing if unsure.</p><a href={offer.paymentUrl!} className="button primary" rel="noopener noreferrer" style={{ marginTop: "auto", textAlign: "center" }}>Buy securely with Stripe</a>
       </article>
     );
   };
@@ -81,13 +81,13 @@ export default function AutomationsPage() {
       ) : null}
 
 
-      <section className="glass-card" style={{ padding: "1.4rem", marginTop: "2rem", overflowX: "auto" }} aria-labelledby="compare-heading">
+      <section className="glass-card" style={{ padding: "1.4rem", marginTop: "2rem" }} aria-labelledby="compare-heading">
         <h2 id="compare-heading">Compare core packages</h2>
-        <table style={{ width: "100%", minWidth: 480, borderCollapse: "collapse", textAlign: "left" }}>
+        <div role="region" aria-label="Core package comparison table; scroll horizontally on small screens" tabIndex={0} style={{ maxWidth: "100%", overflowX: "auto" }}><table style={{ width: "100%", minWidth: 620, borderCollapse: "collapse", textAlign: "left" }}>
           <caption className="small" style={{ textAlign: "left", marginBottom: ".75rem" }}>All figures in AUD. GST treatment is pending confirmation.</caption>
           <thead><tr><th scope="col">Package</th><th scope="col">Workflow scope</th><th scope="col">Setup</th><th scope="col">Monthly</th><th scope="col">First payment</th></tr></thead>
           <tbody>{packages.map((offer) => <tr key={offer.id}><th scope="row">{offer.name}</th><td>{offer.id === "automation_starter" ? "One agreed workflow" : offer.id === "automation_pro" ? "Up to three connected automations" : "Connected AI operations layer"}</td><td><Money value={offer.setupAud!} /></td><td><Money value={offer.monthlyAud!} /></td><td><Money value={firstPaymentAud(offer)!} /></td></tr>)}</tbody>
-        </table>
+        </table></div>
       </section>
       <section className="glass-card" style={{ padding: "1.4rem", marginTop: "2rem" }} aria-labelledby="faq-heading">
         <h2 id="faq-heading">Frequently asked questions</h2>
@@ -99,7 +99,7 @@ export default function AutomationsPage() {
           ["Who owns the automation?", "Ownership and handover terms have not been confirmed. Contact CQA to confirm before paying."],
           ["Can I cancel, and what happens afterward?", "Cancellation terms and what happens to connected workflows and data need confirmation. Review the applicable terms and contact CQA before paying."],
           ["Are third-party software fees included?", "Any additional software or usage costs need confirmation for your chosen integrations. Contact CQA before paying."],
-          ["How is business data protected?", "Only authorised data sources and access methods should be used. Review the privacy policy and contact CQA about your specific data and security requirements."],
+          ["How is business data protected?", "Only authorised data sources and access methods should be used. Contact CQA for the applicable privacy terms and your specific data and security requirements."],
           ["Do prices include GST?", "GST treatment has not been verified. Contact CQA to confirm before paying."]
         ].map(([question, answer]) => <details key={question} style={{ padding: ".8rem 0", borderBottom: "1px solid rgba(255,255,255,.16)" }}><summary style={{ cursor: "pointer", fontWeight: 700 }}>{question}</summary><p className="small">{answer} <Link href="/contact">Contact CQA</Link></p></details>)}
       </section>
