@@ -18,7 +18,7 @@ export function NavBar() {
           <Link href="/owner/dashboard" className="cqa-dashboard-link">Dashboard</Link>
 
           <nav className="cqa-desktop-links" aria-label="Primary navigation">
-            <Link href="/marketplace">Marketplace</Link>
+            <Link href="/marketplace">Business Marketplace</Link>
             <Link href="/machines">Solutions</Link>
             <Link href="/pricing">Plans</Link>
             <Link href="/workers">AI Workers</Link>
@@ -32,7 +32,7 @@ export function NavBar() {
             <nav className="cqa-menu-panel" aria-label="Primary navigation">
               <div className="menu-panel-head">
                 <span className="eyebrow">CQA NAVIGATION</span>
-                <small>Vending Marketplace · AI Workforce</small>
+                <small>Business Marketplace · AI Workforce</small>
               </div>
               <Link href="/">Home <span>01</span></Link>
               <Link href="/marketplace">Marketplace <span>02</span></Link>
@@ -44,7 +44,7 @@ export function NavBar() {
               <Link href="/contact">Contact CQA <span>08</span></Link>
               <div className="menu-panel-actions">
                 <Link href="/login?next=/owner/dashboard" className="button ghost">Owner Login</Link>
-                <Link href="/onboarding" className="button primary">Launch My Machine</Link>
+                <Link href="/onboarding" className="button primary">Launch Business Store</Link>
               </div>
             </nav>
           </details>
@@ -53,7 +53,7 @@ export function NavBar() {
 
       <nav className="mobile-dock" aria-label="Mobile navigation">
         <Link href="/marketplace"><b>⌂</b><span>Explore</span></Link>
-        <Link href="/onboarding"><b>＋</b><span>Launch</span></Link>
+        <Link href="/onboarding"><b>＋</b><span>Launch store</span></Link>
         <Link href="/owner/dashboard"><b>▦</b><span>Workspace</span></Link>
         <Link href="/automations"><b>✦</b><span>Automate</span></Link>
       </nav>
