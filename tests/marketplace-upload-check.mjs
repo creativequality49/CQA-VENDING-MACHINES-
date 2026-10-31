@@ -217,6 +217,7 @@ console.log('PASS chunked body limit and malformed multipart fail before any sto
 const storageCalls = [];
 class Command { constructor(input) { this.input = input; } }
 const storage = evaluate('lib/storage.ts', {
+  '@/lib/cqa-marketplace-assets': assets,
   '@aws-sdk/client-s3': { GetObjectCommand: Command, PutObjectCommand: Command,
     S3Client: class { async send(command) { storageCalls.push(command.input); return {}; } } },
   '@aws-sdk/s3-request-presigner': { getSignedUrl: async () => { throw new Error('Upload must not create a public or signed URL'); } },

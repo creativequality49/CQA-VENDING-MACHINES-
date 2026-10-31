@@ -1,5 +1,7 @@
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
-import { isNewCqaCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
+import { isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
+import { verifyPrivateMarketplaceAsset } from "@/lib/storage";
+import { MAX_MARKETPLACE_ASSET_BYTES, MARKETPLACE_ASSET_EXTENSIONS } from "@/lib/cqa-marketplace-assets";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getStripeClient } from "@/lib/stripe";
@@ -32,7 +34,6 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      console.error("[marketplace-checkout] context RPC failed", error.message);
       return NextResponse.json({ error: "Secure checkout context is unavailable." }, { status: 503 });
     }
 
@@ -41,16 +42,52 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This offer is not available for checkout." }, { status: 404 });
     }
     const { data: offer, error: offerError } = await getCqaSupabaseAdmin().from("cqa_offers")
-      .select("fulfillment_type").eq("id", context.offer_id).eq("business_id", context.business_id).maybeSingle();
+      .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config")
+      .eq("id", context.offer_id).eq("business_id", context.business_id).eq("machine_id", context.machine_id).maybeSingle();
     if (offerError) throw offerError;
     if (!offer) return NextResponse.json({ error: "This offer is no longer available." }, { status: 404 });
-    // Connect orders currently have no authenticated buyer-to-private-vault
-    // delivery bridge. Do not take money for an undeliverable digital offer.
-    if (context.offer_type === "digital_product" || offer.fulfillment_type === "digital") {
-      return NextResponse.json({ error: "Protected digital delivery is not available for this marketplace offer yet." }, { status: 409 });
+    const digital = context.offer_type === "digital_product" || offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
+    if (digital && !isCqaDigitalCheckoutAllowed()) {
+      return NextResponse.json({ error: "Protected digital delivery is paused while customer launch checks are completed.", code: "CQA_DIGITAL_DELIVERY_PENDING" }, { status: 409 });
     }
     if (!isNewCqaCheckoutAllowed()) {
       return NextResponse.json({ error: CQA_PRELAUNCH_CHECKOUT_MESSAGE, code: "CQA_LAUNCH_PENDING" }, { status: 503 });
+    }
+
+    const authorization = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") || "");
+    let buyerUserId: string | null = null;
+    let buyerEmail: string | undefined;
+    if (digital && !authorization) return NextResponse.json({ error: "Sign in to a verified buyer account before purchasing a download.", code: "CQA_BUYER_LOGIN_REQUIRED" }, { status: 401 });
+    if (authorization) {
+      const { data: identity, error: identityError } = await publicClient.auth.getUser(authorization[1]);
+      const buyer = identity?.user;
+      if (identityError || !buyer?.id || !buyer.email || !buyer.email_confirmed_at ||
+          (payload.customerEmail && buyer.email.trim().toLowerCase() !== payload.customerEmail.trim().toLowerCase())) {
+        return NextResponse.json({ error: "Sign in to a verified buyer account with the correct checkout email.", code: "CQA_BUYER_LOGIN_REQUIRED" }, { status: 401 });
+      }
+      buyerUserId = buyer.id;
+      buyerEmail = buyer.email.trim().toLowerCase();
+    }
+    if (digital) {
+      const config = offer.fulfillment_config;
+      const key = config && typeof config === "object" && !Array.isArray(config) ? config.asset_key : null;
+      const size = config?.asset_size_bytes;
+      const contentType = config?.asset_content_type;
+      const prefix = `marketplace/${context.business_id}/${context.offer_id}/`;
+      if (context.offer_id !== payload.offerId || context.machine_slug !== payload.machineSlug ||
+          offer.id !== context.offer_id || offer.business_id !== context.business_id || offer.machine_id !== context.machine_id ||
+          typeof key !== "string" || !key.startsWith(prefix) || key.length <= prefix.length ||
+          key.includes("..") || key.includes("\\") || /[?#]/.test(key) ||
+          !Number.isSafeInteger(size) || size < 1 || size > MAX_MARKETPLACE_ASSET_BYTES ||
+          typeof contentType !== "string" || !Object.hasOwn(MARKETPLACE_ASSET_EXTENSIONS, contentType)) {
+        return NextResponse.json({ error: "This product is not ready for protected delivery." }, { status: 409 });
+      }
+      try {
+        if (!await verifyPrivateMarketplaceAsset(key, size, contentType))
+          return NextResponse.json({ error: "This product is not ready for protected delivery." }, { status: 409 });
+      } catch {
+        return NextResponse.json({ error: "The private product file could not be verified. Please try again later.", code: "CQA_DIGITAL_ASSET_UNAVAILABLE" }, { status: 503 });
+      }
     }
     const { data: billing, error: billingError } = await getCqaSupabaseAdmin().from("cqa_plan_subscriptions")
       .select("status").eq("business_id", context.business_id).maybeSingle();
@@ -91,18 +128,6 @@ export async function POST(req: Request) {
     const subscription = context.offer_type === "subscription";
     const origin = getSiteUrl(req);
 
-    const authorization = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") || "");
-    let buyerUserId: string | null = null;
-    if (authorization) {
-      const { data: identity, error: identityError } = await publicClient.auth.getUser(authorization[1]);
-      const buyer = identity?.user;
-      if (identityError || !buyer?.id || !buyer.email || !buyer.email_confirmed_at ||
-          (payload.customerEmail && buyer.email.trim().toLowerCase() !== payload.customerEmail.trim().toLowerCase())) {
-        return NextResponse.json({ error: "Buyer account or checkout email is invalid." }, { status: 401 });
-      }
-      buyerUserId = buyer.id;
-    }
-
     const metadata = {
       cqaBusinessId: String(context.business_id),
       cqaMachineId: String(context.machine_id),
@@ -130,7 +155,7 @@ export async function POST(req: Request) {
       {
         mode: subscription ? "subscription" : "payment",
         line_items: [lineItem],
-        customer_email: buyerUserId ? undefined : payload.customerEmail,
+        customer_email: buyerEmail || payload.customerEmail,
         success_url: `${origin}/checkout/success?marketplace=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/machine/${context.machine_slug}`,
         metadata,
@@ -158,7 +183,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "CQA Stripe platform payments are not configured yet." }, { status: 503 });
     }
 
-    console.error("[marketplace-checkout] failed", error);
     return NextResponse.json({ error: "Secure checkout could not be started." }, { status: 500 });
   }
 }

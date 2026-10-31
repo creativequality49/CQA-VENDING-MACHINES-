@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test:commerce": "node tests/marketplace-webhook-check.mjs && node tests/billing-cancellation-check.mjs && node tests/webhook-claim-check.mjs && node tests/platform-webhook-check.mjs && node tests/digital-delivery-guard-check.mjs && node tests/marketplace-delivery-check.mjs && node tests/marketplace-upload-check.mjs",
+    "test:commerce": "node tests/marketplace-webhook-check.mjs && node tests/billing-cancellation-check.mjs && node tests/webhook-claim-check.mjs && node tests/platform-webhook-check.mjs && node tests/digital-delivery-guard-check.mjs && node tests/marketplace-delivery-check.mjs && node tests/marketplace-upload-check.mjs && node tests/marketplace-digital-checkout-check.mjs && node tests/marketplace-library-session-check.mjs",
     "test:auth-confirm": "node tests/auth-confirm-check.mjs",
     "test:onboarding-draft": "node tests/onboarding-draft-check.mjs",
     "test:login-cooldown": "node tests/login-cooldown-check.mjs",
