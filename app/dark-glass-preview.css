@@ -1,0 +1,125 @@
+/* CQA Dark Glass preview theme
+   Shared visual layer only: keeps page copy, routes, forms and actions intact. */
+:root {
+  --bg: #07090c;
+  --panel: rgba(17, 21, 27, .72);
+  --panel-2: rgba(22, 27, 34, .82);
+  --text: #f7f9fb;
+  --muted: #b1bac2;
+  --cyan: #6ce7f2;
+  --border: rgba(117, 224, 237, .17);
+  --cqa-bg: #07090c;
+  --cqa-panel: rgba(17, 21, 27, .72);
+  --cqa-panel-2: rgba(22, 27, 34, .82);
+  --cqa-line: rgba(117, 224, 237, .17);
+  --cqa-cyan: #6ce7f2;
+  --cqa-violet: #6ce7f2;
+  --cqa-radius: 22px;
+  --cqa-shadow: 0 24px 72px rgba(0,0,0,.38);
+}
+html, body { background-color: #07090c; }
+body {
+  background:
+    radial-gradient(ellipse at 14% 0%, rgba(64, 199, 214, .09), transparent 32%),
+    radial-gradient(ellipse at 88% 10%, rgba(255, 47, 179, .055), transparent 27%),
+    #07090c !important;
+  background-attachment: fixed;
+}
+body:before {
+  opacity: .08 !important;
+  background-size: 48px 48px !important;
+}
+.site-header, .cqa-topbar {
+  background: rgba(8, 11, 15, .78) !important;
+  border-bottom: 1px solid rgba(117, 224, 237, .15) !important;
+  backdrop-filter: blur(22px) saturate(135%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(135%) !important;
+}
+.brand-mark { background: linear-gradient(145deg, #ff47bd, #b82486) !important; }
+.cqa-menu-trigger, .cqa-menu-panel {
+  border-color: rgba(117,224,237,.22) !important;
+  background: rgba(15,20,26,.78) !important;
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: 0 18px 50px rgba(0,0,0,.38) !important;
+}
+.hero-shell, .cqa-neon-hero {
+  background:
+    radial-gradient(ellipse at 78% 24%, rgba(76,205,220,.10), transparent 30%),
+    radial-gradient(ellipse at 8% 0%, rgba(255,47,179,.055), transparent 25%),
+    linear-gradient(180deg,#080b0f,#07090c) !important;
+}
+.hero-shell:after { color: rgba(255,255,255,.012) !important; }
+.hero-copy h1 span {
+  background: linear-gradient(90deg,#f8fafc 0%,#9deaf0 64%,#ff8dce 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.eyebrow, .cqa-logo-copy small { color: #8ee7ed !important; }
+.button.primary, .neon-enter-button, .neon-machine .neon-enter-button {
+  background: linear-gradient(135deg,#baf6f6,#62d6e1) !important;
+  border: 1px solid rgba(190,250,250,.62) !important;
+  color: #071014 !important;
+  box-shadow: 0 8px 26px rgba(73,199,210,.18) !important;
+}
+.button.primary:after { display: none !important; }
+.button.ghost, .nav-cta {
+  background: rgba(255,255,255,.055) !important;
+  color: #f7f9fb !important;
+  border: 1px solid rgba(117,224,237,.2) !important;
+  backdrop-filter: blur(12px);
+}
+:where(.vending-shell,.machine-card-home,.flow-card,.worker-hero-panel,.worker-card,
+.marketplace-neon-hero,.marketplace-live-panel,.outcome-grid>div,.faq-grid article,
+.neon-machine,.neon-plan,.machine-detail-shell,.machine-detail-screen,
+.machine-offer-slot,.setup-hero,.setup-template-lock,.setup-chat,.setup-panel,
+.setup-build-panel,.setup-machine-summary,.integration-card,.integrations-stripe,
+.custom-connection-form,.integration-next,.final-panel,.revenue-stack>div) {
+  background: linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025)) !important;
+  border: 1px solid rgba(117,224,237,.16) !important;
+  box-shadow: 0 18px 55px rgba(0,0,0,.27), inset 0 1px rgba(255,255,255,.055) !important;
+  backdrop-filter: blur(16px) saturate(125%);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+}
+.vending-shell, .neon-machine, .machine-detail-shell {
+  transform: none !important;
+  box-shadow: 0 24px 64px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.08) !important;
+}
+.vending-screen, .neon-machine-screen, .machine-detail-screen,
+.machine-detail-shell:before, .neon-machine:before {
+  border-color: rgba(117,224,237,.22) !important;
+  box-shadow: inset 0 0 28px rgba(91,214,224,.045) !important;
+}
+.vending-slot, .vending-console, .neon-product-slot, .machine-offer-slot,
+.setup-dropzone, .setup-bot-bubble, .machine-detail-footer {
+  background-color: rgba(10,15,20,.52) !important;
+  border-color: rgba(117,224,237,.15) !important;
+}
+.machine-card-home:after { opacity: .07 !important; }
+.machine-card-home.pink, .machine-card-home.cyan, .machine-card-home.violet,
+.machine-card-home.gold { --accent: #78dce5; }
+.worker-card, .worker-card.cyan, .worker-card.gold, .worker-card.violet {
+  --worker-accent: #78dce5 !important;
+}
+.worker-badge { background: rgba(112,222,230,.92) !important; color: #071014 !important; }
+.neon-machine-pink, .neon-machine-cyan, .neon-machine-gold, .neon-machine-violet {
+  --machine-accent: #78dce5 !important;
+  --machine-accent-rgb: 120,220,229 !important;
+}
+.machine-theme-pink, .machine-theme-cyan, .machine-theme-gold, .machine-theme-violet {
+  --machine-accent: #78dce5 !important;
+  --machine-accent-rgb: 120,220,229 !important;
+}
+.live-pill i, .neon-live i, .rail-status { box-shadow: none !important; }
+:where(a,button,input,select,textarea,[tabindex]):focus-visible {
+  outline: 2px solid #8ee7ed !important;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
