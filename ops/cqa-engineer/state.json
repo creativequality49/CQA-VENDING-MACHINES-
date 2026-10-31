@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "business_20261031T000919582Z",
-    "startedAt": "2026-10-31T00:09:20.005Z",
-    "expiresAt": "2026-10-31T00:54:20.005Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [],
   "backlog": [
@@ -45,7 +41,7 @@
       "id": "stripe-supabase-integration",
       "priority": 5,
       "status": "runtime-access-blocked",
-      "evidence": "Buyer migration applied. Existing Free test project restore accepted, last observed COMING_UP. Runtime provider keys absent; Vercel env metadata 403; Stripe connection sandbox only."
+      "evidence": "Buyer production migration applied; existing Free CQA Launch Test restored and ACTIVE_HEALTHY. Runtime provider keys absent; Vercel env metadata 403; Stripe connection sandbox only."
     },
     {
       "id": "branding-mobile-conversion",
@@ -63,9 +59,11 @@
     {
       "id": "automations-business-terms",
       "priority": 2,
-      "status": "requires-business-confirmation",
+      "status": "reviewable-draft-awaiting-business-facts",
       "workstream": "PR26",
-      "evidence": "GST inclusion/registration, delivery scope/timing, ownership/offboarding, third-party fees and cancellation/refund terms unverified. Public /terms, /privacy and /refund-policy are 404."
+      "evidence": "docs/CQA_BUSINESS_TERMS_DRAFT.md contains proposed policies and exact missing inputs; no approved GST or contractual claims invented.",
+      "commitSha": "21a2e336237f448671de915331f6c14d55a768f3",
+      "pr": 26
     },
     {
       "id": "automation-stripe-handoff",
@@ -429,6 +427,73 @@
       ],
       "nextAction": "Continue business policy approval draft and verify restored test project; obtain required live Stripe read access and secure test-runtime/storage credentials before genuine end-to-end tests. Do not open checkout or claim paid-launch readiness.",
       "finishedAt": "2026-10-31T00:09:06.549Z"
+    },
+    {
+      "id": "business_20261031T000919582Z",
+      "status": "completed",
+      "inspectedCommit": "2397c8a597b395b8f8543d2731714aae84404e54",
+      "pushedCommit": "21a2e336237f448671de915331f6c14d55a768f3",
+      "pr": 26,
+      "checks": [
+        {
+          "name": "business-source-review",
+          "result": "passed",
+          "environment": "repository",
+          "source": "docs/CQA_BUSINESS_TERMS_DRAFT.md",
+          "scope": "Existing catalogue/contact/providers/analytics/AI source; proposed commercial terms distinguished"
+        },
+        {
+          "name": "primary-policy-guidance",
+          "result": "reviewed",
+          "environment": "public-read-only",
+          "source": "Current ACCC consumer guarantees/remedies/contracts and OAIC APP1/small-business guidance"
+        },
+        {
+          "name": "documentation-diff-check",
+          "result": "passed",
+          "environment": "local",
+          "source": "git diff --check"
+        },
+        {
+          "name": "GST-registration-proof",
+          "result": "unverified",
+          "environment": "business",
+          "source": "No ABN or verified GST status; exact-name public registry search found no match"
+        },
+        {
+          "name": "policy-approval-and-privacy-operations",
+          "result": "unverified",
+          "environment": "business",
+          "source": "Draft unpublished; owner approval and live provider/region/retention details required"
+        },
+        {
+          "name": "existing-free-test-project-readiness",
+          "result": "passed",
+          "environment": "test",
+          "source": "Supabase CQA Launch Test ACTIVE_HEALTHY; CQA tables exist"
+        },
+        {
+          "name": "application-retests",
+          "result": "not-run",
+          "environment": "local",
+          "source": "Markdown-only addition; unchanged executable source already tested"
+        },
+        {
+          "name": "hosted-CI",
+          "result": "failed",
+          "environment": "ci",
+          "source": "Latest workflow status recorded separately"
+        }
+      ],
+      "blockers": [
+        "GST-and-legal-operator-unconfirmed",
+        "commercial-policy-approval-needed",
+        "privacy-runtime-details-unverified",
+        "live-Stripe-access-missing",
+        "storage-access-missing"
+      ],
+      "nextAction": "Prepare authenticated digital checkout test path while preserving production holds; collect ABN/GST confirmation and approval of concrete draft terms; enable secure isolated runtime credentials before real integration tests.",
+      "finishedAt": "2026-10-31T00:13:06.159Z"
     }
   ],
   "automation": {
