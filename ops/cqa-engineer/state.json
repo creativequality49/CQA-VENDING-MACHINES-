@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "recover_checkout_20261031T131516523Z",
-    "startedAt": "2026-10-31T13:15:17.000Z",
-    "expiresAt": "2026-10-31T14:00:17.000Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [],
   "backlog": [
@@ -17,15 +13,17 @@
       "priority": 1,
       "status": "implemented-in-draft-real-storage-unverified",
       "workstream": "PR23",
-      "commitSha": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
+      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
       "pr": 23
     },
     {
       "id": "account-bound-buyer-library",
       "priority": 2,
-      "status": "schema-applied-app-provider-verification-outstanding",
+      "status": "implemented-in-draft-schema-applied-real-isolation-unverified",
       "workstream": "PR23",
-      "evidence": "Migration 20261031000149 verified: nullable buyer UUID, validated FK, valid paid index; RLS/policies/grants unchanged. Real account journey not tested."
+      "evidence": "Verified-buyer checkout metadata, library API and async account-switch fences locally/CI tested; actual provider journey unverified.",
+      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "pr": 23
     },
     {
       "id": "download-refund-isolation",
@@ -38,14 +36,15 @@
     {
       "id": "regressions-typecheck-build",
       "priority": 4,
-      "status": "passed-locally-hosted-CI-failed",
-      "evidence": "PR23 and PR26 local 19-group checks passed; PR26 Vercel preview READY; GitHub run 41147020647 failed before steps."
+      "status": "passed-local-and-hosted-CI",
+      "evidence": "21 local groups; GitHub 41204928305 and 41204928341 SUCCESS; Vercel preview READY.",
+      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71"
     },
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "runtime-access-blocked",
-      "evidence": "Buyer production migration applied; existing Free CQA Launch Test restored and ACTIVE_HEALTHY. Runtime provider keys absent; Vercel env metadata 403; Stripe connection sandbox only."
+      "status": "secure-runtime-and-live-access-blocked",
+      "evidence": "Free CQA Launch Test ACTIVE_HEALTHY; buyer migration 20261031001439 valid paid index. Runtime provider credentials absent; Vercel env metadata 403; Stripe sandbox account only."
     },
     {
       "id": "branding-mobile-conversion",
@@ -57,8 +56,9 @@
     {
       "id": "github-actions-billing-lock",
       "priority": 0,
-      "status": "requires-owner-action",
-      "evidence": "Earlier check 123923189416 explicitly reported account billing lock. Current run 41147020647 failed with no steps; current annotation unavailable."
+      "status": "resolved-observed",
+      "evidence": "Both hosted workflows now started, executed and succeeded at 5518ad1ad3e2f33b300115b805aa99458cf39e71. No billing settings changed by engineer.",
+      "resolvedAt": "2026-10-31T13:20:43.948Z"
     },
     {
       "id": "automations-business-terms",
@@ -89,6 +89,20 @@
       "status": "residual-window-unverified",
       "workstream": "PR23",
       "evidence": "Refund stops new issuance; an already issued R2 URL remains usable until 600-second expiry. Immediate revocation not implemented."
+    },
+    {
+      "id": "digital-checkout-library-handoff",
+      "priority": 1,
+      "status": "implemented-in-draft-live-held",
+      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "pr": 23,
+      "evidence": "Verified buyer, tenant/asset HEAD before payment, browser auth bearer, safe login return and pending success-library handoff; live approval flags not enabled."
+    },
+    {
+      "id": "automations-overlapping-pr-reconciliation",
+      "priority": 6,
+      "status": "needs-reconciliation-before-release",
+      "evidence": "PR26 21a2e336 and newer PR27 e1478416 both change automations/contact/success. No page changes discarded or merged in checkout iteration."
     }
   ],
   "runs": [
@@ -520,6 +534,118 @@
         "lease-expired"
       ],
       "nextAction": "Recover and publish already reviewed checkout/library repair after revalidation; no provider tests claimed."
+    },
+    {
+      "id": "recover_checkout_20261031T131516523Z",
+      "status": "completed",
+      "inspectedCommit": "f5cd392c9b02175c253bd74d63831a4684aa768a",
+      "pushedCommit": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "local-regressions-types-lint-production-build",
+          "result": "passed",
+          "groups": 21,
+          "environment": "local",
+          "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+          "source": ".cqa-reports/checks.json observed 2026-10-31T13:15:56.897Z; docs/DIGITAL_CHECKOUT_VALIDATION.md",
+          "scope": "Exact published source file set; repair checkout HEAD old with intended uncommitted changes"
+        },
+        {
+          "name": "digital-checkout-behaviour",
+          "result": "passed",
+          "groups": 14,
+          "environment": "local-mocked",
+          "source": "tests/marketplace-digital-checkout-check.mjs"
+        },
+        {
+          "name": "library-session-isolation-behaviour",
+          "result": "passed",
+          "groups": 7,
+          "environment": "local-mocked",
+          "source": "tests/marketplace-library-session-check.mjs"
+        },
+        {
+          "name": "independent-test-and-release-review",
+          "result": "passed",
+          "environment": "local-mocked-and-static",
+          "source": "Independent Tester and Release Auditor reports before interruption; no provider evidence claimed"
+        },
+        {
+          "name": "GitHub-commerce-workflow",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41204928305"
+        },
+        {
+          "name": "GitHub-engineer-workflow",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41204928341"
+        },
+        {
+          "name": "Vercel-preview",
+          "result": "passed",
+          "environment": "preview",
+          "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+          "source": "dpl_8PoCm6CB8f4BHxyrKw4ZhRyxe7cW READY"
+        },
+        {
+          "name": "isolated-test-database",
+          "result": "passed",
+          "environment": "test-schema-only",
+          "source": "CQA Launch Test ACTIVE_HEALTHY; migration 20261031001439; paid index indisvalid=true and indisready=true"
+        },
+        {
+          "name": "runtime-provider-configuration",
+          "result": "blocked",
+          "environment": "execution-runtime",
+          "source": "Required Supabase/Stripe/webhook/R2 variables not present; presence-only check"
+        },
+        {
+          "name": "Vercel-env-metadata",
+          "result": "blocked",
+          "environment": "provider",
+          "source": "403 forbidden on non-decrypting project environment metadata request"
+        },
+        {
+          "name": "live-Stripe-handoff",
+          "result": "unverified",
+          "environment": "live",
+          "source": "Connection exposes CQA sandbox only; live-account access link supplied"
+        },
+        {
+          "name": "genuine-payment-download-expiry-refund-two-account-tests",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "Secure provider runtime/private-storage credentials and controlled fixtures unavailable"
+        },
+        {
+          "name": "business-GST-and-terms",
+          "result": "unverified",
+          "environment": "business",
+          "source": "Concrete draft in PR26; ABN/GST and approved contractual/privacy facts missing"
+        },
+        {
+          "name": "production-release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "Live holds preserved; genuine integration gates incomplete"
+        }
+      ],
+      "blockers": [
+        "secure-runtime-provider-credentials-missing",
+        "private-storage-access-unavailable",
+        "live-Stripe-account-access-missing",
+        "GST-and-approved-business-terms-unconfirmed",
+        "real-provider-payment-delivery-isolation-unverified",
+        "issued-url-revocation-window",
+        "purchase-automation-distinct-event-side-effects"
+      ],
+      "nextAction": "Obtain CQA ABN/GST confirmation and approval/edits of the concrete policy draft; connect live Stripe read access and authorise secure isolated runtime/R2 configuration. Then run genuine payment-to-download, expiry/refund and two-account tests on the final candidate. Do not merge or open live checkout based on mocked/CI results.",
+      "finishedAt": "2026-10-31T13:20:44.398Z"
     }
   ],
   "automation": {
