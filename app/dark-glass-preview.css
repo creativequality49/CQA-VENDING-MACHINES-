@@ -123,3 +123,75 @@ body:before {
     transition-duration: .01ms !important;
   }
 }
+
+/* Current CQA component layer: align the live app's newer class names. */
+.cqa-home {
+  background:
+    radial-gradient(ellipse at 82% 8%,rgba(93,210,220,.075),transparent 28%),
+    radial-gradient(ellipse at 8% 42%,rgba(255,47,179,.04),transparent 26%),
+    #07090c !important;
+}
+.cqa-home-hero {
+  background: linear-gradient(180deg,rgba(12,17,22,.58),rgba(7,9,12,.94)) !important;
+  border-bottom-color: rgba(117,224,237,.14) !important;
+}
+.cqa-home-band {
+  background: linear-gradient(180deg,rgba(18,25,31,.7),rgba(8,11,15,.55)) !important;
+  border-block-color: rgba(117,224,237,.14) !important;
+}
+.cqa-command-tile, .cqa-float-tile, .cqa-capability-tile,
+.cqa-owner-tile, .cqa-final-tile, .cqa-announcement,
+.glass-card {
+  background: linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.03)) !important;
+  border: 1px solid rgba(117,224,237,.18) !important;
+  box-shadow: 0 20px 58px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.065) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+.cqa-command-tile, .cqa-owner-tile { transform: none !important; }
+.cqa-command-tile:before, .cqa-float-tile:before, .cqa-capability-tile:before {
+  background: rgba(126,224,232,.52) !important;
+  box-shadow: 0 0 10px rgba(126,224,232,.15) !important;
+}
+.cqa-home h1 span, .cqa-home h2 span {
+  background: linear-gradient(90deg,#f8fafc 0%,#a4ebef 72%,#f1a0d0 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+.cqa-kicker, .cqa-tile-screen small, .cqa-tile-screen span,
+.cqa-tile-slots small, .cqa-tile-slots span, .cqa-capability-tile a,
+.cqa-home-signals b, .cqa-owner-tile small, .cqa-owner-tile b {
+  color: #9ce7eb !important;
+}
+.cqa-kicker i { box-shadow: 0 0 7px rgba(120,220,229,.34) !important; }
+.cqa-home-signals span, .cqa-tile-slots>div, .cqa-owner-tile span,
+.cqa-tile-console, .cqa-tile-screen {
+  background: rgba(9,14,19,.46) !important;
+  border-color: rgba(117,224,237,.15) !important;
+}
+.cqa-tile-screen {
+  background: linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025)) !important;
+  backdrop-filter: blur(14px) !important;
+}
+.cqa-float-tile:nth-child(2), .cqa-float-tile:nth-child(3),
+.cqa-capability-tile:nth-child(2) { transform: none !important; }
+.cqa-float-tile:hover, .cqa-float-tile:nth-child(2):hover {
+  transform: translateY(-3px) !important;
+  border-color: rgba(117,224,237,.3) !important;
+  box-shadow: 0 24px 58px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.07) !important;
+}
+.cqa-home h1, .cqa-home h2 { color: #f6f8fa; }
+.cqa-home-lede, .cqa-home-section p, .cqa-owner-section>div>p:not(.cqa-kicker) {
+  color: #b9c2c9 !important;
+}
+.cqa-tile-top b { color: #9ce7eb !important; border-color: rgba(117,224,237,.2) !important; }
+.cqa-tile-console a { color: #b8f2f2 !important; }
+.cqa-home .button.primary { color: #071014 !important; }
+.cqa-menu-panel>a:not(.button):hover { background: rgba(117,224,237,.07) !important; }
+.cqa-offer-page .pricing-neon-hero,
+.cqa-offer-page .neon-plan,
+.cqa-launch-package {
+  background: linear-gradient(145deg,rgba(255,255,255,.085),rgba(255,255,255,.025)) !important;
+  border-color: rgba(117,224,237,.18) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+}
