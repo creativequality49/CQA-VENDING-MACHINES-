@@ -71,9 +71,11 @@ project was started.
 2. Vercel denied project environment metadata with 403; no installed CLI fallback
    exists. R2 privacy, unsigned public denial, real upload persistence and actual
    signed download/expiry cannot be certified from source or a mocked HEAD.
-3. Connected Stripe tools expose only the CQA sandbox account. Live Payment Link
-   redirect/notification configuration requires live-account read access. Keep
-   all existing live offer links/prices/settings unchanged pending verification.
+3. Live Stripe read access became available on 2 November. All ten existing
+   catalogue Payment Links were active and configured to redirect to this site's
+   /automations/success page. No payment or setting change was made. This verifies
+   redirect configuration only; actual payment, notifications and implementation
+   brief handoff are not evidenced. Isolated sandbox runtime access is still needed.
 4. Use an isolated sandbox merchant, confirmed owner plus two buyers, controlled
    test files and a notification sink. Test purchase, signature-verified webhook,
    one durable paid entitlement, library/download, URL expiry, full refund and
@@ -82,9 +84,10 @@ project was started.
 5. Genuine tests have NOT run. Webhooks can send email/trigger automations, so
    never run fixtures with customer addresses or production notification routes.
 6. Already issued signed URLs retain their 600-second validity after refund.
-   Immediate outstanding-URL revocation is not implemented. Distinct completion
-   event IDs may still repeat purchase automation side effects; receipt and order
-   idempotency do not prove every automation runs exactly once.
+   Immediate outstanding-URL revocation is not implemented. The later purchase
+   automation deduplication repair is described in
+   PURCHASE_AUTOMATION_DEDUPLICATION.md. It does not prove global exactly-once
+   provider delivery or replace genuine integration tests.
 7. GST and approved service/ownership/cancellation/refund/privacy terms remain
    required. A reviewable, unpublished draft is in PR26 at
    docs/CQA_BUSINESS_TERMS_DRAFT.md. It does not assert registration or approval.

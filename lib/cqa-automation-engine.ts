@@ -3,6 +3,7 @@ import "server-only";
 import { Resend } from "resend";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { runCqaAgent } from "@/lib/cqa-ai-core";
+import { purchaseAutomationRunId } from "@/lib/cqa-purchase-run-id";
 
 type Json = Record<string, unknown>;
 type StepConfig = Record<string, unknown>;
@@ -109,10 +110,15 @@ export async function triggerBusinessAutomations(businessId: string, triggerType
   for (const automation of automations || []) {
     try {
       const run = await startAutomationRun(automation.id, triggerType, triggerPayload, contactId || null);
+      if (triggerType === "purchase" && run.status === "failed") throw new Error("Purchase automation requires review.");
       results.push({ automationId: automation.id, runId: run.id, status: run.status });
     } catch (runError) {
       results.push({ automationId: automation.id, error: runError instanceof Error ? runError.message : "Automation failed." });
     }
+  }
+  // Stripe must retry scheduling failures instead of recording a false success.
+  if (triggerType === "purchase" && results.some(result => result.error)) {
+    throw new Error("Purchase automation scheduling failed. Recorded runs require review or retry.");
   }
   return results;
 }
@@ -122,45 +128,102 @@ export async function startAutomationRun(automationId: string, triggerType: stri
   const { data: automation, error } = await admin.from("cqa_automations").select("id,business_id,status,trigger_type").eq("id", automationId).single();
   if (error || !automation) throw new Error("Automation not found.");
   if (automation.status !== "active") throw new Error("Automation is not active.");
+  const effectiveTrigger = triggerType || automation.trigger_type;
+  const purchaseId = effectiveTrigger === "purchase"
+    ? purchaseAutomationRunId(automation.business_id, automation.id, triggerPayload.checkoutSessionId as string) : null;
+  const runFields = "id,business_id,automation_id,trigger_type,trigger_payload,status,next_run_at,error_text";
+  const validPurchaseRun = (existing: Record<string, unknown> | null) => {
+    const payload = existing?.trigger_payload;
+    return Boolean(existing && typeof existing.id === "string" && typeof existing.status === "string" &&
+      existing.business_id === automation.business_id && existing.automation_id === automation.id &&
+      existing.trigger_type === "purchase" && payload && typeof payload === "object" && !Array.isArray(payload) &&
+      (payload as Json).checkoutSessionId === triggerPayload.checkoutSessionId);
+  };
+  if (purchaseId) {
+    // Honour older random-ID runs too: a delayed event must not repeat their work.
+    const { data: existing, error: existingError } = await admin.from("cqa_automation_runs")
+      .select(runFields).eq("business_id", automation.business_id).eq("automation_id", automation.id)
+      .eq("trigger_type", "purchase").contains("trigger_payload", { checkoutSessionId: triggerPayload.checkoutSessionId })
+      .order("created_at").limit(1).maybeSingle();
+    if (existingError) throw new Error("Unable to verify existing purchase automation.");
+    if (existing) {
+      if (!validPurchaseRun(existing)) throw new Error("Existing purchase automation does not match.");
+      return existing;
+    }
+  }
   const { data: run, error: runError } = await admin.from("cqa_automation_runs").insert({
+    ...(purchaseId ? { id: purchaseId } : {}),
     business_id: automation.business_id,
     automation_id: automation.id,
     contact_id: contactId,
-    trigger_type: triggerType || automation.trigger_type,
+    trigger_type: effectiveTrigger,
     trigger_payload: triggerPayload,
+    ...(purchaseId ? { output: { _cqaPurchaseRunVersion: 1 } } : {}),
     status: "queued"
   }).select("id,status").single();
+  if (purchaseId && runError?.code === "23505") {
+    const { data: existing, error: existingError } = await admin.from("cqa_automation_runs")
+      .select(runFields).eq("id", purchaseId).eq("business_id", automation.business_id)
+      .eq("automation_id", automation.id).eq("trigger_type", "purchase").maybeSingle();
+    if (existingError || !existing || !validPurchaseRun(existing)) throw new Error("Unable to confirm duplicate purchase automation.");
+    return existing;
+  }
   if (runError || !run) throw new Error(runError?.message || "Unable to start automation.");
   await processAutomationRun(run.id);
-  const { data: finished } = await admin.from("cqa_automation_runs").select("id,status,next_run_at,error_text").eq("id", run.id).single();
+  const { data: finished, error: finishError } = await admin.from("cqa_automation_runs").select("id,status,next_run_at,error_text").eq("id", run.id).single();
+  if (finishError) throw new Error("Unable to verify automation status.");
   return finished || run;
 }
 
 export async function processAutomationRun(runId: string) {
   const admin = getCqaSupabaseAdmin();
-  const { data: run, error: runError } = await admin.from("cqa_automation_runs").select("*").eq("id", runId).single();
+  const { data: initialRun, error: runError } = await admin.from("cqa_automation_runs").select("*").eq("id", runId).single();
+  let run = initialRun;
   if (runError || !run) throw new Error("Automation run not found.");
-  if (["succeeded", "failed"].includes(run.status)) return run;
+  if (!["queued", "waiting"].includes(run.status)) return run;
+  if (run.status === "waiting" && (!run.next_run_at || !Number.isFinite(Date.parse(run.next_run_at)) || Date.parse(run.next_run_at) > Date.now())) return run;
 
-  const [{ data: automation }, { data: business }, { data: contact }, { data: steps }] = await Promise.all([
-    admin.from("cqa_automations").select("id,name,status,created_by").eq("id", run.automation_id).single(),
-    admin.from("cqa_businesses").select("id,name,description,email").eq("id", run.business_id).single(),
-    run.contact_id ? admin.from("cqa_contacts").select("id,email,name,tags,status").eq("id", run.contact_id).maybeSingle() : Promise.resolve({ data: null }),
-    admin.from("cqa_automation_steps").select("id,step_order,step_type,name,config,enabled").eq("automation_id", run.automation_id).eq("enabled", true).order("step_order")
-  ]);
-  if (!automation || automation.status !== "active" || !business) throw new Error("Automation configuration is unavailable.");
-
+  // One worker owns each queued/due-waiting snapshot. Never automatically replay
+  // running or failed work whose external effects may already have occurred.
+  let claim = admin.from("cqa_automation_runs").update({
+    status: "running", started_at: run.started_at || new Date().toISOString(),
+    next_run_at: null, updated_at: new Date().toISOString()
+  }).eq("id", runId).eq("status", run.status).eq("current_step_order", run.current_step_order);
+  claim = run.updated_at ? claim.eq("updated_at", run.updated_at) : claim.is("updated_at", null);
+  claim = run.next_run_at ? claim.eq("next_run_at", run.next_run_at) : claim.is("next_run_at", null);
+  const { data: claimed, error: claimError } = await claim.select("*").maybeSingle();
+  if (claimError) throw new Error("Unable to claim automation execution.");
+  if (!claimed) {
+    const { data: current, error: currentError } = await admin.from("cqa_automation_runs").select("*").eq("id", runId).single();
+    if (currentError || !current) throw new Error("Unable to verify automation execution ownership.");
+    return current;
+  }
+  run = claimed;
   let output = run.output || {};
-  await admin.from("cqa_automation_runs").update({ status: "running", started_at: run.started_at || new Date().toISOString(), next_run_at: null, updated_at: new Date().toISOString() }).eq("id", runId);
-
-  const values = {
-    first_name: firstName(contact?.name),
-    business_name: business.name || "CQA business",
-    business_email: business.email || "",
-    automation_name: automation.name || "Automation"
-  };
-
+  async function saveRun(changes: Json) {
+    const { data: saved, error: saveError } = await admin.from("cqa_automation_runs")
+      .update(changes).eq("id", runId).eq("status", "running").select("id").maybeSingle();
+    if (saveError || !saved) throw new Error("Unable to persist automation execution state.");
+  }
   try {
+
+    const [automationResult, businessResult, contactResult, stepsResult] = await Promise.all([
+      admin.from("cqa_automations").select("id,name,status,created_by").eq("id", run.automation_id).single(),
+      admin.from("cqa_businesses").select("id,name,description,email").eq("id", run.business_id).single(),
+      run.contact_id ? admin.from("cqa_contacts").select("id,email,name,tags,status").eq("id", run.contact_id).maybeSingle() : Promise.resolve({ data: null }),
+      admin.from("cqa_automation_steps").select("id,step_order,step_type,name,config,enabled").eq("automation_id", run.automation_id).eq("enabled", true).order("step_order")
+    ]);
+    if (automationResult.error || businessResult.error || stepsResult.error || ("error" in contactResult && contactResult.error)) throw new Error("Automation configuration is unavailable.");
+    const automation = automationResult.data, business = businessResult.data, contact = contactResult.data, steps = stepsResult.data;
+    if (!automation || automation.status !== "active" || !business) throw new Error("Automation configuration is unavailable.");
+
+    const values = {
+      first_name: firstName(contact?.name),
+      business_name: business.name || "CQA business",
+      business_email: business.email || "",
+      automation_name: automation.name || "Automation"
+    };
+
     for (const step of (steps || []).filter((item) => item.step_order >= (run.current_step_order || 1))) {
       const config = (step.config || {}) as StepConfig;
       if (step.step_type === "wait") {
@@ -168,7 +231,7 @@ export async function processAutomationRun(runId: string) {
         const minutes = Math.min(Math.max(Number.isFinite(raw) ? raw : 60, 1), 10080);
         const next = new Date(Date.now() + minutes * 60_000).toISOString();
         output = appendOutput(output, { step: step.step_order, type: "wait", status: "waiting", until: next });
-        await admin.from("cqa_automation_runs").update({ status: "waiting", current_step_order: step.step_order + 1, next_run_at: next, output, updated_at: new Date().toISOString() }).eq("id", runId);
+        await saveRun({ status: "waiting", current_step_order: step.step_order + 1, next_run_at: next, output, updated_at: new Date().toISOString() });
         return;
       }
 
@@ -176,7 +239,8 @@ export async function processAutomationRun(runId: string) {
         if (contact?.id) {
           const tag = String(config.tag || "").trim().slice(0, 60);
           const tags = Array.from(new Set([...(contact.tags || []), tag].filter(Boolean)));
-          await admin.from("cqa_contacts").update({ tags, updated_at: new Date().toISOString() }).eq("id", contact.id);
+          const { error: tagError } = await admin.from("cqa_contacts").update({ tags, updated_at: new Date().toISOString() }).eq("id", contact.id);
+          if (tagError) throw new Error("Unable to update automation contact tags.");
           contact.tags = tags;
         }
         output = appendOutput(output, { step: step.step_order, type: "tag", status: "completed", tag: String(config.tag || "") });
@@ -191,7 +255,7 @@ export async function processAutomationRun(runId: string) {
           const from = process.env.CQA_AUTOMATION_FROM_EMAIL || process.env.CQA_EMAIL_FROM;
           if (!apiKey || !from) {
             output = appendOutput(output, { step: step.step_order, type: "email", status: "needs_approval", reason: "email_provider_not_configured" });
-            await admin.from("cqa_automation_runs").update({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() }).eq("id", runId);
+            await saveRun({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() });
             return;
           }
           const resend = new Resend(apiKey);
@@ -206,7 +270,7 @@ export async function processAutomationRun(runId: string) {
       if (step.step_type === "agent_task") {
         if (!(await getCqaChatProvider())) {
           output = appendOutput(output, { step: step.step_order, type: "agent_task", status: "needs_approval", reason: "ai_provider_not_configured" });
-          await admin.from("cqa_automation_runs").update({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() }).eq("id", runId);
+          await saveRun({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() });
           return;
         }
 
@@ -231,12 +295,12 @@ export async function processAutomationRun(runId: string) {
         });
 
         if (agentResult.approvalRequired) {
-          await admin.from("cqa_automation_runs").update({
+          await saveRun({
             status: "needs_approval",
             current_step_order: step.step_order,
             output,
             updated_at: new Date().toISOString()
-          }).eq("id", runId);
+          });
           return;
         }
       }
@@ -248,7 +312,7 @@ export async function processAutomationRun(runId: string) {
         try { parsed = new URL(url); } catch { parsed = null; }
         if (!parsed || parsed.protocol !== "https:" || !allowlist.includes(parsed.hostname.toLowerCase())) {
           output = appendOutput(output, { step: step.step_order, type: "webhook", status: "needs_approval", reason: "destination_not_allowlisted" });
-          await admin.from("cqa_automation_runs").update({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() }).eq("id", runId);
+          await saveRun({ status: "needs_approval", current_step_order: step.step_order, output, updated_at: new Date().toISOString() });
           return;
         }
         const response = await fetch(parsed.toString(), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ businessId: run.business_id, automationId: run.automation_id, runId, trigger: run.trigger_payload }) });
@@ -256,21 +320,44 @@ export async function processAutomationRun(runId: string) {
         output = appendOutput(output, { step: step.step_order, type: "webhook", status: "completed", http_status: response.status });
       }
 
-      await admin.from("cqa_automation_runs").update({ current_step_order: step.step_order + 1, output, updated_at: new Date().toISOString() }).eq("id", runId);
+      await saveRun({ current_step_order: step.step_order + 1, output, updated_at: new Date().toISOString() });
     }
-    await admin.from("cqa_automation_runs").update({ status: "succeeded", output, completed_at: new Date().toISOString(), next_run_at: null, updated_at: new Date().toISOString() }).eq("id", runId);
+    await saveRun({ status: "succeeded", output, completed_at: new Date().toISOString(), next_run_at: null, updated_at: new Date().toISOString() });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Automation execution failed.";
-    await admin.from("cqa_automation_runs").update({ status: "failed", error_text: message.slice(0, 2000), output, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", runId);
+    try {
+      await saveRun({ status: "failed", error_text: message.slice(0, 2000), output, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() });
+    } catch {
+      throw new Error("Automation failed and its failure state could not be confirmed.");
+    }
     throw error;
   }
 }
 
 export async function resumeDueAutomationRuns(limit = 25) {
   const admin = getCqaSupabaseAdmin();
-  const { data: runs, error } = await admin.from("cqa_automation_runs").select("id").eq("status", "waiting").lte("next_run_at", new Date().toISOString()).order("next_run_at").limit(Math.min(Math.max(limit, 1), 100));
-  if (error) throw new Error(error.message);
-  const results = [];
+  const maximum = Math.min(Math.max(limit, 1), 100);
+  const [queued, waiting] = await Promise.all([
+    // Only this writer's marked deterministic purchases are safe to recover.
+    // Legacy queued work can have ambiguous prior effects and needs review.
+    admin.from("cqa_automation_runs").select("id,business_id,automation_id,trigger_type,trigger_payload,output,created_at")
+      .eq("status", "queued").eq("trigger_type", "purchase")
+      .contains("output", { _cqaPurchaseRunVersion: 1 }).order("created_at").limit(maximum),
+    admin.from("cqa_automation_runs").select("id,next_run_at").eq("status", "waiting").lte("next_run_at", new Date().toISOString()).order("next_run_at").limit(maximum)
+  ]);
+  if (queued.error || waiting.error) throw new Error("Unable to read pending automation runs.");
+  const invalid: Array<{ id: string; ok: boolean; error: string }> = [];
+  const safeQueued = (queued.data || []).filter(run => {
+    try {
+      if (run.trigger_type === "purchase" && run.output?._cqaPurchaseRunVersion === 1 &&
+          purchaseAutomationRunId(run.business_id, run.automation_id, run.trigger_payload?.checkoutSessionId) === run.id) return true;
+    } catch { /* Invalid identity never executes automatically. */ }
+    invalid.push({ id: run.id, ok: false, error: "Queued purchase automation identity requires review." });
+    return false;
+  });
+  const candidates: Array<{ id: string; created_at?: string; next_run_at?: string }> = [...safeQueued, ...(waiting.data || [])];
+  const runs = candidates.sort((a, b) => Date.parse(a.next_run_at || a.created_at || "") - Date.parse(b.next_run_at || b.created_at || "")).slice(0, maximum);
+  const results: Array<{ id: string; ok: boolean; error?: string }> = [...invalid];
   for (const run of runs || []) {
     try { await processAutomationRun(run.id); results.push({ id: run.id, ok: true }); }
     catch (error) { results.push({ id: run.id, ok: false, error: error instanceof Error ? error.message : "Execution failed." }); }

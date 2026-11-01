@@ -54,15 +54,17 @@ The implementation preserves the existing Stripe16/API2024-06-20 integration.
    have not been run against providers. Execution runtime has no Supabase server,
    Stripe/webhook or R2 credentials. Vercel environment metadata access returned
    403 and no Vercel CLI is installed. Never paste credentials into this report.
-2. Connected Stripe access exposes only the CQA sandbox. Its one test Payment
-   Link uses hosted_confirmation. That says nothing about the ten live offer
-   links or their post-payment handoff; live-account read access is required.
+2. At this review's original revision, only the sandbox was accessible. A later
+   read-only check on 2 November confirmed all ten catalogue live links active
+   and configured to redirect to /automations/success. Actual payment, notification
+   and implementation handoff remain untested; no Stripe setting was changed.
 3. Existing R2 signed URLs are bearer capabilities with a 600-second lifetime.
    Refund stops new issuance, but an already issued URL remains valid until
    expiry. Immediate revocation of outstanding URLs is not implemented.
-4. Different completion event IDs can still trigger duplicate purchase-automation
-   runs. Order uniqueness and receipt idempotency do not prove every side effect
-   is exactly once. This remains a separate bounded follow-up.
+4. Different completion event IDs could trigger duplicate purchase-automation
+   runs at this review's original revision. A later bounded draft repair addresses
+   that gap; see PURCHASE_AUTOMATION_DEDUPLICATION.md for tests and limits.
+   Global exactly-once provider delivery remains unproven.
 5. Digital checkout remains intentionally held until real integration evidence
    passes. Do not bypass the production hold to obtain a sale or a test result.
 6. Genuine provider tests need an isolated test merchant, private test storage,
