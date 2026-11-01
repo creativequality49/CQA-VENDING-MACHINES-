@@ -5,9 +5,9 @@
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
   "lease": {
-    "runId": "purchase_dedupe_20261031T201259820Z",
-    "startedAt": "2026-10-31T20:13:00.391Z",
-    "expiresAt": "2026-10-31T20:58:00.391Z"
+    "runId": "dedupe_recovery_20261101T220756231Z",
+    "startedAt": "2026-11-01T22:07:56.810Z",
+    "expiresAt": "2026-11-01T22:52:56.810Z"
   },
   "releaseStatus": "NOT_READY",
   "gates": [],
@@ -650,6 +650,28 @@
       ],
       "nextAction": "Obtain CQA ABN/GST confirmation and approval/edits of the concrete policy draft; connect live Stripe read access and authorise secure isolated runtime/R2 configuration. Then run genuine payment-to-download, expiry/refund and two-account tests on the final candidate. Do not merge or open live checkout based on mocked/CI results.",
       "finishedAt": "2026-10-31T13:20:44.398Z"
+    },
+    {
+      "id": "purchase_dedupe_20261031T201259820Z",
+      "status": "failed",
+      "inspectedCommit": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "reconciledAt": "2026-11-01T22:07:56.231Z",
+      "finishedAt": "2026-11-01T22:07:56.231Z",
+      "checks": [
+        {
+          "name": "pre-interruption-local-checks",
+          "result": "passed",
+          "groups": 22,
+          "environment": "local",
+          "source": "Retained checks.json observed 2026-10-31T20:25:49.708Z; unpublished worktree",
+          "scope": "Historical evidence only; fresh validation required"
+        }
+      ],
+      "blockers": [
+        "interrupted-before-publication",
+        "expired-lease"
+      ],
+      "nextAction": "Recover existing reviewed patch and publish only after fresh checks."
     }
   ],
   "automation": {
