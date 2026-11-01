@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./ux-release.css";
+import "./dark-glass-preview.css";
 import { NavBar } from "@/components/NavBar";
 
 // Keep the public fallback aligned with the domain attached to the production
