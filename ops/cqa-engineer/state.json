@@ -4,13 +4,30 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "dedupe_recovery_20261101T220756231Z",
-    "startedAt": "2026-11-01T22:07:56.810Z",
-    "expiresAt": "2026-11-01T22:52:56.810Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
-  "gates": [],
+  "gates": [
+    {
+      "id": "checks-and-production-build",
+      "status": "verified",
+      "evidence": [
+        {
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "result": "passed",
+          "environment": "test",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41355974274",
+          "observedAt": "2026-11-01T22:16:15Z"
+        },
+        {
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "result": "passed",
+          "environment": "test",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41355974311",
+          "observedAt": "2026-11-01T22:16:15Z"
+        }
+      ]
+    }
+  ],
   "backlog": [
     {
       "id": "owner-private-upload",
@@ -41,14 +58,14 @@
       "id": "regressions-typecheck-build",
       "priority": 4,
       "status": "passed-local-and-hosted-CI",
-      "evidence": "21 local groups; GitHub 41204928305 and 41204928341 SUCCESS; Vercel preview READY.",
-      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71"
+      "evidence": "22 local groups including regressions, typecheck, lint and production build; GitHub runs 41355974274 and 41355974311 SUCCESS on this SHA; CQA Vercel preview dpl_DWVMbpLtkALyYSqxkBR43hq8u4QV READY.",
+      "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83"
     },
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "secure-runtime-and-live-access-blocked",
-      "evidence": "Free CQA Launch Test ACTIVE_HEALTHY; buyer migration 20261031001439 valid paid index. Runtime provider credentials absent; Vercel env metadata 403; Stripe sandbox account only."
+      "status": "secure-test-runtime-and-storage-access-blocked",
+      "evidence": "Live Stripe GET access now works; ten catalogue Payment Link redirects verified. Current connector exposes live account only, not test execution credentials. Required runtime provider variables absent; Vercel non-decrypting env metadata 403; no CLI installed. Previous test-database metadata evidence retained, not rerun."
     },
     {
       "id": "branding-mobile-conversion",
@@ -76,16 +93,18 @@
     {
       "id": "automation-stripe-handoff",
       "priority": 2,
-      "status": "live-settings-unverified",
+      "status": "live-redirect-settings-verified-real-payment-brief-handoff-unverified",
       "workstream": "PR26",
-      "evidence": "Contact-based implementation brief implemented; live Payment Link after-completion redirect and notifications unverified. No Stripe settings changed."
+      "evidence": "Read-only live Stripe API found all ten existing catalogue links active with after_completion redirect to www.creativequalityaustralia.tech/automations/success at 2026-11-01T22:10:35.766Z. Actual payment, notification and implementation-brief persistence not tested; no Stripe settings changed."
     },
     {
       "id": "purchase-automation-deduplication",
       "priority": 1,
-      "status": "verified-gap",
+      "status": "implemented-in-draft-real-provider-unverified",
       "workstream": "PR23",
-      "evidence": "Different completion event IDs can create duplicate automation runs; durable order uniqueness and receipt idempotency do not cover all side effects."
+      "evidence": "One durable business/automation/session identity; exact-scope conflict verification; claimed execution snapshots; safe new-marker-only queued recovery. All 26 mocked behavioural groups and both hosted workflows passed. Legacy running/failed/ambiguous queued work remains manual; external provider exactly-once delivery is not guaranteed.",
+      "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+      "pr": 23
     },
     {
       "id": "outstanding-signed-url-revocation",
@@ -672,6 +691,131 @@
         "expired-lease"
       ],
       "nextAction": "Recover existing reviewed patch and publish only after fresh checks."
+    },
+    {
+      "id": "dedupe_recovery_20261101T220756231Z",
+      "status": "completed",
+      "inspectedCommit": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "inspectedMainCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "pushedCommit": "8279972e837b458d12462c2d0e6b3f641b303d83",
+      "pr": 23,
+      "workstream": "purchase-automation-deduplication",
+      "checks": [
+        {
+          "name": "local-regressions-types-lint-production-build",
+          "result": "passed",
+          "groups": 22,
+          "environment": "local",
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "observedAt": "2026-11-01T22:08:34.741Z",
+          "source": "Cross-checkout coordination checks.mjs --repo cqa-pr23; docs/PURCHASE_AUTOMATION_DEDUPLICATION.md",
+          "scope": "Published source file set tested in repair checkout with old local HEAD and intended uncommitted files; later documentation-only edits. Existing lint warnings, no errors. Hosted checks verify exact final commit."
+        },
+        {
+          "name": "purchase-automation-behaviour",
+          "result": "passed",
+          "groups": 26,
+          "environment": "local-mocked",
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "source": "tests/purchase-automation-dedupe-check.mjs",
+          "scope": "Actual compiled engine/helper; mocked database/Resend/HTTP, including failures, legacy recovery and duplicate claims"
+        },
+        {
+          "name": "independent-reviews-and-reruns",
+          "result": "passed",
+          "environment": "local-mocked-and-static",
+          "source": "Fresh Builder reconciliation, independent Tester and Release Auditor; both reran 26 groups; Tester extra in-memory simultaneous insert/PK-conflict case passed",
+          "scope": "No real provider integration claimed"
+        },
+        {
+          "name": "GitHub-engineer-workflow",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "observedAt": "2026-11-01T22:16:15Z",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41355974274"
+        },
+        {
+          "name": "GitHub-commerce-workflow",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "observedAt": "2026-11-01T22:16:15Z",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41355974311"
+        },
+        {
+          "name": "Vercel-CQA-preview",
+          "result": "passed",
+          "environment": "preview",
+          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "observedAt": "2026-11-01T22:16:15Z",
+          "source": "dpl_DWVMbpLtkALyYSqxkBR43hq8u4QV READY; target null",
+          "scope": "Preview build only; no production promotion or journey test"
+        },
+        {
+          "name": "production-public-health",
+          "result": "passed",
+          "groups": 5,
+          "environment": "production",
+          "observedAt": "2026-11-01T22:08:06.144Z",
+          "source": "coordination health.mjs: /, /machines, /pricing, /login, /api/health HTTP 200",
+          "scope": "Reachability/configuration only"
+        },
+        {
+          "name": "live-Stripe-redirect-settings",
+          "result": "passed",
+          "groups": 10,
+          "environment": "live-read-only",
+          "observedAt": "2026-11-01T22:10:35.766Z",
+          "source": "Stripe GET Payment Links, 25 links, no further page; all ten catalogue URLs active and redirect to /automations/success",
+          "scope": "No payment, setting change, notification or implementation-brief persistence test"
+        },
+        {
+          "name": "runtime-provider-configuration",
+          "result": "blocked",
+          "environment": "execution-runtime",
+          "source": "Presence-only required Supabase/Stripe/webhook/R2 variable checks: absent"
+        },
+        {
+          "name": "Vercel-env-metadata",
+          "result": "blocked",
+          "environment": "provider",
+          "source": "Non-decrypting project environment metadata request returned 403 forbidden; no Vercel CLI installed"
+        },
+        {
+          "name": "genuine-private-storage-payment-download-expiry-refund-two-account-tests",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "Secure sandbox runtime credentials/private storage fixtures unavailable; live Stripe access cannot substitute for isolated test payment credentials"
+        },
+        {
+          "name": "business-GST-and-approved-terms",
+          "result": "unverified",
+          "environment": "business",
+          "source": "Concrete unpublished draft in PR26; approved GST/legal operator/scope/timing/ownership/cancellation/refund/privacy facts absent"
+        },
+        {
+          "name": "production-release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No merge, production promotion, migration, charge/refund, pricing/security-policy change, customer message or live checkout flag change; holds preserved"
+        }
+      ],
+      "blockers": [
+        "secure-isolated-runtime-provider-credentials-missing",
+        "private-storage-access-unavailable-Vercel-403",
+        "GST-and-approved-business-terms-unconfirmed",
+        "real-provider-payment-delivery-expiry-refund-isolation-unverified",
+        "outstanding-signed-url-600-second-revocation-window",
+        "automations-PR26-PR27-reconciliation-before-release"
+      ],
+      "resolvedBlockers": [
+        "live-Stripe-read-access-missing",
+        "unpublished-purchase-deduplication-repair"
+      ],
+      "nextAction": "Keep checkout/release holds closed. Enable securely scoped isolated test runtime/private R2 access, then execute genuine upload/public-denial/payment-to-download/expiry/refund/two-account cases on the final candidate. Confirm concrete business terms and reconcile PR26/PR27 before seeking approval for an exact release.",
+      "finishedAt": "2026-11-01T22:16:56.357Z"
     }
   ],
   "automation": {
@@ -680,12 +824,12 @@
     "timezone": "Australia/Adelaide",
     "schedule": "daily morning, flexible around 08:00",
     "startsOn": "2026-10-31",
-    "scheduledExecution": "trigger-not-independently-verified; actual repair runs recorded",
+    "scheduledExecution": "current-task-execution-observed; future-run-completion-not-guaranteed",
     "lastObservedExecution": {
-      "runId": "launch_20261030T233831258Z",
-      "context": "authorised implementation session",
-      "observedAt": "2026-10-30T23:53:45.880Z",
-      "source": "PR26 2397c8a and PR23 3305814"
+      "runId": "dedupe_recovery_20261101T220756231Z",
+      "context": "scheduled CQA Website Engineer task",
+      "observedAt": "2026-11-01T22:16:15Z",
+      "source": "PR23 8279972e837b458d12462c2d0e6b3f641b303d83; hosted runs 41355974274 and 41355974311"
     }
   },
   "schemaEvidence": {
@@ -701,5 +845,11 @@
       "sourceCommit": "3305814321d5a5ad937b2444970cd7dd4b6333d4",
       "approval": "Brooke explicitly requested applying the prepared buyer-account change in this session"
     }
+  },
+  "currentCandidate": {
+    "pr": 23,
+    "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+    "observedAt": "2026-11-01T22:16:15Z",
+    "status": "draft-integration-gates-incomplete"
   }
 }
