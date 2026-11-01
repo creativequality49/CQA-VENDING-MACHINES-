@@ -364,3 +364,173 @@ body:before {
   .cqa-launch-intro { padding: 22px !important; }
   .cqa-launch-intro h1 { font-size: 38px; }
 }
+
+/* Launch builder wizard: one focused task per view, especially on phones. */
+.cqa-launch-wizard {
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  gap: 18px !important;
+}
+.cqa-launch-wizard .cqa-launch-intro {
+  padding: clamp(22px,3vw,34px) !important;
+}
+.cqa-launch-wizard .cqa-launch-intro h1 {
+  max-width: 650px;
+  font-size: clamp(32px,4vw,48px);
+}
+.cqa-launch-stepper {
+  padding: 20px 22px;
+  border: 1px solid rgba(117,224,237,.15);
+  border-radius: 18px;
+  background: rgba(255,255,255,.025);
+}
+.cqa-step-count {
+  display: block;
+  margin-bottom: 13px;
+  color: #93e4e9;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .14em;
+}
+.cqa-launch-stepper > div {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 8px;
+}
+.cqa-launch-stepper button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  padding: 8px 4px;
+  border: 0;
+  color: #86929a;
+  background: transparent;
+  text-align: left;
+  font-size: 12px;
+}
+.cqa-launch-stepper button:disabled { opacity: .58; }
+.cqa-launch-stepper button i {
+  display: grid;
+  place-items: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 50%;
+  color: inherit;
+  font-style: normal;
+  font-size: 11px;
+}
+.cqa-launch-stepper button.is-current { color: #f6fbfc; font-weight: 750; }
+.cqa-launch-stepper button.is-current i,
+.cqa-launch-stepper button.is-complete i {
+  border-color: rgba(117,224,237,.55);
+  background: rgba(117,224,237,.13);
+  color: #a3f1f1;
+}
+.cqa-launch-stepper h2 {
+  margin: 17px 0 5px;
+  font-size: clamp(24px,3vw,32px);
+  letter-spacing: -.035em;
+}
+.cqa-launch-stepper > p { margin: 0; color: #aeb8bf; }
+.cqa-wizard-panel {
+  min-width: 0;
+  padding: clamp(18px,3vw,28px);
+  border: 1px solid rgba(117,224,237,.17);
+  border-radius: 20px;
+  background: linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.018));
+  box-shadow: 0 18px 48px rgba(0,0,0,.2),inset 0 1px rgba(255,255,255,.045);
+}
+.cqa-wizard-panel h3 { margin: 4px 0 12px; font-size: 21px; letter-spacing: -.025em; }
+.cqa-wizard-panel > .small, .cqa-wizard-panel > p.small { color: #aeb8bf; line-height: 1.55; }
+.cqa-step-example {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(117,224,237,.14);
+  border-radius: 13px;
+  background: rgba(117,224,237,.045);
+}
+.cqa-step-example p { margin: 4px 0 0; }
+.cqa-step-example .button { flex: 0 0 auto; }
+.cqa-wizard-panel.cqa-launch-fields { gap: 12px; }
+.cqa-wizard-panel.cqa-launch-fields > label,
+.cqa-wizard-panel.cqa-launch-fields > .grid {
+  padding: 13px !important;
+}
+.cqa-wizard-panel .cqa-launch-offers { margin: 0; }
+.cqa-wizard-panel .cqa-offer-row { margin: 0 0 10px; }
+.cqa-brand-picker {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  background: rgba(255,255,255,.025);
+}
+.cqa-brand-picker p { margin: 4px 0 0; }
+.cqa-brand-picker label { display: flex; align-items: center; gap: 9px; }
+.cqa-brand-picker input[type="color"] { width: 42px; height: 40px; padding: 3px; }
+.cqa-wizard-panel.cqa-launch-preview {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}
+.cqa-launch-preview h3 { margin: 9px 0; font-size: 26px; }
+.cqa-preview-edit-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.cqa-wizard-panel.cqa-launch-plan-section { padding: clamp(18px,3vw,28px); }
+.cqa-plan-options { min-width: 0; margin: 0; padding: 0; border: 0; }
+.cqa-plan-options legend { margin-bottom: 12px; }
+.cqa-plan-options > .grid > label { min-height: 0; padding: 14px !important; }
+.cqa-plan-summary {
+  display: grid;
+  gap: 12px;
+  padding: 17px !important;
+  border-radius: 15px;
+}
+.cqa-plan-summary > div { display: grid; gap: 5px; }
+.cqa-plan-summary > div > strong { font-size: 17px; }
+.cqa-plan-summary details { border-top: 1px solid rgba(255,255,255,.09); padding-top: 11px; }
+.cqa-plan-summary summary { cursor: pointer; color: #b6eef0; font-weight: 700; }
+.cqa-plan-summary details p { line-height: 1.5; }
+.cqa-plan-summary ul { padding-left: 20px; }
+.cqa-wizard-panel .cqa-review-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+}
+.cqa-wizard-panel .cqa-review-confirmation input { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 2px; }
+.cqa-contact-email { display: grid; gap: 7px; }
+.cqa-contact-email input { min-height: 46px; padding: 11px 13px; border: 1px solid rgba(117,224,237,.16); border-radius: 10px; background: rgba(7,10,14,.76); color: #f7f9fb; }
+.cqa-launch-error { padding: 12px 14px; border: 1px solid rgba(255,70,100,.4); border-radius: 12px; }
+.cqa-wizard-controls { display: flex; justify-content: space-between; gap: 12px; }
+.cqa-wizard-controls .button { min-height: 48px; }
+@media(max-width:620px) {
+  .cqa-launch-wizard { gap: 13px !important; }
+  .cqa-launch-wizard .cqa-launch-intro { padding: 19px !important; }
+  .cqa-launch-wizard .cqa-launch-intro h1 { font-size: 32px; }
+  .cqa-launch-stepper { padding: 15px; }
+  .cqa-launch-stepper > div { gap: 2px; }
+  .cqa-launch-stepper button { justify-content: center; flex-direction: column; gap: 5px; padding-inline: 1px; text-align: center; font-size: 9px; }
+  .cqa-launch-stepper button span { max-width: 76px; line-height: 1.15; }
+  .cqa-wizard-panel { padding: 16px; border-radius: 16px; }
+  .cqa-step-example, .cqa-brand-picker { align-items: flex-start; flex-direction: column; }
+  .cqa-step-example .button { width: 100%; }
+  .cqa-wizard-panel.cqa-launch-fields > .grid { grid-template-columns: 1fr; }
+  .cqa-wizard-panel.cqa-launch-fields > .grid > label { padding: 0 !important; }
+  .cqa-wizard-panel .cqa-offer-row { grid-template-columns: 1fr; }
+  .cqa-brand-picker label { align-items: center; }
+  .cqa-plan-options > .grid { grid-template-columns: 1fr; }
+  .cqa-plan-options > .grid > label { min-height: 0; }
+  .cqa-preview-edit-actions { flex-direction: column; }
+  .cqa-preview-edit-actions .button { width: 100%; }
+  .cqa-wizard-controls .button { flex: 1; }
+}
