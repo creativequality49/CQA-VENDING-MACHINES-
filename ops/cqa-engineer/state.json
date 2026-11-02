@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "browser_auth_20261102T082619644Z",
-    "startedAt": "2026-11-02T08:26:20.334Z",
-    "expiresAt": "2026-11-02T09:11:20.334Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -143,9 +139,9 @@
     {
       "id": "vercel-isolated-preview-setup",
       "priority": 1,
-      "status": "native-config-access403-browser-fallback-approval-pending",
+      "status": "browser-fallback-approved-user-sign-in-required",
       "workstream": "Vercel",
-      "evidence": "Project/team reads succeed; non-decrypting env metadata and integration-configuration listing403. No installed/cached offline npxVercelCLI orruntime credentials. No automatic team/SSO fix inferred; no browser initialized. Need explicit approval before browser fallback for existing project's branch-scoped Preview only."
+      "evidence": "Brooke explicitly approved browser fallback. Existing CQA settings page redirects to Vercel login; Brooke selected Google and her displayed account through secure browserAuth. Google reports wrong password. No settings accessed or changed; secure manual sign-in needed. Prior native metadata403 remains recorded, not redundantly retried."
     },
     {
       "id": "stripe-AU-registration-versus-ABR-mismatch",
@@ -1109,6 +1105,70 @@
       ],
       "nextAction": "Ask Brooke for explicit permission to switch to browser access for existing CQA project's branch-scoped Preview setup after native Vercel403. Keep production/gates/prices untouched. Any private keys must be entered directly into approved secret management. Then configure isolated Supabase/Stripe/R2/notification fixtures and execute genuine commerce gates. Review Stripe-tax-registration mismatch as a separate concrete billing action, never infer approval to alter it.",
       "finishedAt": "2026-11-02T00:30:39.021Z"
+    },
+    {
+      "id": "browser_auth_20261102T082619644Z",
+      "status": "blocked",
+      "workstream": "authorised-Vercel-browser-authentication",
+      "inspectedCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "inspectedMainCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "checks": [
+        {
+          "name": "browser-fallback-authorisation",
+          "result": "passed",
+          "environment": "user-instruction",
+          "source": "Brooke explicitly approved switching from failing Vercel connector to browser Preview setup"
+        },
+        {
+          "name": "Vercel-settings-page-browser-navigation",
+          "result": "blocked",
+          "environment": "browser",
+          "source": "Requested existing CQA environment-settings page redirects to Vercel sign-in; no positive authenticated signal"
+        },
+        {
+          "name": "secure-Google-authentication",
+          "result": "failed",
+          "environment": "browser-auth",
+          "observedAt": "2026-11-02T08:26:22.621Z",
+          "source": "User-selected Google and displayed account through secure browserAuth; submitted result followed by visible Google wrong-password message",
+          "scope": "No secret credentials returned to model; no credential values, cookies or authentication URLs stored"
+        },
+        {
+          "name": "preview-environment-configuration",
+          "result": "not-run",
+          "environment": "preview",
+          "source": "Authentication incomplete; no environment value read, revealed or changed"
+        },
+        {
+          "name": "local-regressions-types-lint-build",
+          "result": "not-run",
+          "environment": "local",
+          "source": "No source/config change; prior checks not repeated"
+        },
+        {
+          "name": "genuine-payment-storage-expiry-refund-two-account",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "Authenticated test setup still unavailable; no provider journey executed"
+        },
+        {
+          "name": "production-and-billing",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No main merge, production promotion, migration, price/GST/security-policy change, payment/refund, paid service or customer message"
+        }
+      ],
+      "blockers": [
+        "Vercel-browser-sign-in-incomplete-Google-wrong-password",
+        "isolated-test-runtime-credentials-and-fixtures-unavailable",
+        "genuine-final-candidate-commerce-evidence-incomplete"
+      ],
+      "resolvedBlockers": [
+        "browser-fallback-explicit-approval-needed"
+      ],
+      "nextAction": "Offer the current Cloud Browser tab for secure manual sign-in. Brooke completes authentication inside that same browser; never request passwords/codes in chat. Resume existing CQA branch-scoped Preview setup after a positive authenticated page signal; do not ask for browser-fallback approval again. Keep production/pricing/release holds unchanged.",
+      "finishedAt": "2026-11-02T08:26:23.252Z"
     }
   ],
   "automation": {
@@ -1190,5 +1250,15 @@
     "commitSha": "6f844caaf49c5ff43fb9f2915dc78e5e446ecae1",
     "observedAt": "2026-11-02T00:30:38.501Z",
     "status": "unpublished-draft-identity-and-GST-updated"
+  },
+  "browserFallbackAuthorization": {
+    "service": "Vercel",
+    "scope": "Existing CQA project branch-specific Preview setup",
+    "approvedBy": "Brooke",
+    "source": "Direct reply: Yeah nobworries, to explicit browser-fallback request",
+    "observedAt": "2026-11-02T08:26:22.621Z",
+    "additionalBrowserApprovalRequired": false,
+    "authenticationState": "Google rejected credential; manual secure sign-in required",
+    "applicationSettingsChanged": false
   }
 }
