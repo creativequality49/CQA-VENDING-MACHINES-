@@ -2,13 +2,15 @@
 
 Prepared 31 October 2026. UNPUBLISHED: these are proposed commercial choices,
 not existing approved policies or a claim that CQA is ready for paying customers.
-Brooke must confirm the legal operator, GST treatment and outstanding operational
-details before these become public /terms, /refund-policy and /privacy pages.
+Legal operator, supplied ABN, current GST registration and Brooke's
+no-additional-GST pricing instruction were verified/updated 2 November 2026. Outstanding operational and privacy details still
+need confirmation before public /terms, /refund-policy and /privacy pages.
 
 ## Proposed service terms
 
-Creative Quality Australia is operated by **[verified legal person/entity]**,
-**[ABN, if applicable]**. Customers can use the existing /contact page. These
+Creative Quality Australia is operated by **Brooke Shannon McDonald**, an
+**individual/sole trader, ABN 50 752 160 542**. Customers can use the existing
+/contact page. These
 terms concern CQA's own automation implementation and ongoing service; each
 storefront seller must separately identify its supplier and offer terms.
 
@@ -25,7 +27,11 @@ consumer guarantees, including reasonable delivery timing, are preserved.
 
 The existing checkout summary states setup, monthly and first-payment amounts
 in AUD. First payment is setup plus month one. Monthly billing continues until
-cancellation takes effect. **Insert verified GST wording before publication.**
+cancellation takes effect. **Verified 2 November 2026:** CQA's legal operator is
+not currently registered for GST according to ABN Lookup. **Brooke's pricing
+instruction:** keep the existing advertised totals unchanged and do not add GST
+on top. This does not label the supplies GST-free or assert a tax exemption.
+Verify checkout and invoicing match before publishing the final terms.
 Identify third-party subscriptions and usage costs, and who pays, in the quote;
 obtain approval before incurring additional costs.
 
@@ -100,7 +106,7 @@ exemption. Review any automated decisions significantly affecting individuals.
 
 ## Inputs and approvals needed to finalise
 
-1. Brooke provided the seller name as Brooke Shannon McDonald, trading as CQA / Creative Quality Australia, and states CQA is not currently GST registered. ABN and business-name registration details were not provided; confirm them before publication. Stripe's ten automation Payment Links are live AUD links with automatic tax disabled. This is a read-only configuration check, not tax advice. The ATO's $75,000 GST registration threshold uses GST turnover (not profit) and considers current and projected turnover; monitor both and register when required: https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst. No price or tax setting was changed.
+1. Brooke supplied **ABN 50 752 160 542** on 2 November 2026 and instructed CQA not to add GST to the existing advertised totals. The ABN passes the official checksum. The [current ABN Lookup record](https://abr.business.gov.au/ABN/View?id=50752160542), extracted **2 November 2026**, identifies **MCDONALD, BROOKE SHANNON**, **Individual/Sole Trader**, with ABN active from 27 February 2026 and **not currently registered for GST**. Legal identity, supplied ABN and current registry GST status are verified; business-name registration details remain unverified. Stripe's ten automation Payment Links are live AUD links with automatic tax disabled, while the separately inspected Stripe account has an active AU tax registration configured. Review that configuration mismatch against the verified registry status before final checkout/invoice sign-off; this draft does not resolve it or authorise a billing change. The ATO's $75,000 GST registration threshold uses GST turnover (not profit) and considers current and projected turnover; monitor both and register when required: https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst. No price or tax setting was changed.
 2. Brooke approved the proposed cancellation/refund and ownership defaults above on 2 Nov 2026. Define the operational contact, cancellation, refund, and offboarding steps and confirm live Stripe behavior matches. Scope and delivery dates can be agreed in writing per customer; no fixed timeline or integration/support promise should be invented.
 3. Verify live providers/regions, CRM/AI/analytics configuration, human access,
    retention/deletion and complaints handling before finalising privacy wording.
@@ -109,11 +115,15 @@ exemption. Review any automated decisions significantly affecting individuals.
 
 ## Primary guidance consulted
 
+- ABN identity and current registry record (2 November 2026): https://abr.business.gov.au/ABN/View?id=50752160542
+- Official ABN format/checksum: https://abr.business.gov.au/Help/AbnFormat
+
 - ACCC consumer guarantees: https://www.accc.gov.au/business/selling-products-and-services/consumer-rights-and-guarantees
 - ACCC remedies: https://www.accc.gov.au/consumers/problem-with-a-product-or-service-you-bought/repair-replace-refund-cancel
 - ACCC contracts: https://www.accc.gov.au/consumers/buying-products-and-services/contracts
 - OAIC privacy policy guidance: https://www.oaic.gov.au/privacy/australian-privacy-principles/australian-privacy-principles-guidelines/chapter-1-app-1-open-and-transparent-management-of-personal-information
 - OAIC small-business coverage: https://www.oaic.gov.au/privacy/privacy-guidance-for-organisations-and-government-agencies/organisations/small-business
 
-This draft is for business/legal review. It does not establish CQA's legal status
-or certify that proposed terms match the still-unverified production operations.
+This draft is for business/legal review. It records the verified registry
+identity/GST facts above; it does not certify that proposed terms match the
+still-unverified production operations.
