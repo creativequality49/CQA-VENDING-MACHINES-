@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "launch_evidence_20261102T000038112Z",
-    "startedAt": "2026-11-02T00:00:38.579Z",
-    "expiresAt": "2026-11-02T00:45:38.579Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -16,18 +12,18 @@
       "status": "verified",
       "evidence": [
         {
-          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
           "result": "passed",
           "environment": "test",
-          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41355974274",
-          "observedAt": "2026-11-01T22:16:15Z"
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736198",
+          "observedAt": "2026-11-02T00:13:37Z"
         },
         {
-          "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
           "result": "passed",
           "environment": "test",
-          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41355974311",
-          "observedAt": "2026-11-01T22:16:15Z"
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736251",
+          "observedAt": "2026-11-02T00:13:37Z"
         }
       ]
     }
@@ -62,14 +58,14 @@
       "id": "regressions-typecheck-build",
       "priority": 4,
       "status": "passed-local-and-hosted-CI",
-      "evidence": "22 local groups including regressions, typecheck, lint and production build; GitHub runs 41355974274 and 41355974311 SUCCESS on this SHA; CQA Vercel preview dpl_DWVMbpLtkALyYSqxkBR43hq8u4QV READY.",
-      "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83"
+      "evidence": "23 final local groups PASS; both hosted workflows 41365736198 and 41365736251 SUCCESS; CQA preview dpl_Fwi2zvDKFN5GjQgadJHHeS2YRTex READY on the same SHA.",
+      "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b"
     },
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "secure-test-runtime-and-storage-access-blocked",
-      "evidence": "Live Stripe GET access now works; ten catalogue Payment Link redirects verified. Current connector exposes live account only, not test execution credentials. Required runtime provider variables absent; Vercel non-decrypting env metadata 403; no CLI installed. Previous test-database metadata evidence retained, not rerun."
+      "status": "isolated-runtime-connect-email-fixtures-unavailable",
+      "evidence": "Live-only Stripe connection reconfirmed; sandbox management link supplied privately. Test DB ACTIVE_HEALTHY and buyer UUID metadata confirmed. Runtime provider variables absent; Vercel non-decrypting env metadata403; CLI absent. Full test needs an entitled merchant, test Connect account and authorised notification sink."
     },
     {
       "id": "branding-mobile-conversion",
@@ -88,9 +84,9 @@
     {
       "id": "automations-business-terms",
       "priority": 2,
-      "status": "reviewable-draft-awaiting-business-facts",
+      "status": "Stripe-AU-tax-settings-inspected-legal-identity-and-terms-unconfirmed",
       "workstream": "PR26",
-      "evidence": "docs/CQA_BUSINESS_TERMS_DRAFT.md contains proposed policies and exact missing inputs; no approved GST or contractual claims invented.",
+      "evidence": "Active AU registration and active inferred_by_currency default in live Stripe; ten catalogue Payment Links automatic_tax=false and all price tax_behavior=unspecified. Legal operator/ABN, approved GST treatment and concrete commercial/privacy terms still missing; no billing/tax policy change.",
       "commitSha": "21a2e336237f448671de915331f6c14d55a768f3",
       "pr": 26
     },
@@ -130,6 +126,15 @@
       "priority": 6,
       "status": "needs-reconciliation-before-release",
       "evidence": "PR26 21a2e336 and newer PR27 e1478416 both change automations/contact/success. No page changes discarded or merged in checkout iteration."
+    },
+    {
+      "id": "genuine-marketplace-verification-runner",
+      "priority": 1,
+      "status": "implemented-in-draft-actual-preflight-blocked",
+      "workstream": "PR23",
+      "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "pr": 23,
+      "evidence": "Offline preflight and opt-in read-only genuine Auth/library/isolation/content-digest probes plus same-URL expiry recheck.20 mocked behavioural groups and independent review passed; actual preflight exited2 missing14variables. No genuine provider gate passed."
     }
   ],
   "runs": [
@@ -820,6 +825,153 @@
       ],
       "nextAction": "Keep checkout/release holds closed. Enable securely scoped isolated test runtime/private R2 access, then execute genuine upload/public-denial/payment-to-download/expiry/refund/two-account cases on the final candidate. Confirm concrete business terms and reconcile PR26/PR27 before seeking approval for an exact release.",
       "finishedAt": "2026-11-01T22:16:56.357Z"
+    },
+    {
+      "id": "launch_evidence_20261102T000038112Z",
+      "status": "completed",
+      "workstream": "genuine-marketplace-verification-readiness",
+      "inspectedCommit": "8279972e837b458d12462c2d0e6b3f641b303d83",
+      "inspectedMainCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "inspectedAutomationsPrCommits": {
+        "pr26": "21a2e336237f448671de915331f6c14d55a768f3",
+        "pr27": "e147841613f3ef51a10b3ed410c9062008f467d3"
+      },
+      "pushedCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "local-regressions-types-lint-production-build",
+          "result": "passed",
+          "groups": 23,
+          "environment": "local",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "observedAt": "2026-11-02T00:09:52.413Z",
+          "source": "Separate coordination checks.mjs --repo repair checkout; final .cqa-reports/checks.json; Node24.22.1",
+          "scope": "Exact published source file set tested with old local HEAD and intended dirty source; exact remote commit independently validated by hosted CI. Existing lint warnings, no errors."
+        },
+        {
+          "name": "integration-driver-behaviour",
+          "result": "passed",
+          "groups": 20,
+          "environment": "local-mocked",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "source": "tests/marketplace-integration-runner-check.mjs",
+          "scope": "Real runner code with mocked external providers, not genuine integration proof. Covers auth identity, HTTP401 versus ownership denial, digest, redirects, expiry, secret redaction, CLI and temp-state guards."
+        },
+        {
+          "name": "independent-test-and-release-audit",
+          "result": "passed",
+          "environment": "local-mocked-and-static",
+          "source": "Independent Tester and Release Auditor each reran20finalgroups; additional symlinked TMPDIR adversarial case passed",
+          "scope": "Builder implements, Tester validates, root Optimiser hardens, Release Auditor approves bounded draft only"
+        },
+        {
+          "name": "GitHub-engineer-workflow",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "observedAt": "2026-11-02T00:13:37Z",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736198"
+        },
+        {
+          "name": "GitHub-commerce-workflow",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "observedAt": "2026-11-02T00:13:37Z",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736251"
+        },
+        {
+          "name": "Vercel-CQA-preview",
+          "result": "passed",
+          "environment": "preview",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "observedAt": "2026-11-02T00:13:37Z",
+          "source": "dpl_Fwi2zvDKFN5GjQgadJHHeS2YRTex READY; target null",
+          "scope": "Preview build only; production not promoted"
+        },
+        {
+          "name": "actual-integration-preflight",
+          "result": "blocked",
+          "environment": "execution-runtime",
+          "observedAt": "2026-11-02T00:09:18.460Z",
+          "source": "npm run verify:marketplace exited2; missing-configuration;14required runner variables absent",
+          "scope": "Offline only, no provider probes"
+        },
+        {
+          "name": "production-public-health",
+          "result": "passed",
+          "groups": 5,
+          "environment": "production",
+          "observedAt": "2026-11-02T00:02:05.345Z",
+          "source": "coordination health.mjs; five HTTP200 probes",
+          "scope": "Reachability/configuration only, not payments or security"
+        },
+        {
+          "name": "isolated-database-prerequisite",
+          "result": "passed",
+          "environment": "test-schema-only",
+          "source": "CQA Launch Test ACTIVE_HEALTHY; information_schema.cqa_orders.buyer_user_id UUID; no customer rows queried or migration run"
+        },
+        {
+          "name": "Stripe-live-tax-configuration",
+          "result": "passed",
+          "groups": 10,
+          "environment": "live-read-only",
+          "observedAt": "2026-11-02T00:06:46.571Z",
+          "source": "GET tax registrations/settings and exact catalogue Payment Link line items",
+          "scope": "AU active registration configured; default inferred_by_currency; all10linksautomatic_tax=false/allpricestax_behavior=unspecified. Does not certify ABN/legal registration or approved GST intent; no settings changed."
+        },
+        {
+          "name": "runtime-provider-access",
+          "result": "blocked",
+          "environment": "execution-runtime",
+          "source": "Required Supabase/Stripe/webhook/R2 variables absent by presence-only check; no credential values inspected"
+        },
+        {
+          "name": "Vercel-environment-metadata",
+          "result": "blocked",
+          "environment": "provider",
+          "source": "Native non-decrypting project env metadata403; no Vercel CLI installed. Deployment access is distinct; no unchanged retry or permission bypass"
+        },
+        {
+          "name": "Stripe-sandbox-execution",
+          "result": "blocked",
+          "environment": "provider",
+          "source": "Connected accounts list exposes live CQA only; account-management link supplied to Brooke; no sandbox confirmation yet"
+        },
+        {
+          "name": "genuine-storage-payment-download-expiry-refund-isolation",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "No real controlled fixtures/runtime access; new driver is available but no actual provider phase executed"
+        },
+        {
+          "name": "business-terms-and-legal-GST",
+          "result": "unverified",
+          "environment": "business",
+          "source": "Existing concrete draft PR26; legal operator/ABN, advertised-price treatment and contractual/privacy approval still absent"
+        },
+        {
+          "name": "production-release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No main merge, production promotion, migration, live charge/refund, paid-service start, pricing/security-policy change, customer message or checkout approval flag change"
+        }
+      ],
+      "blockers": [
+        "secure-isolated-test-runtime-and-private-R2-access-missing",
+        "Vercel-env-permission403",
+        "Stripe-sandbox-not-connected",
+        "controlled-Connect-plan-owner-two-buyers-and-notification-fixtures-unavailable",
+        "ABN-legal-GST-price-treatment-and-business-terms-unconfirmed",
+        "genuine-storage-payment-expiry-refund-isolation-evidence-incomplete",
+        "issued-signed-url-600-second-revocation-window",
+        "PR26-PR27-reconciliation-before-release"
+      ],
+      "nextAction": "Brooke completes Stripe sandbox connection and authorised owner configures narrowly scoped test secrets/fixtures via secure runtime or branch-specific Preview (including both Supabase URLs and controlled notifications). Verify candidate deployment ownership/isolation, then perform genuine owner upload/public privacy, test payment/signed webhook and durable entitlement, buyer A/B isolation, same-URL expiry, refund and cancellation probes. Confirm legal name/ABN, GST intent and concrete terms before publishing policies. Keep holds closed and obtain approval for the exact final release.",
+      "finishedAt": "2026-11-02T00:14:31.354Z"
     }
   ],
   "automation": {
@@ -834,6 +986,12 @@
       "context": "scheduled CQA Website Engineer task",
       "observedAt": "2026-11-01T22:16:15Z",
       "source": "PR23 8279972e837b458d12462c2d0e6b3f641b303d83; hosted runs 41355974274 and 41355974311"
+    },
+    "lastInteractiveExecution": {
+      "runId": "launch_evidence_20261102T000038112Z",
+      "context": "Brooke-authorised launch completion session",
+      "observedAt": "2026-11-02T00:13:37Z",
+      "source": "PR23 1da9eb4175435b85871ea3e550d624a2e790c83b; actual checks and blocked preflight recorded"
     }
   },
   "schemaEvidence": {
@@ -852,8 +1010,23 @@
   },
   "currentCandidate": {
     "pr": 23,
-    "commitSha": "8279972e837b458d12462c2d0e6b3f641b303d83",
-    "observedAt": "2026-11-01T22:16:15Z",
+    "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+    "observedAt": "2026-11-02T00:13:37Z",
     "status": "draft-integration-gates-incomplete"
+  },
+  "businessEvidence": {
+    "stripeTaxReadOnly": {
+      "observedAt": "2026-11-02T00:06:46.571Z",
+      "auRegistrationStatus": "active",
+      "taxSettingsStatus": "active",
+      "defaultTaxBehavior": "inferred_by_currency",
+      "catalogueLinksInspected": 10,
+      "allAutomaticTaxDisabled": true,
+      "allPriceTaxBehaviorUnspecified": true,
+      "legalAbnAndGstStatus": "unverified",
+      "approvedAdvertisedPriceGstTreatment": "unverified",
+      "settingsChanged": false,
+      "source": "Live Stripe GET tax registrations/settings and expanded Payment Links; matched exact unchanged catalogue URLs; no customer data"
+    }
   }
 }
