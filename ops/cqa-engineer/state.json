@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "preview_connection_20261102T123623Z",
-    "startedAt": "2026-11-02T12:36:23.522Z",
-    "expiresAt": "2026-11-02T13:21:23.522Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -68,8 +64,8 @@
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "Stripe-isolated-sandbox-connected-private-preview-credentials-pending",
-      "evidence": "Fresh Stripe connected-account list includes CQA Isolated Launch Test livemodefalse. Vercel browser works; isolated DB resource available on existing Free Plan. Provider keys, Connect fixtures, R2 and controlled notifications not fully configured; no genuine test executed."
+      "status": "approval-recorded-preview-connection-not-connected",
+      "evidence": "Brooke explicitly approved Preview-only connection for all Preview branches. The final Vercel form was left unsubmitted because the visible Production selector could not be reliably deselected through the browser control; Production access was not granted. No redeploy or provider test occurred."
     },
     {
       "id": "branding-mobile-conversion",
@@ -1274,6 +1270,39 @@
       ],
       "nextAction": "Ask Brooke to approve the prepared existing CQA Launch Test -> cqa-vending-machines credential connection for ALL Preview branches only, explicitly excluding Production/Development and automatic DB branching. Keep final Connect Project unclicked until approval. If declined, use manually scoped test secrets for the repair branch. Then verify installed variable precedence, finish sandbox Stripe/private R2/notification fixtures, create a new Preview deployment and execute genuine commerce gates. Never claim this partial control-plane setup is launch-ready.",
       "finishedAt": "2026-11-02T09:05:11.740Z"
+    },
+    {
+      "id": "preview_connection_20261102T123623Z",
+      "status": "blocked",
+      "inspectedCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "checks": [
+        {
+          "id": "main-and-operating-contract",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "GitHub main commit 02200d1e60100a895198961cbe421101d6f5bd9b and coordination contract/state freshly read",
+          "observedAt": "2026-11-02T12:42:35.749Z"
+        },
+        {
+          "id": "PR23-hosted-checks",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736198; https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736251",
+          "observedAt": "2026-11-02T12:42:35.749Z"
+        },
+        {
+          "id": "Preview-database-connection",
+          "result": "unverified",
+          "environment": "Vercel Preview",
+          "source": "Vercel UI confirmed CQA Launch Test resource and existing project, but selector would not reliably commit Production=false; form not submitted, connection remains disconnected",
+          "observedAt": "2026-11-02T12:42:35.749Z"
+        }
+      ],
+      "blockerCodes": [
+        "vercel-preview-connection-ui-control"
+      ],
+      "nextAction": "Manually uncheck Production in the Vercel Connect Project modal, verify Preview is the only environment selected, and report completion so the agent can connect and verify key names/scopes.",
+      "finishedAt": "2026-11-02T12:42:35.749Z"
     }
   ],
   "automation": {
@@ -1399,6 +1428,10 @@
     "sensitive": true,
     "scope": "ALL Preview deployments, including other Git branches",
     "connected": false,
-    "status": "action-time-credential-access-approval-required"
+    "status": "approved-but-preview-only-toggle-not-committed",
+    "approvalStatus": "approved-by-Brooke",
+    "approvedScope": "Preview-only for all Preview branches; Production and Development excluded; automatic Supabase branching off; Sensitive on",
+    "approvedAt": "2026-11-02T12:42:35.749Z",
+    "lastObservedAt": "2026-11-02T12:42:35.749Z"
   }
 }
