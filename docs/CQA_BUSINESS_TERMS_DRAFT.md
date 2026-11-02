@@ -35,7 +35,7 @@ revenue, savings or error-free AI/automation performance is guaranteed.
 
 ## Proposed cancellation and refund policy
 
-**Recommended choice for Brooke to approve:** customers may request cancellation
+**Brooke approved 2 Nov 2026:** customers may request cancellation
 through /contact before their next renewal. Recurring service ends at the close
 of the paid billing period; CQA confirms the effective date. No extra cancellation
 penalty is proposed. This is not a description of verified live Stripe settings;
@@ -55,7 +55,7 @@ commercial terms must not exclude those rights or impose a blanket no-refund rul
 Customers retain their supplied data, branding and materials and must have
 permission to supply them and authorise processing.
 
-**Recommended choice for Brooke to approve:** after payment, customers receive
+**Brooke approved 2 Nov 2026:** after payment, customers receive
 the agreed bespoke deliverables/configuration exports. CQA retains its existing
 tools, templates and general know-how; the brief specifies the customer's rights
 to use any included CQA components. Third-party licences continue to apply.
@@ -100,11 +100,8 @@ exemption. Review any automated decisions significantly affecting individuals.
 
 ## Inputs and approvals needed to finalise
 
-1. Legal operator/ABN; verified GST registration and whether current advertised
-   prices include GST. No price or GST statement has been changed.
-2. Approve or edit the proposed cancellation/refund and ownership defaults above.
-   Scope and delivery dates can be agreed in writing per customer, with no new
-   fixed timeline or integration/support promises invented.
+1. Brooke provided the seller name as Brooke Shannon McDonald, trading as CQA / Creative Quality Australia, and states CQA is not currently GST registered. ABN and business-name registration details were not provided; confirm them before publication. Stripe's ten automation Payment Links are live AUD links with automatic tax disabled. This is a read-only configuration check, not tax advice. The ATO's $75,000 GST registration threshold uses GST turnover (not profit) and considers current and projected turnover; monitor both and register when required: https://www.ato.gov.au/businesses-and-organisations/gst-excise-and-indirect-taxes/gst/registering-for-gst. No price or tax setting was changed.
+2. Brooke approved the proposed cancellation/refund and ownership defaults above on 2 Nov 2026. Define the operational contact, cancellation, refund, and offboarding steps and confirm live Stripe behavior matches. Scope and delivery dates can be agreed in writing per customer; no fixed timeline or integration/support promise should be invented.
 3. Verify live providers/regions, CRM/AI/analytics configuration, human access,
    retention/deletion and complaints handling before finalising privacy wording.
 4. Match live Stripe billing/cancellation and post-payment handoff to the approved
