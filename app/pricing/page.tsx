@@ -34,6 +34,7 @@ export default function PricingPage() {
           </article>;
         })}
       </section>
+      <section className="glass-card" style={{ padding: "1.25rem", marginTop: "1.5rem" }}><span className="eyebrow">OPTIONAL EXPERT HELP</span><h2>Prefer CQA to build it with you?</h2><p>Keep the self-service machine builder free to preview, or request premium setup, custom automation and AI worker implementation. An enquiry does not charge you.</p><div style={{ display: "flex", flexWrap: "wrap", gap: ".75rem" }}><Link href="/contact?service=premium-setup" className="button primary">Request Premium Setup</Link><Link href="/contact?service=support" className="button ghost">Customer Support</Link></div></section>
       <section className="cqa-launch-package glass-card" aria-labelledby="launch-package-title">
         <div><span className="eyebrow">PRO LAUNCH PACKAGE</span><h2 id="launch-package-title">Get your machine ready with CQA.</h2><p>For owners who want help implementing their storefront: business setup, offer structure, branding, receptionist and sales follow-up drafts, and a launch review.</p><p className="cqa-package-price"><strong>$997</strong> AUD one-off setup <span>+ $297 AUD / month for Pro</span></p><p className="small">The setup fee applies when you select this package. Standard Pro is available as a monthly plan above.</p></div>
         <Link href={launchApproved ? "/onboarding?plan=pro&package=launch" : "/founding-customers"} className="button primary">{launchApproved ? "Choose Pro Launch Package" : "Register early interest"} →</Link>
