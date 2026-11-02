@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "preview_db_access_20261103T214351Z",
-    "startedAt": "2026-11-02T21:43:51.605Z",
-    "expiresAt": "2026-11-02T22:28:51.605Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -68,8 +64,8 @@
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "approved-preview-connection-unconnected-browser-control-blocked",
-      "evidence": "Brooke approved the all-Preview-branches scope. Vercel resource and existing project were reverified. Production remained selected in the form because the control did not persist the attempted change, so no submit or credential grant occurred. No redeploy/provider test."
+      "status": "connected-preview-only; real-provider-test-credentials-fixtures-incomplete",
+      "evidence": "Brooke approved Preview-only connection across all Preview branches. Vercel modal verified existing cqa-vending-machines project; Production and Development excluded, Supabase automatic Preview Branch selections unchecked, Sensitive on. Submitted connection; Connected Projects readback lists cqa-vending-machines — Preview. Secret values remained masked. No deployment or provider tests performed."
     },
     {
       "id": "branding-mobile-conversion",
@@ -1333,6 +1329,68 @@
       ],
       "nextAction": "Brooke must uncheck Production in the open Vercel form and leave Preview checked, Development unchecked, then the agent will verify and submit the approved connection.",
       "finishedAt": "2026-11-02T13:20:40.896Z"
+    },
+    {
+      "id": "preview_db_access_20261103T214351Z",
+      "status": "completed",
+      "workstream": "approved-Preview-only-Supabase-connection",
+      "inspectedCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "inspectedCommercePrCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "pr": 23,
+      "finishedAt": "2026-11-02T21:46:39Z",
+      "checks": [
+        {
+          "name": "preview-only-connection-scope-before-submit",
+          "result": "passed",
+          "environment": "Vercel control plane",
+          "source": "Existing project cqa-vending-machines selected; environment selector read Preview only; Production disabled/excluded; Development excluded; automatic Supabase Preview Branch options unchecked; Sensitive enabled."
+        },
+        {
+          "name": "approved-test-resource-connection",
+          "result": "passed",
+          "environment": "Vercel control plane",
+          "source": "CQA Launch Test connected; Connected Projects readback lists cqa-vending-machines with Preview only. Quickstart variable names visible and values masked; no secrets copied or disclosed."
+        },
+        {
+          "name": "PR23-hosted-checks",
+          "result": "passed",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "environment": "CI",
+          "source": "GitHub workflow runs 41365736198 and 41365736251; both success on inspected PR23 head."
+        },
+        {
+          "name": "preview-deployment-after-connection",
+          "result": "not-run",
+          "environment": "Preview",
+          "source": "No deployment triggered by this configuration action; existing READY deployment predates connection."
+        },
+        {
+          "name": "local-types-lint-build",
+          "result": "not-run",
+          "environment": "local",
+          "source": "Configuration-only workstream; no source edits and no local checkout/harness execution."
+        },
+        {
+          "name": "genuine-private-storage-payment-download-expiry-refund-two-account",
+          "result": "unverified",
+          "environment": "test integration",
+          "source": "No deployment using the newly connected variables; provider fixtures and genuine journey not executed."
+        },
+        {
+          "name": "production-release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No production environment selected, merge, migration, promotion, price/tax/security change or monetary transaction."
+        }
+      ],
+      "blockers": [
+        "new-Preview-deployment-and-provider-test-fixtures-required",
+        "genuine-payment-download-expiry-refund-two-account-evidence-incomplete",
+        "business-privacy-operational-terms-incomplete",
+        "Stripe-tax-registration-versus-ABR-status-review-pending"
+      ],
+      "nextAction": "Reconcile the connected integration variable names and precedence against PR23 without exposing values; then obtain a Preview deployment on the exact candidate and run the isolated genuine test journey once approved fixtures are available. Keep checkout/release holds closed."
     }
   ],
   "automation": {
@@ -1457,11 +1515,14 @@
     "automaticSupabaseBranching": false,
     "sensitive": true,
     "scope": "ALL Preview deployments, including other Git branches",
-    "connected": false,
-    "status": "approved-but-production-selector-still-selected",
+    "connected": true,
+    "status": "connected-preview-only-verified",
     "approvalStatus": "approved-by-Brooke",
     "approvedScope": "Preview-only for all Preview branches; Production and Development excluded; automatic Supabase branching off; Sensitive on",
     "approvedAt": "2026-11-02T12:42:35.749Z",
-    "lastObservedAt": "2026-11-02T13:20:40.896Z"
+    "lastObservedAt": "2026-11-02T21:46:39Z",
+    "connectedAt": "2026-11-02T21:46:39Z",
+    "connectedEnvironment": "Preview",
+    "verified": "Vercel Connected Projects lists cqa-vending-machines with Preview only; Supabase quickstart shows the expected variable names with values masked."
   }
 }
