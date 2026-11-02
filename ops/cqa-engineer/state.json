@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "preview_connect_20261102T131918Z",
-    "startedAt": "2026-11-02T13:19:18.083Z",
-    "expiresAt": "2026-11-02T14:04:18.083Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -68,8 +64,8 @@
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "approval-recorded-preview-connection-not-connected",
-      "evidence": "Brooke explicitly approved Preview-only connection for all Preview branches. The final Vercel form was left unsubmitted because the visible Production selector could not be reliably deselected through the browser control; Production access was not granted. No redeploy or provider test occurred."
+      "status": "approved-preview-connection-unconnected-browser-control-blocked",
+      "evidence": "Brooke approved the all-Preview-branches scope. Vercel resource and existing project were reverified. Production remained selected in the form because the control did not persist the attempted change, so no submit or credential grant occurred. No redeploy/provider test."
     },
     {
       "id": "branding-mobile-conversion",
@@ -1307,6 +1303,32 @@
       ],
       "nextAction": "Manually uncheck Production in the Vercel Connect Project modal, verify Preview is the only environment selected, and report completion so the agent can connect and verify key names/scopes.",
       "finishedAt": "2026-11-02T12:42:35.749Z"
+    },
+    {
+      "id": "preview_connect_20261102T131918Z",
+      "status": "blocked",
+      "inspectedCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "checks": [
+        {
+          "id": "source-and-current-checks",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "Main 02200d1e60100a895198961cbe421101d6f5bd9b, current PR23 head 1da9eb4175435b85871ea3e550d624a2e790c83b; workflow runs 41365736198 and 41365736251 completed success",
+          "observedAt": "2026-11-02T13:20:40.896Z"
+        },
+        {
+          "id": "approved-preview-database-connection",
+          "result": "unverified",
+          "environment": "Vercel Preview",
+          "source": "Existing CQA Launch Test resource and cqa-vending-machines project confirmed in browser. Vercel environment selector controls did not persist Production=false; form not submitted; credentials remain unconnected.",
+          "observedAt": "2026-11-02T13:20:40.896Z"
+        }
+      ],
+      "blockerCodes": [
+        "vercel-preview-selector-control"
+      ],
+      "nextAction": "Brooke must uncheck Production in the open Vercel form and leave Preview checked, Development unchecked, then the agent will verify and submit the approved connection.",
+      "finishedAt": "2026-11-02T13:20:40.896Z"
     }
   ],
   "automation": {
@@ -1432,10 +1454,10 @@
     "sensitive": true,
     "scope": "ALL Preview deployments, including other Git branches",
     "connected": false,
-    "status": "approved-but-preview-only-toggle-not-committed",
+    "status": "approved-but-production-selector-still-selected",
     "approvalStatus": "approved-by-Brooke",
     "approvedScope": "Preview-only for all Preview branches; Production and Development excluded; automatic Supabase branching off; Sensitive on",
     "approvedAt": "2026-11-02T12:42:35.749Z",
-    "lastObservedAt": "2026-11-02T12:42:35.749Z"
+    "lastObservedAt": "2026-11-02T13:20:40.896Z"
   }
 }
