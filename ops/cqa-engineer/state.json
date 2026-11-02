@@ -4,7 +4,11 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": null,
+  "lease": {
+    "runId": "vercel_setup_20261102T002320179Z",
+    "startedAt": "2026-11-02T00:23:20.702Z",
+    "expiresAt": "2026-11-02T01:08:20.702Z"
+  },
   "releaseStatus": "NOT_READY",
   "gates": [
     {
