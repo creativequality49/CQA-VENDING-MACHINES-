@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "preview_config_20261102T084050082Z",
-    "startedAt": "2026-11-02T08:40:51.272Z",
-    "expiresAt": "2026-11-02T09:25:51.272Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -68,8 +64,8 @@
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "isolated-runtime-connect-email-fixtures-unavailable",
-      "evidence": "Live-only Stripe connection reconfirmed; sandbox management link supplied privately. Test DB ACTIVE_HEALTHY and buyer UUID metadata confirmed. Runtime provider variables absent; Vercel non-decrypting env metadata403; CLI absent. Full test needs an entitled merchant, test Connect account and authorised notification sink."
+      "status": "Stripe-isolated-sandbox-connected-private-preview-credentials-pending",
+      "evidence": "Fresh Stripe connected-account list includes CQA Isolated Launch Test livemodefalse. Vercel browser works; isolated DB resource available on existing Free Plan. Provider keys, Connect fixtures, R2 and controlled notifications not fully configured; no genuine test executed."
     },
     {
       "id": "branding-mobile-conversion",
@@ -143,9 +139,9 @@
     {
       "id": "vercel-isolated-preview-setup",
       "priority": 1,
-      "status": "browser-fallback-approved-user-sign-in-required",
+      "status": "five-branch-configs-saved-credential-grant-approval-pending",
       "workstream": "Vercel",
-      "evidence": "Brooke explicitly approved browser fallback. Existing CQA settings page redirects to Vercel login; Brooke selected Google and her displayed account through secure browserAuth. Google reports wrong password. No settings accessed or changed; secure manual sign-in needed. Prior native metadata403 remains recorded, not redundantly retried."
+      "evidence": "Browser authenticated. Five nonsecret Config entries saved for Preview+commerce repair branch only; save success/scope/readback verified. No new deployment yet. Existing CQA Launch Test resource can supply secrets, but integration targets ALL Preview branches; final Connect Project unclicked pending action-time approval."
     },
     {
       "id": "stripe-AU-registration-versus-ABR-mismatch",
@@ -1173,6 +1169,107 @@
       ],
       "nextAction": "Offer the current Cloud Browser tab for secure manual sign-in. Brooke completes authentication inside that same browser; never request passwords/codes in chat. Resume existing CQA branch-scoped Preview setup after a positive authenticated page signal; do not ask for browser-fallback approval again. Keep production/pricing/release holds unchanged.",
       "finishedAt": "2026-11-02T08:26:23.252Z"
+    },
+    {
+      "id": "preview_config_20261102T084050082Z",
+      "status": "blocked",
+      "workstream": "isolated-Vercel-Preview-configuration",
+      "inspectedCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "inspectedMainCommit": "02200d1e60100a895198961cbe421101d6f5bd9b",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "authenticated-Vercel-browser-access",
+          "result": "passed",
+          "environment": "browser",
+          "source": "Positive account/project/settings UI for existing CQA Vercel project; no credential values inspected"
+        },
+        {
+          "name": "branch-only-Preview-settings",
+          "result": "passed",
+          "groups": 5,
+          "environment": "Vercel-control-plane",
+          "observedAt": "2026-11-02T09:05:10.890Z",
+          "source": "Vercel Save success and row-level Preview+fix/production-revenue-readiness-20261028 readback; masked screenshot evidence retained privately",
+          "scope": "Both test Supabase URLs, both launch holds closed, verified stable branch site URL; no production target selected, no private keys revealed"
+        },
+        {
+          "name": "stable-preview-alias-binding",
+          "result": "passed",
+          "environment": "preview-metadata",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "source": "Existing deployment dpl_Fwi2zvDKFN5GjQgadJHHeS2YRTex READY targetnull and exact stable Git-branch alias verified through native tool"
+        },
+        {
+          "name": "test-Stripe-connection",
+          "result": "passed",
+          "environment": "provider-read-only",
+          "source": "Fresh connected-account list contains CQA Isolated Launch Test livemode=false; no monetary action"
+        },
+        {
+          "name": "independent-config-audits",
+          "result": "passed",
+          "environment": "static-review",
+          "source": "Tester/Release Auditor reviewed exact env precedence and five nonsecret configuration plan; Auditor confirmed broader database access requires separate confirmation"
+        },
+        {
+          "name": "existing-Supabase-resource-and-prepared-scope",
+          "result": "passed",
+          "environment": "browser-read-only",
+          "source": "Existing CQA Launch Test resource matches ndzmlywsuywkhgqdbzft and Supabase Free Plan. Prepared existing project + Preview only, Production/Development excluded, automatic branches unchecked, Sensitive on",
+          "scope": "No connection grant executed"
+        },
+        {
+          "name": "database-credential-installation",
+          "result": "blocked",
+          "environment": "preview",
+          "source": "Final Connect Project not clicked: integration credential grant covers all Preview branches and needs action-time confirmation"
+        },
+        {
+          "name": "current-source-hosted-checks",
+          "result": "passed",
+          "environment": "ci",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "source": "Runs41365736198 and41365736251 re-read completedSUCCESS"
+        },
+        {
+          "name": "new-configuration-deployment-and-integration-tests",
+          "result": "not-run",
+          "environment": "preview",
+          "source": "Partial test configuration only; no redeployment before privileged keys/storage/notifications ready. Existing READY build does not contain newly saved values."
+        },
+        {
+          "name": "local-types-lint-build",
+          "result": "not-run",
+          "environment": "local",
+          "source": "No source/dependency change; existing source checks not repeated"
+        },
+        {
+          "name": "genuine-payment-download-expiry-refund-isolation",
+          "result": "unverified",
+          "environment": "test-integration",
+          "source": "Private credentials, controlled fixtures and provider journey still incomplete"
+        },
+        {
+          "name": "production-and-billing",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No merge, production promotion, migration, price/GST/security-policy change, live charge/refund, new paid resource or customer message"
+        }
+      ],
+      "blockers": [
+        "all-Preview-Supabase-credential-grant-approval-pending",
+        "test-public-and-server-keys-not-fully-configured",
+        "sandbox-Stripe-webhook-plan-Connect-fixtures-needed",
+        "private-R2-and-controlled-notifications-needed",
+        "genuine-final-candidate-provider-evidence-incomplete"
+      ],
+      "resolvedBlockers": [
+        "Vercel-browser-sign-in-incomplete"
+      ],
+      "nextAction": "Ask Brooke to approve the prepared existing CQA Launch Test -> cqa-vending-machines credential connection for ALL Preview branches only, explicitly excluding Production/Development and automatic DB branching. Keep final Connect Project unclicked until approval. If declined, use manually scoped test secrets for the repair branch. Then verify installed variable precedence, finish sandbox Stripe/private R2/notification fixtures, create a new Preview deployment and execute genuine commerce gates. Never claim this partial control-plane setup is launch-ready.",
+      "finishedAt": "2026-11-02T09:05:11.740Z"
     }
   ],
   "automation": {
@@ -1262,7 +1359,42 @@
     "source": "Direct reply: Yeah nobworries, to explicit browser-fallback request",
     "observedAt": "2026-11-02T08:26:22.621Z",
     "additionalBrowserApprovalRequired": false,
-    "authenticationState": "Google rejected credential; manual secure sign-in required",
-    "applicationSettingsChanged": false
+    "authenticationState": "Vercel signed-in project environment settings verified",
+    "applicationSettingsChanged": false,
+    "lastVerifiedAt": "2026-11-02T09:05:10.890Z"
+  },
+  "previewConfiguration": {
+    "projectId": "prj_mXlAYQWxHal1FtpmkNmeVhQco2DB",
+    "teamId": "team_H8frtkB9tgG0pH7xSR4Ann03",
+    "gitBranch": "fix/production-revenue-readiness-20261028",
+    "target": "preview",
+    "configuredKeys": [
+      "SUPABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_URL",
+      "CQA_CUSTOMER_LAUNCH_APPROVED",
+      "CQA_DIGITAL_DELIVERY_APPROVED",
+      "NEXT_PUBLIC_SITE_URL"
+    ],
+    "type": "Config",
+    "savedAndScopedReadbackVerified": true,
+    "valuesVerifiedWithoutDisclosure": true,
+    "productionVariablesChanged": false,
+    "redeployed": false,
+    "observedAt": "2026-11-02T09:05:10.890Z"
+  },
+  "pendingDatabaseConnection": {
+    "resourceName": "CQA Launch Test",
+    "resourceId": "store_T3uQJ5OimRjQX0oD",
+    "supabaseProject": "ndzmlywsuywkhgqdbzft",
+    "existingPlan": "Supabase Free Plan",
+    "project": "cqa-vending-machines",
+    "environment": "Preview",
+    "production": false,
+    "development": false,
+    "automaticSupabaseBranching": false,
+    "sensitive": true,
+    "scope": "ALL Preview deployments, including other Git branches",
+    "connected": false,
+    "status": "action-time-credential-access-approval-required"
   }
 }
