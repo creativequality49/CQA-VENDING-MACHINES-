@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "commerce_reconcile_20261103T214300Z",
-    "startedAt": "2026-11-03T21:43:00Z",
-    "expiresAt": "2026-11-03T22:08:00Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -68,8 +64,8 @@
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "connected-preview-only; real-provider-test-credentials-fixtures-incomplete",
-      "evidence": "Brooke approved Preview-only connection across all Preview branches. Vercel modal verified existing cqa-vending-machines project; Production and Development excluded, Supabase automatic Preview Branch selections unchecked, Sensitive on. Submitted connection; Connected Projects readback lists cqa-vending-machines — Preview. Secret values remained masked. No deployment or provider tests performed."
+      "status": "connected-preview-only; env-metadata-403; no-candidate-preview-after-connect",
+      "evidence": "Brooke approved Preview-only connection across all Preview branches. Vercel modal verified existing cqa-vending-machines project; Production and Development excluded, Supabase automatic Preview Branch selections unchecked, Sensitive on. Submitted connection; Connected Projects readback lists cqa-vending-machines — Preview. Secret values remained masked. No deployment or provider tests performed. Latest check: Vercel env metadata list returned 403 forbidden; no credential values accessed. PR23 deployment READY is still the pre-connection build on 1da9eb4, so connection has not yet been validated by a candidate deployment."
     },
     {
       "id": "branding-mobile-conversion",
@@ -1395,6 +1391,92 @@
         "Stripe-tax-registration-versus-ABR-status-review-pending"
       ],
       "nextAction": "Reconcile the connected integration variable names and precedence against PR23 without exposing values; then obtain a Preview deployment on the exact candidate and run the isolated genuine test journey once approved fixtures are available. Keep checkout/release holds closed."
+    },
+    {
+      "id": "commerce_reconcile_20261103T214300Z",
+      "status": "blocked",
+      "workstream": "reconcile-current-marketplace-candidate-and-preview",
+      "inspectedCommit": "b0a055361aacc7a154a5f66acbaecd778395b06c",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "inspectedCommercePrCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "pr": 23,
+      "finishedAt": "2026-11-03T21:45:00Z",
+      "checks": [
+        {
+          "name": "main-and-required-instructions",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "AGENTS.md and coordination operating contract freshly read; latest main commit b0a055361aacc7a154a5f66acbaecd778395b06c."
+        },
+        {
+          "name": "engineer-PR25",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "PR25 merged; merge commit 02200d1e60100a895198961cbe421101d6f5bd9b."
+        },
+        {
+          "name": "commerce-PR23-current-status",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "PR23 remains open draft, branch fix/production-revenue-readiness-20261028, candidate 1da9eb4175435b85871ea3e550d624a2e790c83b."
+        },
+        {
+          "name": "PR23-hosted-checks",
+          "result": "passed",
+          "environment": "CI",
+          "source": "Runs 41365736198 and 41365736251 completed success on PR23 candidate."
+        },
+        {
+          "name": "Vercel-PR23-preview",
+          "result": "passed",
+          "environment": "Preview",
+          "source": "dpl_Fwi2zvDKFN5GjQgadJHHeS2YRTex READY for 1da9eb4175435b85871ea3e550d624a2e790c83b; created before Supabase connection."
+        },
+        {
+          "name": "Vercel-current-production",
+          "result": "passed",
+          "environment": "production",
+          "source": "Deployment dpl_3UDVr8usebHqZBm9atSn94LAg18C READY target production on main b0a055361aacc7a154a5f66acbaecd778395b06c; no action taken in this run."
+        },
+        {
+          "name": "Vercel-environment-metadata-access",
+          "result": "blocked",
+          "environment": "Vercel API",
+          "source": "GET project environment metadata returned 403 forbidden; no values requested/decrypted. Prior approved browser connection remains visible as Preview only."
+        },
+        {
+          "name": "candidate-preview-using-connected-db",
+          "result": "unverified",
+          "environment": "Preview",
+          "source": "No deployment of PR23 candidate after connection; existing READY deployment predates connection."
+        },
+        {
+          "name": "local-regressions-type-lint-build",
+          "result": "not-run",
+          "environment": "local",
+          "source": "No repair checkout or source change available in this execution; no tests claimed."
+        },
+        {
+          "name": "private-storage-payment-expiry-refund-two-account",
+          "result": "unverified",
+          "environment": "test integration",
+          "source": "Genuine provider journey still requires candidate Preview, private storage setup and controlled fixtures."
+        },
+        {
+          "name": "release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No merge, migration, customer payment/refund, or production action taken."
+        }
+      ],
+      "blockers": [
+        "Vercel-project-environment-metadata-403",
+        "candidate-Preview-deployment-after-Supabase-connection-missing",
+        "private-R2-storage-and-test-fixtures-unverified",
+        "genuine-payment-download-expiry-refund-two-account-evidence-incomplete",
+        "business-and-privacy-terms-incomplete"
+      ],
+      "nextAction": "Use Vercel UI to confirm injected variable names and Preview scope without exposing values, then deploy the PR23 candidate to Preview through the existing Git integration and run the genuine sandbox journey with controlled fixtures. Keep live checkout held."
     }
   ],
   "automation": {
