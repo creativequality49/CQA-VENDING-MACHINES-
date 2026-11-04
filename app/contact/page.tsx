@@ -16,6 +16,7 @@ function ContactForm() {
     setStatus("sending");
     setError("");
     const form = new FormData(event.currentTarget);
+    try {
     const response = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,6 +37,10 @@ function ContactForm() {
       return;
     }
     setStatus("sent");
+    } catch {
+      setError("Network error. Please check your connection and try again.");
+      setStatus("idle");
+    }
   }
 
   if (status === "sent") {
@@ -71,13 +76,13 @@ function ContactForm() {
       <form onSubmit={submit} className="glass-card" style={{ padding: "1.4rem", display: "grid", gap: ".8rem" }}>
         <span className="eyebrow">{label.toUpperCase()}</span>
         <h2 style={{ marginTop: 0 }}>Start your request{price ? ` · $${price} AUD` : ""}</h2>
-        <input name="name" required placeholder="Your name" />
-        <input name="email" type="email" required placeholder="Email" />
+        <label htmlFor="cqa-contact-name">Your name</label><input id="cqa-contact-name" name="name" required minLength={2} maxLength={120} autoComplete="name" placeholder="Your name" />
+        <label htmlFor="cqa-contact-email">Email</label><input id="cqa-contact-email" name="email" type="email" required maxLength={200} autoComplete="email" placeholder="Email" />
         <div className="grid grid-2">
-          <input name="phone" placeholder="Phone (optional)" />
-          <input name="businessName" placeholder="Business name (optional)" />
+          <div><label htmlFor="cqa-contact-phone">Phone (optional)</label><input id="cqa-contact-phone" name="phone" maxLength={50} autoComplete="tel" placeholder="Phone (optional)" /></div>
+          <div><label htmlFor="cqa-contact-business">Business name (optional)</label><input id="cqa-contact-business" name="businessName" maxLength={160} autoComplete="organization" placeholder="Business name (optional)" /></div>
         </div>
-        <textarea name="message" required rows={7} placeholder="What do you want CQA to build, automate, improve or sell for you?" />
+        <label htmlFor="cqa-contact-message">What would you like CQA to build?</label><textarea id="cqa-contact-message" name="message" required minLength={10} maxLength={3000} rows={7} placeholder="Describe the workflow, tools and outcome you need. Do not include passwords or API keys." />
         {error ? <div role="alert" style={{ padding: ".75rem", border: "1px solid rgba(255,70,100,.4)", borderRadius: 10 }}>{error}</div> : null}
         <button type="submit" className="button primary" disabled={status === "sending"} style={{ justifyContent: "center" }}>
           {status === "sending" ? "Saving request…" : "Send to CQA"}
