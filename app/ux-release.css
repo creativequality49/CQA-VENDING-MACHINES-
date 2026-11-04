@@ -860,3 +860,8 @@ main.container>section{position:relative;z-index:1}
 .cqa-launch-package{display:flex;align-items:center;justify-content:space-between;gap:32px;margin-top:28px;padding:30px;border-color:#68efff4d;background:linear-gradient(145deg,#0e2d3c,#040e17)}.cqa-launch-package h2{font-size:32px;letter-spacing:-.04em;margin:12px 0}.cqa-launch-package p{max-width:690px;color:#b6c5ca;line-height:1.6}.cqa-package-price strong{font-size:32px;color:#fff}.cqa-package-price span{display:block;color:#8df8ff}.cqa-launch-package .button{flex-shrink:0;background:linear-gradient(120deg,#1671af,#0e6879);border:1px solid #5be2ff66}.cqa-offer-page .pricing-reassurance{font-size:13px;font-weight:500;line-height:1.7;margin-bottom:54px}
 @media(max-width:760px){.cqa-launch-package{align-items:flex-start;flex-direction:column;padding:22px}.cqa-launch-package .button{width:100%}}
 .cqa-home-offer{max-width:620px;color:#b6c5ca;font-size:13px;line-height:1.7;margin:0 0 22px}.cqa-home-offer strong{color:#d9fcff}.cqa-offer-page .neon-plan-featured,.cqa-offer-page .neon-plan-featured:hover{transform:none}.cqa-offer-page .plan-display small{font-size:11px}
+
+/* Visible keyboard navigation on the existing public header and mobile dock. */
+.cqa-topbar a:focus-visible, .cqa-topbar summary:focus-visible, .mobile-dock a:focus-visible { outline: 3px solid #ff75b3; outline-offset: 4px; border-radius: 5px; }
+
+@media (min-width:981px) and (max-width:1120px) { .cqa-desktop-links { display:none; } .cqa-dashboard-link { margin-left:auto; } }

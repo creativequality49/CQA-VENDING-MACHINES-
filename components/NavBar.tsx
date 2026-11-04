@@ -18,10 +18,11 @@ export function NavBar() {
           <Link href="/owner/dashboard" className="cqa-dashboard-link">Dashboard</Link>
 
           <nav className="cqa-desktop-links" aria-label="Primary navigation">
-            <Link href="/marketplace">Marketplace</Link>
-            <Link href="/machines">Solutions</Link>
-            <Link href="/pricing">Plans</Link>
+            <Link href="/marketplace">Storefronts</Link>
+            <Link href="/machines">Business solutions</Link>
+            <Link href="/pricing">Machine plans</Link>
             <Link href="/workers">AI Workers</Link>
+            <Link href="/automations">Automations</Link>
           </nav>
 
           <details className="cqa-menu">
@@ -35,16 +36,16 @@ export function NavBar() {
                 <small>Vending Marketplace · AI Workforce</small>
               </div>
               <Link href="/">Home <span>01</span></Link>
-              <Link href="/marketplace">Marketplace <span>02</span></Link>
-              <Link href="/machines">Solutions <span>03</span></Link>
-              <Link href="/pricing">Plans <span>04</span></Link>
+              <Link href="/marketplace">Storefronts <span>02</span></Link>
+              <Link href="/machines">Business solutions <span>03</span></Link>
+              <Link href="/pricing">Machine plans <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>
               <Link href="/automations">Automations <span>06</span></Link>
               <Link href="/owner/dashboard">Dashboard <span>07</span></Link>
               <Link href="/contact">Contact CQA <span>08</span></Link>
               <div className="menu-panel-actions">
                 <Link href="/login?next=/owner/dashboard" className="button ghost">Owner Login</Link>
-                <Link href="/onboarding" className="button primary">Launch My Machine</Link>
+                <Link href="/onboarding" className="button primary">Create storefront</Link>
               </div>
             </nav>
           </details>
