@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "cqa_backend_20261106220122448",
-    "startedAt": "2026-11-06T22:01:22.448Z",
-    "expiresAt": "2026-11-06T22:46:22.448Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -56,6 +52,20 @@
           "environment": "production",
           "source": "Vercel production deployment dpl_H46hoFPoLPUDyiUpjFdQhLE51Gqc READY; /api/health 200, /automations 200, /marketplace/library 200, /auth/confirm 200. Configuration/reachability only.",
           "observedAt": "2026-11-06T21:55:44.176Z"
+        },
+        {
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "result": "passed",
+          "environment": "test",
+          "source": "Cross-checkout harness commit 69e83080343be9aadcabd53f2d9be50ae56524a9: all 25 groups passed on Node 24, including commerce behavior tests, typecheck, lint, and production build.",
+          "observedAt": "2026-11-06T22:19:29.744Z"
+        },
+        {
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "result": "passed",
+          "environment": "test",
+          "source": "GitHub Actions run 42303326872 CQA engineer checks and run 42303326933 Marketplace release gates both succeeded.",
+          "observedAt": "2026-11-06T22:19:29.744Z"
         }
       ]
     }
@@ -72,11 +82,13 @@
     {
       "id": "account-bound-buyer-library",
       "priority": 2,
-      "status": "implemented-in-main-real-two-account-provider-test-unverified",
+      "status": "history-pagination-and-batched-lookups-fixed-in-draft-PR40; real-two-account-provider-test-unverified",
       "workstream": "main",
       "evidence": "Verified-buyer checkout metadata, library API and async account-switch fences locally/CI tested; actual provider journey unverified.",
       "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
-      "pr": 23
+      "pr": 23,
+      "lastRunId": "cqa_backend_20261106220122448",
+      "candidateCommit": "8e124a5bf64b779abe36aa8fd2e8b748df57399b"
     },
     {
       "id": "download-refund-isolation",
@@ -1920,6 +1932,79 @@
         "production_Supabase_Auth_URL_allowlist_and_real_recovery_email_unverified"
       ],
       "nextAction": "Keep releaseStatus NOT_READY. Complete test-only provider fixtures and runner inputs through authorized secure settings, then run the genuine suite on current candidate. Verify production gate state without initiating checkout; confirm Auth URL configuration and a real recovery link after secure Supabase dashboard access."
+    },
+    {
+      "id": "cqa_backend_20261106220122448",
+      "status": "blocked",
+      "workstream": "buyer library history completeness and bounded offer batching",
+      "inspectedCommit": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+      "pushedCommit": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+      "pr": 40,
+      "checks": [
+        {
+          "name": "cross-checkout-harness",
+          "result": "passed",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "local Node 24",
+          "source": "coordination harness 69e83080343be9aadcabd53f2d9be50ae56524a9; 25/25 groups passed"
+        },
+        {
+          "name": "commerce-regressions",
+          "result": "passed",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "local",
+          "source": "npm run test:commerce passed; includes 1,005-order pagination, bounded 100-ID offer batching, tenant match and invalid-token checks"
+        },
+        {
+          "name": "hosted-checks",
+          "result": "passed",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "GitHub Actions",
+          "source": "Runs 42303326872 and 42303326933 succeeded"
+        },
+        {
+          "name": "preview-deployment",
+          "result": "passed",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "Vercel Preview",
+          "source": "Deployment dpl_GbNiutQ19aPWsi41EXrSM3XiS1dj READY on exact candidate SHA"
+        },
+        {
+          "name": "preview-health",
+          "result": "failed",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "Vercel Preview",
+          "source": "/api/health HTTP503: database/schema ok; Stripe missing, Stripe webhook edge error, Connect webhook secret missing, email and sender missing; commerceReady=false"
+        },
+        {
+          "name": "genuine-marketplace-preflight",
+          "result": "blocked",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "local offline preflight",
+          "source": "npm run verify:marketplace missing 14 test-only variables/fixture IDs; no provider requests"
+        },
+        {
+          "name": "private-storage-payment-refund-expiry-isolation",
+          "result": "unverified",
+          "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+          "environment": "Preview integration",
+          "source": "No private R2/Stripe test fixtures; no real payment, upload, refund, expiry or two-account requests performed"
+        },
+        {
+          "name": "checkout-and-release-holds",
+          "result": "passed",
+          "environment": "policy",
+          "source": "No live payment, production settings change, migration, merge or production promotion"
+        }
+      ],
+      "blockers": [
+        "preview_Stripe_and_Connect_webhook_configuration_missing",
+        "Preview_email_sender_configuration_missing",
+        "private_R2_credentials_and_controlled_fixture_values_missing",
+        "genuine_payment_to_download_refund_expiry_and_two_account_tests_unverified"
+      ],
+      "nextAction": "Supply test-only Stripe/Connect webhook and private R2 configuration plus isolated owner and two buyer fixtures in Preview; then run the genuine lifecycle suite and verify access revocation/isolation. Keep releaseStatus NOT_READY.",
+      "finishedAt": "2026-11-06T22:19:29.744Z"
     }
   ],
   "automation": {
@@ -1957,11 +2042,11 @@
     }
   },
   "currentCandidate": {
-    "pr": 23,
-    "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
-    "observedAt": "2026-11-06T21:55:44.176Z",
-    "status": "merged-production-READY-health-green-customer-fulfilment-gates-unverified",
-    "previewDeployment": "dpl_8GpbxziyWPzKon6gXrQCoiipBUvN",
+    "pr": 40,
+    "commitSha": "8e124a5bf64b779abe36aa8fd2e8b748df57399b",
+    "observedAt": "2026-11-06T22:19:29.744Z",
+    "status": "draft-preview-READY-hosted-and-local-checks-passed-provider-integration-gates-unverified",
+    "previewDeployment": "dpl_GbNiutQ19aPWsi41EXrSM3XiS1dj",
     "productionDeployment": "dpl_H46hoFPoLPUDyiUpjFdQhLE51Gqc"
   },
   "businessEvidence": {
