@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 import "./ux-release.css";
+import "./cqa-reference.css";
 import "./inner-pages-premium.css";
 import { NavBar } from "@/components/NavBar";
 
