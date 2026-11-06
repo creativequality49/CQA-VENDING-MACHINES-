@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "cqa_postmerge_20261106215000611",
-    "startedAt": "2026-11-06T21:50:00.611Z",
-    "expiresAt": "2026-11-06T22:35:00.611Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -42,6 +38,20 @@
           "environment": "preview",
           "source": "Vercel deployment dpl_8GpbxziyWPzKon6gXrQCoiipBUvN READY; /automations HTTP200. /api/health is separately degraded and does not imply commerce readiness.",
           "observedAt": "2026-11-06T11:49:23.134Z"
+        },
+        {
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "result": "passed",
+          "environment": "test",
+          "source": "Cross-checkout harness: 24/24 regression groups, TypeScript, lint and production build passed locally on current main; hosted PR38 run 42299553868 success.",
+          "observedAt": "2026-11-06T21:55:44.176Z"
+        },
+        {
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "result": "passed",
+          "environment": "production",
+          "source": "Vercel production deployment dpl_H46hoFPoLPUDyiUpjFdQhLE51Gqc READY; /api/health 200, /automations 200, /marketplace/library 200, /auth/confirm 200. Configuration/reachability only.",
+          "observedAt": "2026-11-06T21:55:44.176Z"
         }
       ]
     }
@@ -50,40 +60,40 @@
     {
       "id": "owner-private-upload",
       "priority": 1,
-      "status": "implemented-in-draft-real-storage-unverified",
-      "workstream": "PR23",
-      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "status": "implemented-in-main-production-config-present-real-storage-tests-unverified",
+      "workstream": "main",
+      "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
       "pr": 23
     },
     {
       "id": "account-bound-buyer-library",
       "priority": 2,
-      "status": "implemented-in-draft-schema-applied-real-isolation-unverified",
-      "workstream": "PR23",
+      "status": "implemented-in-main-real-two-account-provider-test-unverified",
+      "workstream": "main",
       "evidence": "Verified-buyer checkout metadata, library API and async account-switch fences locally/CI tested; actual provider journey unverified.",
-      "commitSha": "5518ad1ad3e2f33b300115b805aa99458cf39e71",
+      "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
       "pr": 23
     },
     {
       "id": "download-refund-isolation",
       "priority": 3,
-      "status": "refund-ordering-repaired-in-draft-real-integration-unverified",
-      "workstream": "PR23",
-      "commitSha": "f5cd392c9b02175c253bd74d63831a4684aa768a",
+      "status": "implemented-in-main-real-provider-expiry-refund-and-isolation-unverified",
+      "workstream": "main",
+      "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
       "pr": 23
     },
     {
       "id": "regressions-typecheck-build",
       "priority": 4,
-      "status": "passed-local-and-hosted-CI",
-      "evidence": "23 final local groups PASS; both hosted workflows 41365736198 and 41365736251 SUCCESS; CQA preview dpl_Fwi2zvDKFN5GjQgadJHHeS2YRTex READY on the same SHA.",
-      "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b"
+      "status": "passed-local-on-current-main-and-hosted-PR38",
+      "evidence": "2026-11-06 local harness 24/24 passed on current main 9ed7658c40361d624f5fb8e2810ac81dd330de81; PR38 hosted run 42299553868 success.",
+      "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81"
     },
     {
       "id": "stripe-supabase-integration",
       "priority": 5,
-      "status": "Preview-deployed-READY-health-degraded-stripe-connect-email-missing-runner-fixtures-missing",
-      "evidence": "2026-11-06: exact PR23 candidate 1da9eb4175435b85871ea3e550d624a2e790c83b deployed READY to Vercel Preview dpl_8GpbxziyWPzKon6gXrQCoiipBUvN. /automations HTTP200; /api/health HTTP503: database/schema ok, Stripe missing, Stripe webhook edge error, email/sender missing, Connect webhook missing, commerceReady=false. Offline runner remains blocked on 14 test-only inputs/fixture identifiers. Fresh 2026-11-06 read-only Stripe test account check confirms CQA Isolated Launch Test exists but GET /v1/webhook_endpoints returns an empty list (0 configured webhook endpoints)."
+      "status": "production-runtime-config-health-ok-preview-genuine-runner-fixtures-missing",
+      "evidence": "2026-11-06 production deployment on main 9ed7658c40361d624f5fb8e2810ac81dd330de81 /api/health reports commerceReady=true and launchConfigurationReady=true; this only proves config presence, not successful fulfilment. PR23 genuine runner preflight still exits2 with 14 absent test-only inputs. Isolated Stripe test account has zero webhook endpoints."
     },
     {
       "id": "branding-mobile-conversion",
@@ -148,11 +158,11 @@
     {
       "id": "genuine-marketplace-verification-runner",
       "priority": 1,
-      "status": "implemented-in-draft-actual-preflight-blocked",
-      "workstream": "PR23",
-      "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "status": "implemented-in-main-actual-preflight-blocked",
+      "workstream": "main",
+      "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
       "pr": 23,
-      "evidence": "2026-11-06 rerun npm run verify:marketplace: offline preflight exited2, missing 14 test-only runner inputs/fixture identifiers; no provider requests. All 23 mocked/local harness groups passed on exact PR23 candidate; no genuine provider gates passed."
+      "evidence": "On current main 9ed7658c40361d624f5fb8e2810ac81dd330de81, npm run verify:marketplace exits2 missing-configuration; 14 test-only inputs/fixture identifiers absent; no provider calls."
     },
     {
       "id": "vercel-isolated-preview-setup",
@@ -1812,6 +1822,100 @@
         "Supabase-auth-dashboard-sign-in-method-required-before-reading-URL-allowlist"
       ],
       "nextAction": "After Brooke selects a Supabase dashboard sign-in method in the secure browser flow, inspect the production project's Auth URL Configuration and apply the previously requested CQA domain allowlist only if it is incorrect; then verify an actual recovery link. Separately, set Preview-only test Stripe/Connect webhook credentials, test email sink, private R2 credentials and controlled owner/two-buyer fixtures, then execute the genuine runner. Keep live checkout and release holds closed."
+    },
+    {
+      "id": "cqa_postmerge_20261106215000611",
+      "status": "blocked",
+      "workstream": "post-merge main verification and launch gate reconciliation",
+      "inspectedCommit": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "inspectedCommercePrCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "inspectedUxPrCommit": "49551156387378c9372e8e4346347907a5d9d404",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "PR23-merged",
+          "result": "passed",
+          "commitSha": "a9d868faa1cb920668afccbe1024b4a03dfd1aa7",
+          "environment": "GitHub",
+          "source": "PR23 closed/merged by user; merge commit a9d868faa1cb920668afccbe1024b4a03dfd1aa7."
+        },
+        {
+          "name": "PR31-and-PR38-merged",
+          "result": "passed",
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "environment": "GitHub",
+          "source": "PR31 merged as e8d93638a28c537f44a53aa89b14e4cb092c50ea; PR38 merged as 9ed7658c40361d624f5fb8e2810ac81dd330de81."
+        },
+        {
+          "name": "latest-production-deployment",
+          "result": "passed",
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "environment": "Vercel production",
+          "source": "Deployment dpl_H46hoFPoLPUDyiUpjFdQhLE51Gqc READY on current main."
+        },
+        {
+          "name": "current-main-local-harness",
+          "result": "passed",
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "environment": "local",
+          "source": "Cross-checkout harness after npm ci: 24/24 behavior/regression groups, TypeScript, lint, production build all passed."
+        },
+        {
+          "name": "current-main-hosted-check",
+          "result": "passed",
+          "commitSha": "770af2acd618d5dd3a388cdc5cf1306ce52eb10f",
+          "environment": "GitHub Actions",
+          "source": "PR38 engineer workflow 42299553868 success; PR23 head workflows 41365736198 and 41365736251 had passed before merge."
+        },
+        {
+          "name": "production-public-health-and-routes",
+          "result": "passed",
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "environment": "production",
+          "source": "/api/health 200 with commerceReady=true, launchConfigurationReady=true; /automations, /marketplace/library, /auth/confirm returned HTTP200. These are configuration/reachability checks only."
+        },
+        {
+          "name": "genuine-marketplace-runner-preflight",
+          "result": "blocked",
+          "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+          "environment": "local offline preflight",
+          "source": "npm run verify:marketplace exited2 missing-configuration with 14 test-only input/fixture variables absent; no provider requests."
+        },
+        {
+          "name": "genuine-private-storage-payment-download-refund-expiry-two-account",
+          "result": "unverified",
+          "environment": "test integration",
+          "source": "No test-mode webhook endpoints or controlled owner/two-buyer/R2 fixtures; no genuine provider tests run."
+        },
+        {
+          "name": "auth-recovery-link",
+          "result": "unverified",
+          "environment": "production/Supabase Auth",
+          "source": "Public site auth page route responds, but dashboard Auth URL settings and actual recovery email link not verified; Supabase dashboard sign-in method request was cancelled/timed out."
+        },
+        {
+          "name": "customer-payment-gate-state",
+          "result": "unverified",
+          "environment": "production",
+          "source": "Health endpoint reports service configuration only; it does not expose checkout approval flags. Vercel environment metadata remains 403. No checkout session was created."
+        },
+        {
+          "name": "release-holds",
+          "result": "passed",
+          "environment": "policy",
+          "source": "No agent-triggered merge/deploy/promotion, migration, live payment/refund or gate-setting change."
+        }
+      ],
+      "blockers": [
+        "CQA_TEST_runner_14_missing_inputs_and_fixture_values",
+        "isolated_Stripe_test_webhook_endpoint_and_connected_sandbox_merchant_missing",
+        "private_R2_owner_upload_persistence_public_denial_and_two_account_tests_unverified",
+        "genuine_payment_to_download_and_refund_expiry_revoke_tests_unverified",
+        "production_customer_checkout_gate_value_unverified_due_Vercel_env_403",
+        "production_Supabase_Auth_URL_allowlist_and_real_recovery_email_unverified"
+      ],
+      "nextAction": "Keep releaseStatus NOT_READY. Complete test-only provider fixtures and runner inputs through authorized secure settings, then run the genuine suite on current candidate. Verify production gate state without initiating checkout; confirm Auth URL configuration and a real recovery link after secure Supabase dashboard access."
     }
   ],
   "automation": {
@@ -1850,10 +1954,11 @@
   },
   "currentCandidate": {
     "pr": 23,
-    "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
-    "observedAt": "2026-11-06T12:34:01.602Z",
-    "status": "draft-preview-READY-health-degraded-live-holds-closed",
-    "previewDeployment": "dpl_8GpbxziyWPzKon6gXrQCoiipBUvN"
+    "commitSha": "9ed7658c40361d624f5fb8e2810ac81dd330de81",
+    "observedAt": "2026-11-06T21:55:44.176Z",
+    "status": "merged-production-READY-health-green-customer-fulfilment-gates-unverified",
+    "previewDeployment": "dpl_8GpbxziyWPzKon6gXrQCoiipBUvN",
+    "productionDeployment": "dpl_H46hoFPoLPUDyiUpjFdQhLE51Gqc"
   },
   "businessEvidence": {
     "stripeTaxReadOnly": {
