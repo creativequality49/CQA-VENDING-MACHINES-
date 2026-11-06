@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
 import "./machine-store.css";
 
@@ -36,7 +37,7 @@ export default function MachinesPage() {
               <Link href={`/onboarding?plan=${plan.key}`} className="cqa-store-primary">Get started</Link>
             </div>
           </div>
-          <div className="cqa-store-machine" aria-hidden="true"><div className="cqa-store-machine-top">CQA <span>0{index+1}</span></div><div className="cqa-store-machine-window">{Array.from({length:6},(_,i)=><span key={i}><i /></span>)}</div><div className="cqa-store-machine-foot"><span>EXPLORE</span><b>▣</b></div></div>
+          <div className="cqa-store-machine" aria-hidden="true"><div className="cqa-store-machine-top">CQA <span>0{index+1}</span></div><div className="cqa-store-machine-window">{["headphones","camera","sneaker","bag","watch","tablet"].map(item=><span key={item}><Image src={`/images/slots/${item}.svg`} alt="" width={64} height={64} unoptimized /></span>)}</div><div className="cqa-store-machine-foot"><span>EXPLORE</span><b>▣</b></div></div>
         </article>;
       })}
     </section>
