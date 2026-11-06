@@ -1,0 +1,40 @@
+/* CQA mobile design system v2: purpose-built digital vending UI, not physical-goods mockups. */
+:root{--cqa-v2-bg:#05070d;--cqa-v2-panel:#0d111b;--cqa-v2-border:#303441;--cqa-v2-pink:#ff2d8d;--cqa-v2-cyan:#00e5ff;--cqa-v2-copy:#f8f9fd;--cqa-v2-muted:#a9b3c4}
+html{overflow-x:clip}body{background:var(--cqa-v2-bg)!important;color:var(--cqa-v2-copy)!important}
+:where(.button.primary,.neon-enter-button,.nav-cta,.cqa-premium-builder .button.primary){background:linear-gradient(115deg,#ff2d8d,#f41176)!important;color:#fff!important;border:1px solid #ff5ca9!important;box-shadow:0 7px 22px #ff2d8d30!important;border-radius:12px!important;font-weight:750!important}
+:where(.button.ghost,.cqa-premium-builder .button.ghost){background:#0b111a!important;color:#eafaff!important;border:1px solid #00e5ff85!important;border-radius:12px!important}
+:where(.glass-card,.machine-offer-slot,.worker-card,.neon-plan,.cqa-wizard-panel){border-radius:16px}
+:where(.button,a,button,input,select,textarea):focus-visible{outline:2px solid var(--cqa-v2-cyan)!important;outline-offset:3px}
+@media(max-width:760px){
+ body{padding-bottom:78px!important}
+ .cqa-announcement{font-size:10px!important;line-height:1.4!important;padding:7px 16px!important}
+ .site-header .nav-shell{min-height:58px!important}
+ .cqa-logo-image{width:112px!important;max-height:42px!important}
+ .cqa-menu-trigger{min-height:42px!important;min-width:44px!important;padding:9px!important}
+ .cqa-menu-trigger b{display:none!important}
+ .container,.cqa-onboarding-page{width:calc(100% - 28px)!important;max-width:560px!important}
+ .cqa-premium-builder{padding:18px 0 35px!important}
+ .cqa-premium-builder .cqa-launch-form{padding:16px!important;border-radius:20px!important;background:linear-gradient(155deg,#10131d,#080b12)!important;border:1px solid #353947!important;box-shadow:none!important;min-width:0!important}
+ .cqa-premium-builder .cqa-launch-intro{padding:0 0 16px!important;margin-bottom:18px!important}
+ .cqa-premium-builder .cqa-launch-intro .eyebrow{font-size:10px!important;letter-spacing:.1em!important;line-height:1.5!important;white-space:normal!important}
+ .cqa-premium-builder .cqa-launch-intro h1{font-size:clamp(26px,7.5vw,34px)!important;line-height:1.13!important;overflow-wrap:break-word!important;margin:12px 0!important}
+ .cqa-premium-builder .cqa-launch-intro p{font-size:13px!important;line-height:1.55!important}
+ .cqa-premium-builder .cqa-launch-stepper{background:transparent!important;border:0!important;padding:0!important;margin:0 0 18px!important;overflow:visible!important}
+ .cqa-premium-builder .cqa-launch-stepper>div{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin:10px 0!important}
+ .cqa-premium-builder .cqa-launch-stepper button{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;padding:8px 2px!important;font-size:10px!important;line-height:1.2!important;overflow-wrap:anywhere!important;background:#111622!important;border:1px solid #303847!important;color:#d3d7e0!important;border-radius:10px!important}
+ .cqa-premium-builder .cqa-launch-stepper button.is-current{border-color:var(--cqa-v2-pink)!important;background:#331125!important;box-shadow:0 0 0 1px #ff2d8d33!important}
+ .cqa-premium-builder .cqa-launch-stepper button i{width:24px!important;height:24px!important;color:#fff!important;border-color:#656c7d!important}
+ .cqa-premium-builder .cqa-launch-stepper button.is-current i{background:var(--cqa-v2-pink)!important;border-color:var(--cqa-v2-pink)!important}
+ .cqa-premium-builder .cqa-wizard-panel{padding:13px!important;border-radius:14px!important}
+ .cqa-premium-builder .cqa-wizard-panel h2,.cqa-premium-builder .cqa-wizard-panel h3{font-size:19px!important;line-height:1.25!important}
+ .cqa-premium-builder .cqa-wizard-controls{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+ .cqa-premium-builder .cqa-wizard-controls>.button:only-child{grid-column:1/-1}
+ .cqa-premium-builder .cqa-wizard-controls .button{min-height:46px!important;padding:10px!important;font-size:12px!important}
+ .cqa-premium-builder input,.cqa-premium-builder textarea,.cqa-premium-builder select{font-size:16px!important;max-width:100%!important}
+ .mobile-dock{position:fixed!important;bottom:0!important;left:0!important;right:0!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:0!important;padding:7px 6px max(7px,env(safe-area-inset-bottom))!important;background:#080a10f5!important;border-top:1px solid #3c3041!important;z-index:90!important;border-radius:0!important}
+ .mobile-dock a{min-width:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;padding:5px 0!important;font-size:10px!important;color:#c8ced9!important;text-decoration:none!important}
+ .mobile-dock a b{font-size:22px!important;line-height:1.1!important;color:var(--cqa-v2-pink)!important}
+ .mobile-dock a span{white-space:nowrap!important;font-size:10px!important}
+ .machine-detail-shell,.neon-machine,.cqa-launch-form{max-width:100%!important}
+}
+@media(max-width:360px){.cqa-premium-builder .cqa-launch-form{padding:12px!important}.mobile-dock a span{font-size:9px!important}}
