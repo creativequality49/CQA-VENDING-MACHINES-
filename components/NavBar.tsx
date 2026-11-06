@@ -20,6 +20,7 @@ export function NavBar() {
           <nav className="cqa-desktop-links" aria-label="Primary navigation">
             <Link href="/">Home</Link>
             <Link href="/machines">Machine Store</Link>
+            <Link href="/digital-products">Digital Kits</Link>
             <Link href="/onboarding">Build My Machine</Link>
             <Link href="/automations">Automations</Link>
             <Link href="/pricing">Pricing</Link>
@@ -38,6 +39,7 @@ export function NavBar() {
               </div>
               <Link href="/">Home <span>01</span></Link>
               <Link href="/machines">Machine Store <span>02</span></Link>
+              <Link href="/digital-products">Digital Kits <span>NEW</span></Link>
               <Link href="/onboarding">Build My Machine <span>03</span></Link>
               <Link href="/pricing">Pricing <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>
@@ -54,7 +56,7 @@ export function NavBar() {
       </header>
 
       <nav className="mobile-dock" aria-label="Mobile navigation">
-        <Link href="/marketplace"><b>⌂</b><span>Explore</span></Link>
+        <Link href="/digital-products"><b>⌂</b><span>Explore</span></Link>
         <Link href="/onboarding"><b>＋</b><span>Launch</span></Link>
         <Link href="/owner/dashboard"><b>▦</b><span>Workspace</span></Link>
         <Link href="/automations"><b>✦</b><span>Automate</span></Link>
