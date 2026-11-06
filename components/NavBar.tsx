@@ -54,10 +54,11 @@ export function NavBar() {
       </header>
 
       <nav className="mobile-dock" aria-label="Mobile navigation">
-        <Link href="/marketplace"><b>⌂</b><span>Explore</span></Link>
-        <Link href="/onboarding"><b>＋</b><span>Launch</span></Link>
-        <Link href="/owner/dashboard"><b>▦</b><span>Workspace</span></Link>
-        <Link href="/automations"><b>✦</b><span>Automate</span></Link>
+        <Link href="/"><b>⌂</b><span>Home</span></Link>
+        <Link href="/marketplace"><b>▣</b><span>Market</span></Link>
+        <Link href="/onboarding"><b>＋</b><span>Machines</span></Link>
+        <Link href="/dashboard/library"><b>▤</b><span>Library</span></Link>
+        <Link href="/owner/dashboard"><b>♙</b><span>Account</span></Link>
       </nav>
     </>
   );
