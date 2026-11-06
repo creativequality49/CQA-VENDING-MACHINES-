@@ -1,5 +1,6 @@
-import { getCqaAuthOrigin } from "@/lib/cqa-auth-origin";
 "use client";
+
+import { getCqaAuthOrigin } from "@/lib/cqa-auth-origin";
 
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
