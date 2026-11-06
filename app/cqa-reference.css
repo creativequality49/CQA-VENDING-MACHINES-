@@ -1,0 +1,100 @@
+/* Reference UI system: compact dark-glass vending screens across every route. */
+:root {
+  --ref-bg: #080a0e;
+  --ref-panel: rgba(20, 25, 32, .78);
+  --ref-panel-soft: rgba(255,255,255,.045);
+  --ref-line: rgba(148, 229, 238, .19);
+  --ref-cyan: #78e4ec;
+  --ref-pink: #ff42ba;
+  --ref-text: #f5f8fa;
+  --ref-muted: #aeb9c1;
+}
+
+html, body { background: var(--ref-bg) !important; }
+body { color: var(--ref-text) !important; background: radial-gradient(circle at 15% -5%, rgba(79,191,207,.12), transparent 30%), radial-gradient(circle at 95% 12%, rgba(255,66,186,.06), transparent 25%), var(--ref-bg) !important; }
+body:before { opacity: .035 !important; }
+.container, .cqa-home-shell, .cqa-onboarding-page { width: min(1120px, calc(100% - 32px)) !important; }
+
+/* Compact glass navigation shared by every page. */
+.cqa-announcement { padding: 7px 16px !important; font-size: 9px !important; letter-spacing: .08em !important; background: rgba(10,14,18,.9) !important; border-bottom: 1px solid var(--ref-line) !important; }
+.site-header, .cqa-topbar { background: rgba(8,11,15,.82) !important; border-bottom: 1px solid var(--ref-line) !important; box-shadow: 0 12px 36px rgba(0,0,0,.22) !important; }
+.nav-shell, .cqa-nav-shell { min-height: 62px !important; width: min(1120px, calc(100% - 32px)) !important; }
+.cqa-logo-image { width: 84px !important; height: auto !important; }
+.cqa-desktop-links { gap: 16px !important; font-size: 11px !important; }
+.cqa-dashboard-link { font-size: 10px !important; color: var(--ref-cyan) !important; }
+.cqa-menu-trigger { padding: 8px 10px !important; border-radius: 11px !important; background: rgba(255,255,255,.045) !important; border-color: var(--ref-line) !important; box-shadow: none !important; }
+.cqa-menu-panel { border-color: var(--ref-line) !important; background: rgba(14,19,25,.94) !important; }
+
+/* All content surfaces use the same quiet glass treatment. */
+:where(.glass-card, .vending-shell, .machine-card-home, .flow-card, .worker-hero-panel, .worker-card, .marketplace-neon-hero, .marketplace-live-panel, .neon-machine, .neon-plan, .machine-detail-shell, .machine-detail-screen, .machine-offer-slot, .setup-hero, .setup-template-lock, .setup-chat, .setup-panel, .setup-build-panel, .setup-machine-summary, .integration-card, .integrations-stripe, .custom-connection-form, .integration-next, .final-panel, .revenue-stack>div, .cqa-command-tile, .cqa-float-tile, .cqa-capability-tile, .cqa-owner-tile, .cqa-final-tile) {
+  background: linear-gradient(145deg, rgba(255,255,255,.085), rgba(255,255,255,.025)) !important;
+  border: 1px solid var(--ref-line) !important;
+  box-shadow: 0 18px 50px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.055) !important;
+  backdrop-filter: blur(18px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(125%) !important;
+}
+:where(.vending-shell, .neon-machine, .machine-detail-shell) { transform: none !important; }
+:where(h1,h2,h3,h4,strong) { letter-spacing: -.025em; }
+:where(.hero-copy h1, .marketplace-neon-hero h1, .machine-detail-header h1, .cqa-home h1) { font-style: normal !important; }
+:where(.hero-lead, .cqa-home-lede, .marketplace-neon-hero p, .worker-hero-panel p, .machine-detail-header p, .glass-card p) { color: var(--ref-muted) !important; }
+.button.primary, .neon-enter-button, .nav-cta { background: linear-gradient(135deg, #b9f6f6, #63d5df) !important; color: #071014 !important; border: 1px solid rgba(190,250,250,.65) !important; box-shadow: 0 9px 24px rgba(73,199,210,.18) !important; }
+.button.ghost { background: rgba(255,255,255,.045) !important; border-color: var(--ref-line) !important; }
+.eyebrow, .cqa-kicker, .neon-kicker, .screen-title, .machine-card-topline span, .worker-index { color: var(--ref-cyan) !important; }
+
+/* Make hero screens read like the supplied phone reference instead of posters. */
+.hero-grid, .cqa-hero-grid, .cqa-home-grid { gap: 22px !important; padding-top: 42px !important; padding-bottom: 46px !important; }
+.hero-copy h1, .cqa-home h1 { font-size: clamp(38px, 6vw, 62px) !important; line-height: 1.02 !important; margin: 14px 0 !important; }
+.hero-lead, .cqa-home-lede { font-size: 15px !important; line-height: 1.55 !important; }
+.cqa-home-actions { gap: 9px !important; }
+.cqa-home-actions .button { padding: 11px 14px !important; font-size: 11px !important; }
+.cqa-command-tile { padding: 13px !important; border-radius: 16px !important; }
+.cqa-scarlett-image { height: 190px !important; object-fit: cover !important; border-radius: 12px !important; opacity: .84; }
+.cqa-tile-screen { margin-top: 10px !important; padding: 13px !important; }
+.cqa-tile-screen strong { font-size: 21px !important; line-height: 1.08 !important; }
+.cqa-tile-slots { gap: 7px !important; }
+.cqa-tile-slots>div { padding: 9px !important; }
+
+/* Marketplace, machines, workers, pricing and owner pages share phone-sized rhythm. */
+.marketplace-neon-hero, .setup-hero { padding: 20px !important; margin-bottom: 12px !important; }
+.marketplace-neon-hero h1, .setup-hero h1 { font-size: clamp(32px, 7vw, 50px) !important; }
+.marketplace-live-panel strong { font-size: 32px !important; }
+.neon-machine { min-height: 0 !important; border-radius: 20px !important; }
+.neon-machine-screen, .machine-detail-screen { padding: 14px !important; border-radius: 13px !important; }
+.neon-machine-screen strong { font-size: 19px !important; }
+.neon-product-slot, .machine-offer-slot { min-height: 118px !important; padding: 10px !important; }
+.machine-detail-header h1 { font-size: clamp(34px, 8vw, 56px) !important; }
+.neon-plan { border-radius: 18px !important; }
+.plan-display strong { font-size: 42px !important; }
+.worker-card { min-height: 280px !important; padding: 20px !important; }
+.worker-card h2, .worker-card h3 { font-size: 24px !important; }
+.section-block, .cqa-home-section { padding-top: 46px !important; padding-bottom: 46px !important; }
+.section-heading h2, .cqa-home-section h2, .final-panel h2 { font-size: clamp(30px, 7vw, 48px) !important; }
+
+/* Forms and dashboard panels should remain legible and dense on mobile. */
+input, select, textarea { background: rgba(7,11,15,.72) !important; color: var(--ref-text) !important; border-color: rgba(148,229,238,.18) !important; border-radius: 10px !important; }
+.cqa-launch-form, .cqa-launch-intro { border-radius: 18px !important; }
+.cqa-launch-fields > label, .cqa-launch-offers, .cqa-launch-fields > .grid { background: rgba(255,255,255,.025) !important; border-color: rgba(255,255,255,.1) !important; }
+.mobile-dock { background: rgba(8,11,15,.9) !important; border-top: 1px solid var(--ref-line) !important; backdrop-filter: blur(18px) !important; }
+
+@media (max-width: 760px) {
+  .container, .cqa-home-shell, .cqa-onboarding-page { width: min(100% - 22px, 560px) !important; }
+  .cqa-desktop-links, .cqa-dashboard-link { display: none !important; }
+  .nav-shell, .cqa-nav-shell { width: calc(100% - 22px) !important; }
+  .hero-grid, .cqa-hero-grid, .cqa-home-grid { padding-top: 28px !important; padding-bottom: 30px !important; gap: 18px !important; }
+  .hero-copy h1, .cqa-home h1 { font-size: 36px !important; }
+  .hero-actions, .cqa-home-actions { display: grid !important; grid-template-columns: 1fr !important; }
+  .hero-actions .button, .cqa-home-actions .button { width: 100% !important; }
+  .cqa-scarlett-image { height: 145px !important; }
+  .cqa-float-grid, .cqa-capability-grid, .machine-grid-home, .flow-grid, .worker-grid, .marketplace-worker-grid, .outcome-grid, .faq-grid, .neon-machine-grid, .neon-plan-grid, .integration-grid { grid-template-columns: 1fr !important; }
+  .cqa-float-tile, .cqa-capability-tile { padding: 17px !important; }
+  .final-panel { padding: 23px !important; margin-bottom: 42px !important; }
+  .marketplace-neon-hero h1, .setup-hero h1 { font-size: 32px !important; }
+  .machine-detail-shell { border-radius: 18px !important; }
+  .neon-machine-rail { display: none !important; }
+  .neon-machine { grid-template-columns: 1fr !important; padding: 6px !important; }
+  .neon-machine-main { padding: 10px !important; }
+  .machine-detail-main { padding: 12px !important; }
+  .machine-offer-bay { grid-template-columns: 1fr !important; }
+  .machine-detail-footer { grid-template-columns: 1fr 1fr !important; }
+  .setup-hero, .setup-builder-grid { grid-template-columns: 1fr !important; }
+}
