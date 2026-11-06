@@ -19,7 +19,7 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
-    "test:mcp": "tsx --test tests/cqa-mcp.test.ts"
+    "test:mcp": "node --import tsx --test tests/cqa-mcp.test.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.7.4",
