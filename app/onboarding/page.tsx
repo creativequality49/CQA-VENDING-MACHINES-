@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CQA_PLANS, getBrowserSupabaseClient, type PlanKey } from "@/lib/cqa-marketplace";
 import CqaMachinePreview, { type PreviewOffer } from "@/components/CqaMachinePreview";
+import "./onboarding-premium.css";
 
 const STORAGE = "cqa-onboarding-preview-v1";
 const PREVIEW_LIFETIME_MS = 24 * 60 * 60 * 1000;
@@ -134,7 +135,7 @@ function OnboardingForm() {
     finally { busy.current = false; setLoading(false); }
   }
   return <form ref={formRef} onSubmit={submit} className="glass-card cqa-launch-form cqa-launch-wizard">
-    <div className="cqa-launch-intro"><span id="machine-preview" className="cqa-anchor" aria-hidden="true" /><span className="eyebrow">DESIGN FIRST · NO PAYMENT REQUIRED</span><h1>See your business machine before you pay.</h1><p className="small">Build and review your machine in four simple steps. The preview is free and no login is needed.</p><Link href="/pricing">Compare plans</Link></div>
+    <div className="cqa-launch-intro"><span id="machine-preview" className="cqa-anchor" aria-hidden="true" /><span className="eyebrow">DESIGN FIRST · NO PAYMENT REQUIRED</span><h1>Build Your <em>Digital Machine</em></h1><p className="small">Create your own branded digital storefront in four steps. Design and preview for free, then choose whether to activate.</p><Link href="/pricing">Compare plans</Link></div>
     <nav className="cqa-launch-stepper" aria-label="Launch setup progress" aria-live="polite">
       <span className="cqa-step-count">STEP {step + 1} OF {stepNames.length}</span>
       <div>{stepNames.map((label, index) => <button key={label} type="button" className={index === step ? "is-current" : index < step ? "is-complete" : ""} aria-current={index === step ? "step" : undefined} disabled={index > step} onClick={() => { setStep(index); window.scrollTo({ top: 0, behavior: "smooth" }); }}><i>{index < step ? "✓" : index + 1}</i><span>{label}</span></button>)}</div>
@@ -168,4 +169,4 @@ function OnboardingForm() {
     <div className="cqa-wizard-controls">{step > 0 ? <button type="button" className="button ghost" onClick={previousStep}>← Back</button> : <span />}{step < 3 ? <button type="button" className="button primary" onClick={continueStep}>Continue to {stepNames[step + 1]} →</button> : null}</div>
   </form>;
 }
-export default function OnboardingPage() { return <main className="container cqa-onboarding-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}><Suspense fallback={<p>Loading onboarding…</p>}><OnboardingForm /></Suspense></main>; }
+export default function OnboardingPage() { return <main className="container cqa-onboarding-page cqa-premium-builder" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}><Suspense fallback={<p>Loading onboarding…</p>}><OnboardingForm /></Suspense></main>; }
