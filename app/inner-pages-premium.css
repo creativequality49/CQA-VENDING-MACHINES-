@@ -1,0 +1,13 @@
+/* Shared inner-page visual layer; scoped to non-home content. Preserve existing flows and handlers. */
+:root{--cqa-ink:#05080d;--cqa-card:#101720;--cqa-edge:#294453;--cqa-aqua:#34e3ed;--cqa-magenta:#ff39aa}
+body{background:radial-gradient(ellipse at 100% 15%,rgba(190,17,111,.07),transparent 40%),#05080d}
+main.container:not(.cqa-luxe-home):not(.cqa-store):not(.cqa-premium-builder){color:#f4f8fc}
+main.container:not(.cqa-luxe-home):not(.cqa-store):not(.cqa-premium-builder)>.glass-card,main.container:not(.cqa-luxe-home):not(.cqa-store):not(.cqa-premium-builder)>section.glass-card{border:1px solid var(--cqa-edge);background:linear-gradient(145deg,#121a24,#0a0f16);border-radius:18px;box-shadow:0 14px 36px #0005}
+main.container .eyebrow{color:#7aeef2;letter-spacing:.16em}
+main.container:not(.cqa-luxe-home) h1{letter-spacing:-.045em;line-height:1.12}
+main.container:not(.cqa-luxe-home) .button.primary{background:linear-gradient(115deg,#a0f9fb,#30dfe9);color:#03131b;border-color:transparent;box-shadow:0 6px 22px #13d5e52a;border-radius:11px}
+main.container:not(.cqa-luxe-home) .button.ghost{border-color:#376172;background:#0b1721;color:#e5f9fd;border-radius:11px}
+main.container:not(.cqa-luxe-home) input:not([type=radio]):not([type=checkbox]):not([type=color]),main.container:not(.cqa-luxe-home) textarea,main.container:not(.cqa-luxe-home) select{max-width:100%;border-radius:11px;border-color:#334d5c;background-color:#090f17;color:#f2f8fb}
+main.container:not(.cqa-luxe-home) :is(a,button,input,select,textarea):focus-visible{outline:2px solid #5ef0f6;outline-offset:3px}
+main.container:not(.cqa-luxe-home) .glass-card{backdrop-filter:none}
+@media(max-width:640px){main.container:not(.cqa-luxe-home):not(.cqa-store):not(.cqa-premium-builder){width:min(100% - 28px,560px)}main.container:not(.cqa-luxe-home) h1{font-size:clamp(27px,8vw,38px)}main.container:not(.cqa-luxe-home) .grid.grid-3{grid-template-columns:1fr}main.container:not(.cqa-luxe-home) .button{min-height:42px}}
