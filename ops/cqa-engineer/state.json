@@ -4,7 +4,11 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": null,
+  "lease": {
+    "runId": "cqa_postmerge_20261106215000611",
+    "startedAt": "2026-11-06T21:50:00.611Z",
+    "expiresAt": "2026-11-06T22:35:00.611Z"
+  },
   "releaseStatus": "NOT_READY",
   "gates": [
     {
