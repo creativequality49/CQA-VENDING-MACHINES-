@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "cqa_continue_20261106115209579",
-    "startedAt": "2026-11-06T11:52:09.579Z",
-    "expiresAt": "2026-11-06T12:37:09.579Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -83,7 +79,7 @@
       "id": "stripe-supabase-integration",
       "priority": 5,
       "status": "Preview-deployed-READY-health-degraded-stripe-connect-email-missing-runner-fixtures-missing",
-      "evidence": "2026-11-06: exact PR23 candidate 1da9eb4175435b85871ea3e550d624a2e790c83b deployed READY to Vercel Preview dpl_8GpbxziyWPzKon6gXrQCoiipBUvN. /automations HTTP200; /api/health HTTP503: database/schema ok, Stripe missing, Stripe webhook edge error, email/sender missing, Connect webhook missing, commerceReady=false. Offline runner remains blocked on 14 test-only inputs/fixture identifiers."
+      "evidence": "2026-11-06: exact PR23 candidate 1da9eb4175435b85871ea3e550d624a2e790c83b deployed READY to Vercel Preview dpl_8GpbxziyWPzKon6gXrQCoiipBUvN. /automations HTTP200; /api/health HTTP503: database/schema ok, Stripe missing, Stripe webhook edge error, email/sender missing, Connect webhook missing, commerceReady=false. Offline runner remains blocked on 14 test-only inputs/fixture identifiers. Fresh 2026-11-06 read-only Stripe test account check confirms CQA Isolated Launch Test exists but GET /v1/webhook_endpoints returns an empty list (0 configured webhook endpoints)."
     },
     {
       "id": "branding-mobile-conversion",
@@ -167,6 +163,13 @@
       "status": "review-needed-no-tax-settings-changed",
       "workstream": "business",
       "evidence": "Earlier live Stripe GET shows activeAUtaxregistration; fresh02NovABRlistsnotGSTregistered. Existing ten automation links automatic_tax=false, advertisedtotals unchanged. Flag for concrete review; no silent billing/tax change."
+    },
+    {
+      "id": "production-auth-redirect-url",
+      "priority": 2,
+      "status": "client-project-identified-auth-dashboard-login-required",
+      "workstream": "Auth",
+      "evidence": "Production /login JS uses Supabase project rjxiuukphwybujuclenn (project metadata name fanxfantasy, ACTIVE_HEALTHY). Auth URL configuration not read or changed: Supabase dashboard requires a user-selected sign-in method; no credentials entered. Actual email recovery/login link still untested."
     }
   ],
   "runs": [
@@ -1735,6 +1738,76 @@
         "production-Supabase-project-mapping-and-auth-redirect-test-unverified"
       ],
       "nextAction": "Configure the missing test-mode Stripe and Connect webhook settings, email test sink, private R2 bucket and controlled owner/two-buyer fixtures in Preview using the appropriate secure provider dashboards. Add the 14 runner inputs in the existing secure runner context, then execute on this exact deployed SHA. Confirm the production Supabase project and Auth URL allowlist from authorized project settings; do not guess or change production policy."
+    },
+    {
+      "id": "cqa_continue_20261106115209579",
+      "status": "blocked",
+      "workstream": "Marketplace integration and production auth redirect diagnosis",
+      "inspectedCommit": "b0a055361aacc7a154a5f66acbaecd778395b06c",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "inspectedCommercePrCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "inspectedUxPrCommit": "49551156387378c9372e8e4346347907a5d9d404",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "coordination-lease",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "State lease claimed with content SHA 7a3e023aaeca7742f35250f620271913e6a80d80 and released by fresh SHA."
+        },
+        {
+          "name": "production-auth-client-project-mapping",
+          "result": "passed",
+          "environment": "public production bundle / Supabase metadata",
+          "source": "Production login JS chunk for deployment dpl_3UDVr8usebHqZBm9atSn94LAg18C contains public Supabase URL for project rjxiuukphwybujuclenn; Supabase metadata labels it fanxfantasy and ACTIVE_HEALTHY."
+        },
+        {
+          "name": "production-auth-url-settings-and-email-link",
+          "result": "unverified",
+          "environment": "Supabase Auth",
+          "source": "Dashboard redirected to sign-in; multiple methods offered (GitHub, ChatGPT, email/password, SSO). Browser auth method prompt timed out; no credential entered and no setting changed."
+        },
+        {
+          "name": "isolated-stripe-test-webhooks",
+          "result": "failed",
+          "environment": "Stripe test mode",
+          "source": "CQA Isolated Launch Test test account exists; GET /v1/webhook_endpoints returned empty data list."
+        },
+        {
+          "name": "candidate-preview-deployment",
+          "result": "passed",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "environment": "Vercel Preview",
+          "source": "Deployment dpl_8GpbxziyWPzKon6gXrQCoiipBUvN READY."
+        },
+        {
+          "name": "preview-commerce-health",
+          "result": "failed",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "environment": "Vercel Preview",
+          "source": "/api/health HTTP503: database/schema ok, Stripe missing, Stripe webhook edge error, email/sender missing, Connect webhook secret missing, commerceReady=false."
+        },
+        {
+          "name": "genuine-private-storage-payment-download-refund-expiry-two-account",
+          "result": "unverified",
+          "environment": "test integration",
+          "source": "Runner still lacks 14 test-only inputs/fixture identifiers; no provider probes or transactions performed."
+        },
+        {
+          "name": "production-release",
+          "result": "not-run",
+          "environment": "production",
+          "source": "No merge, migration, live settings change or customer transaction."
+        }
+      ],
+      "blockers": [
+        "Preview-Stripe-secret-and-webhook-endpoints-missing",
+        "Preview-email-and-Connect-webhook-settings-missing",
+        "R2-private-storage-credentials-and-controlled-fixtures-missing",
+        "genuine-payment-download-refund-expiry-and-two-account-evidence-unverified",
+        "Supabase-auth-dashboard-sign-in-method-required-before-reading-URL-allowlist"
+      ],
+      "nextAction": "After Brooke selects a Supabase dashboard sign-in method in the secure browser flow, inspect the production project's Auth URL Configuration and apply the previously requested CQA domain allowlist only if it is incorrect; then verify an actual recovery link. Separately, set Preview-only test Stripe/Connect webhook credentials, test email sink, private R2 credentials and controlled owner/two-buyer fixtures, then execute the genuine runner. Keep live checkout and release holds closed."
     }
   ],
   "automation": {
@@ -1774,7 +1847,7 @@
   "currentCandidate": {
     "pr": 23,
     "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
-    "observedAt": "2026-11-06T11:49:23.134Z",
+    "observedAt": "2026-11-06T12:34:01.602Z",
     "status": "draft-preview-READY-health-degraded-live-holds-closed",
     "previewDeployment": "dpl_8GpbxziyWPzKon6gXrQCoiipBUvN"
   },
@@ -1810,7 +1883,14 @@
       "instruction": "Preserve current advertised AUD totals; do not add GST on top.",
       "priceOrTaxSettingsChanged": false
     },
-    "businessNameRegistration": "unverified"
+    "businessNameRegistration": "unverified",
+    "productionAuthClientProject": {
+      "observedAt": "2026-11-06T12:34:01.602Z",
+      "project": "rjxiuukphwybujuclenn",
+      "projectName": "fanxfantasy",
+      "status": "ACTIVE_HEALTHY",
+      "source": "Public production /login JavaScript bundle embeds https://rjxiuukphwybujuclenn.supabase.co; Supabase project metadata confirms active project. This confirms client Auth project only; server-side env mapping and Supabase Auth Site URL/redirect allowlist remain unverified."
+    }
   },
   "currentBusinessTermsCandidate": {
     "pr": 26,
