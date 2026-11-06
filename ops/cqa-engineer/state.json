@@ -4,11 +4,7 @@
   "repository": "creativequality49/CQA-VENDING-MACHINES-",
   "coordinationBranch": "automation/cqa-website-engineer",
   "mode": "completion",
-  "lease": {
-    "runId": "cqa_resume_20261106113302419",
-    "startedAt": "2026-11-06T11:33:02.419Z",
-    "expiresAt": "2026-11-06T12:18:02.419Z"
-  },
+  "lease": null,
   "releaseStatus": "NOT_READY",
   "gates": [
     {
@@ -28,6 +24,13 @@
           "environment": "test",
           "source": "https://github.com/creativequality49/CQA-VENDING-MACHINES-/actions/runs/41365736251",
           "observedAt": "2026-11-02T00:13:37Z"
+        },
+        {
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "result": "passed",
+          "environment": "test",
+          "source": "Local cross-checkout harness: 23/23 groups passed on Node 24.22.1 after npm ci; harness commit a1310f24c87621fc3f45e1fbc0a666a60936e0a7.",
+          "observedAt": "2026-11-06T11:41:39.925Z"
         }
       ]
     }
@@ -1547,6 +1550,110 @@
         "genuine-storage-payment-refund-expiry-and-two-account-tests-unverified"
       ],
       "nextAction": "Brooke must complete the Vercel reauthentication on the prepared Preview-only redeploy dialog; then verify the redeployment is READY on 1da9eb4. Configure controlled test-only R2/Stripe/Connect/notification fixtures securely and rerun the existing guarded verification path; keep release holds closed."
+    },
+    {
+      "id": "cqa_resume_20261106113302419",
+      "status": "blocked",
+      "workstream": "PR23 local validation and integration preflight",
+      "inspectedCommit": "b0a055361aacc7a154a5f66acbaecd778395b06c",
+      "inspectedEngineerPrCommit": "69dd2c3e3e8095ab1ae6de9f05dc8eeb44505c47",
+      "inspectedCommercePrCommit": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+      "inspectedUxPrCommit": "49551156387378c9372e8e4346347907a5d9d404",
+      "pr": 23,
+      "checks": [
+        {
+          "name": "required-instructions-and-current-main",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "AGENTS.md and coordination contract freshly read; current main b0a055361aacc7a154a5f66acbaecd778395b06c."
+        },
+        {
+          "name": "PR25-engineer-status",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "PR25 merged; merge commit 02200d1e60100a895198961cbe421101d6f5bd9b."
+        },
+        {
+          "name": "PR23-hosted-workflows",
+          "result": "passed",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "environment": "GitHub Actions",
+          "source": "Runs 41365736198 and 41365736251 both success."
+        },
+        {
+          "name": "PR31-visual-preview-and-hosted-checks",
+          "result": "passed",
+          "commitSha": "49551156387378c9372e8e4346347907a5d9d404",
+          "environment": "Vercel Preview / GitHub Actions",
+          "source": "Hosted run 42189984472 success; Vercel deployment dpl_JA6zm3NX7dGpfE8WL4DoFe6HDnZP READY. PR31 remains draft."
+        },
+        {
+          "name": "local-regressions-typecheck-lint-build",
+          "result": "passed",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "environment": "local",
+          "source": "Separate coordination harness on Node 24.22.1: all 23 groups passed after npm ci; exact output in local coordination report."
+        },
+        {
+          "name": "genuine-marketplace-runner-preflight",
+          "result": "blocked",
+          "commitSha": "1da9eb4175435b85871ea3e550d624a2e790c83b",
+          "environment": "local offline preflight",
+          "source": "npm run verify:marketplace exited 2 missing-configuration, listing 14 absent test runner inputs/fixture identifiers; no provider requests."
+        },
+        {
+          "name": "public-health",
+          "result": "passed",
+          "environment": "production public HTTP",
+          "source": "Coordination health probe: /, /machines, /pricing, /login and /api/health returned 200; configuration only, no commerce/auth end-to-end proof."
+        },
+        {
+          "name": "preview-after-supabase-connection",
+          "result": "blocked",
+          "environment": "Vercel Preview",
+          "source": "Only known PR23 READY deployment dpl_Fwi2zvDKFN5GjQgadJHHeS2YRTex predates Supabase connection; no deployment after connection verified. Prior redeploy required Vercel reauthentication."
+        },
+        {
+          "name": "auth-localhost-redirect",
+          "result": "unverified",
+          "environment": "Supabase Auth",
+          "source": "PR31 source builds email redirects from window.location.origin; provider URL allowlist/Site URL and actual email-link completion not accessible/verified. Available Supabase project list does not prove which project is production."
+        },
+        {
+          "name": "Vercel-environment-metadata",
+          "result": "blocked",
+          "environment": "Vercel API",
+          "source": "Prior environment-variable metadata request returned 403; no secret values accessed or alternate route used."
+        },
+        {
+          "name": "genuine-private-storage-payment-download-expiry-refund-two-account",
+          "result": "unverified",
+          "environment": "test integration",
+          "source": "No provider fixture credentials, candidate Preview deployment after connection, or genuine test journey."
+        },
+        {
+          "name": "PR23-evidence-comment",
+          "result": "passed",
+          "environment": "GitHub",
+          "source": "Added PR comment 6683983087 with actual local test results and precise preflight limitation."
+        },
+        {
+          "name": "release-holds",
+          "result": "passed",
+          "environment": "policy",
+          "source": "No merge, deployment/promotion, migration, financial action or checkout/release hold change."
+        }
+      ],
+      "blockers": [
+        "Vercel-preview-redeployment-requires-reauthentication",
+        "genuine-marketplace-runner-missing-14-test-only-inputs",
+        "private-R2-and-sandbox-Stripe/Connect/notification-fixtures-not-configured",
+        "payment-download-expiry-refund-and-two-account-evidence-unverified",
+        "production-Supabase-auth-URL-configuration-and-link-test-unverified",
+        "Vercel-environment-metadata-403",
+        "PR23-base-predates-current-main-and-needs-reconciliation-before-release"
+      ],
+      "nextAction": "Brooke must complete the required Vercel reauthentication on the prepared Preview redeploy path; supply controlled test-only R2/Stripe/Connect/notification fixtures securely; then deploy exact candidate and execute genuine integration suite. Identify production Supabase mapping and confirm auth URL settings before any auth-policy change. Keep checkout/release holds closed."
     }
   ],
   "automation": {
