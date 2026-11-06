@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { MarketplaceCheckoutButton } from "@/components/MarketplaceCheckoutButton";
+import { isCqaDigitalCheckoutAllowed } from "@/lib/cqa-launch-gate";
 import { DEMO_MACHINES, formatAud, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
 
 async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> {
@@ -116,6 +117,11 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                       <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`}>
                         TRY DEMO →
                       </Link>
+                    ) : deliveryPending && purchasable ? (
+                      isCqaDigitalCheckoutAllowed() ? <div style={{ display: "grid", gap: ".75rem" }}>
+                        <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="BUY DIGITAL PRODUCT" requiresBuyerAccount />
+                        <p className="small">Sign in to purchase. Your download appears in your purchase library after payment confirmation.</p>
+                      </div> : <div><button className="neon-enter-button" type="button" disabled>DELIVERY SETUP PENDING</button><p className="small">Digital checkout is paused during customer launch checks.</p></div>
                     ) : bookingLike || !purchasable ? (
                       <div style={{ display: "grid", gap: ".75rem" }}>
                         {payableService ? (
