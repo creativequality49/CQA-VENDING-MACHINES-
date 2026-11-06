@@ -1,107 +1,46 @@
 import Link from "next/link";
-import { CQA_PLANS, CQA_WORKERS } from "@/lib/cqa-marketplace";
+import Image from "next/image";
+import { CQA_PLANS } from "@/lib/cqa-marketplace";
+import "./machine-store.css";
 
-const solutions = [
-  {
-    label: "BUSINESS VENDING MACHINE",
-    title: "Launch a branded machine",
-    description: "Sell services, bookings, products and subscriptions through a CQA storefront with an owner workspace and Stripe Connect.",
-    href: "/pricing",
-    cta: "Compare machine plans"
-  },
-  {
-    label: "AI WORKFORCE",
-    title: "Add operational workers",
-    description: "Add reception, sales, planning, stocktake, finance or customer-support workers as paid monthly add-ons.",
-    href: "/workers",
-    cta: "Browse AI workers"
-  },
-  {
-    label: "LEAD CAPTURE",
-    title: "Build a prospecting pipeline",
-    description: "Use the CQA Lead Machine to research prospects and prepare structured lead data for outreach and automation.",
-    href: "/lead-machine",
-    cta: "Open Lead Machine"
-  },
-  {
-    label: "AI READINESS",
-    title: "Find the highest-value automation",
-    description: "Run the readiness assessment to identify time loss, operational friction and the strongest automation starting point.",
-    href: "/quiz",
-    cta: "Take the assessment"
-  }
+const featured = [
+  { name: "Business Storefront", tag: "FOR BUSINESS", description: "Your complete digital vending machine. Present products, services and subscriptions in one branded storefront.", plan: "pro" as const, bullets: ["Branded machine preview", "Products, services and bookings", "Stripe connection after activation"] },
+  { name: "Creator Storefront", tag: "FOR CREATORS", description: "Sell digital offers, memberships and services from a storefront designed around your brand.", plan: "starter" as const, bullets: ["Custom branding", "Guided product setup", "Private owner workspace"] },
+  { name: "Enterprise Machine", tag: "ADVANCED SETUP", description: "Expanded capacity and hands-on setup for businesses with more complex operations.", plan: "elite" as const, bullets: ["Expanded selling capacity", "Integration planning", "Priority setup review"] }
 ];
 
 export default function MachinesPage() {
-  return (
-    <main className="container" style={{ paddingTop: "2.75rem", paddingBottom: "5rem" }}>
-      <section className="glass-card" style={{ padding: "1.6rem", marginBottom: "1.5rem" }}>
-        <span className="eyebrow">CQA SOLUTION HUB</span>
-        <h1>One commercial system, four ways to remove manual work.</h1>
-        <p className="small" style={{ maxWidth: 850 }}>
-          Start with the revenue surface you need now, then add automation and AI workers behind it. The customer-facing marketplace, owner workspace, payments and operational automations remain connected.
-        </p>
-        <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
-          <Link href="/onboarding" className="button primary">Launch My Machine</Link>
-          <Link href="/marketplace" className="button ghost">Explore Marketplace</Link>
-          <Link href="/contact" className="button ghost">Talk to CQA</Link>
-        </div>
-      </section>
-
-      <section className="grid grid-2" style={{ marginBottom: "1.5rem" }}>
-        {solutions.map((solution, index) => (
-          <article className="glass-card" key={solution.title} style={{ padding: "1.35rem", display: "flex", flexDirection: "column" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", alignItems: "center" }}>
-              <span className="eyebrow">{solution.label}</span>
-              <strong style={{ color: "#61eff9" }}>0{index + 1}</strong>
+  return <main className="container cqa-store">
+    <header className="cqa-store-heading">
+      <span className="eyebrow">CQA MACHINE STORE</span>
+      <h1>Find your digital vending machine.</h1>
+      <p>Choose a machine, personalise a free preview, then decide whether to subscribe. No payment is needed to preview.</p>
+    </header>
+    <nav className="cqa-store-tabs" aria-label="Explore CQA solutions">
+      <Link href="/machines" aria-current="page">All Machines</Link>
+      <Link href="/pricing">For Creators</Link>
+      <Link href="/pricing">For Business</Link>
+      <Link href="/workers">AI Powered</Link>
+    </nav>
+    <section className="cqa-store-list" aria-label="Digital vending machine plans">
+      {featured.map((item, index) => {
+        const plan = CQA_PLANS.find(p => p.key === item.plan)!;
+        return <article className="cqa-store-card" key={item.plan}>
+          <div className="cqa-store-card-copy">
+            <span className="cqa-store-tag">{item.tag}</span>
+            <h2>{item.name}</h2>
+            <p>{item.description}</p>
+            <ul>{item.bullets.map(b => <li key={b}>{b}</li>)}</ul>
+            <p className="cqa-store-price">From <strong>${plan.price}</strong><span> AUD/month</span></p>
+            <div className="cqa-store-actions">
+              <Link href="/pricing" className="cqa-store-outline">View details</Link>
+              <Link href={`/onboarding?plan=${plan.key}`} className="cqa-store-primary">Get started</Link>
             </div>
-            <h2>{solution.title}</h2>
-            <p className="small">{solution.description}</p>
-            <div style={{ marginTop: "auto" }}><Link href={solution.href} className="button primary">{solution.cta}</Link></div>
-          </article>
-        ))}
-      </section>
-
-      <section className="grid grid-2" style={{ marginBottom: "1.5rem" }}>
-        <article className="glass-card" style={{ padding: "1.35rem" }}>
-          <span className="eyebrow">MACHINE RENTAL</span>
-          <h2>Choose capacity first.</h2>
-          <div className="revenue-stack">
-            {CQA_PLANS.map((plan) => (
-              <div key={plan.key}>
-                <span>{plan.fee}%</span>
-                <strong>{plan.name} · {"$"}{plan.price} AUD/month</strong>
-                <small>{plan.slots} · platform fee shown at left</small>
-              </div>
-            ))}
           </div>
-          <Link href="/pricing" className="text-link">Compare plan inclusions →</Link>
-        </article>
-
-        <article className="glass-card" style={{ padding: "1.35rem" }}>
-          <span className="eyebrow">WORKER LAYER</span>
-          <h2>Add only the jobs you need.</h2>
-          <div className="revenue-stack">
-            {CQA_WORKERS.slice(0, 4).map(([id, name, price]) => (
-              <div key={id}>
-                <span>+</span>
-                <strong>{name}</strong>
-                <small>{"$"}{price} AUD/month</small>
-              </div>
-            ))}
-          </div>
-          <Link href="/workers" className="text-link">See all six workers →</Link>
-        </article>
-      </section>
-
-      <section className="final-panel">
-        <div>
-          <span className="eyebrow">NEED A CUSTOM BUILD?</span>
-          <h2>Use CQA implementation instead of forcing your business into a template.</h2>
-          <p>Send the current bottleneck, customer flow or automation requirement and keep the work connected to the same CQA operating stack.</p>
-        </div>
-        <Link href="/contact" className="button primary">Start a CQA Request</Link>
-      </section>
-    </main>
-  );
+          <div className="cqa-store-machine" aria-hidden="true"><div className="cqa-store-machine-top">CQA <span>0{index+1}</span></div><div className="cqa-store-machine-window">{["headphones","camera","sneaker","bag","watch","tablet"].map(item=><span key={item}><Image src={`/images/slots/${item}.svg`} alt="" width={64} height={64} unoptimized /></span>)}</div><div className="cqa-store-machine-foot"><span>EXPLORE</span><b>▣</b></div></div>
+        </article>;
+      })}
+    </section>
+    <section className="cqa-store-help"><h2>Want CQA to set it up for you?</h2><p>Request premium implementation or custom automation support separately from the self-service builder.</p><Link href="/contact?service=premium-setup" className="cqa-store-outline">Request premium setup</Link></section>
+  </main>;
 }

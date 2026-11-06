@@ -11,7 +11,8 @@ const planCopy = {
 export default function PricingPage() {
   const launchApproved = isNewCqaCheckoutAllowed();
   return (
-    <main className="container neon-pricing-page cqa-offer-page" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+    <main className="container neon-pricing-page cqa-offer-page cqa-mobile-pricing" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+      <style>{`@media(max-width:700px){.cqa-mobile-pricing{padding-top:1rem!important}.cqa-mobile-pricing .pricing-neon-hero{padding:1.1rem!important}.cqa-mobile-pricing .pricing-neon-hero h1{font-size:2rem}.cqa-mobile-pricing .pricing-plan-grid{display:grid;grid-template-columns:1fr;gap:1rem}.cqa-mobile-pricing .neon-plan{min-width:0;width:100%;padding:1.2rem!important}.cqa-mobile-pricing .neon-enter-button{display:flex;justify-content:center;text-align:center;width:100%}.cqa-mobile-pricing .plan-display strong{font-size:2.3rem}}`}</style>
       {!launchApproved ? <aside className="glass-card" style={{ padding: "1.25rem", marginBottom: "1.5rem" }}><strong>Customer launch is not yet approved.</strong><p>Explore the plans and free preview while we finish verification. New live checkouts are paused.</p><Link href="/founding-customers" className="button primary">Register early interest →</Link></aside> : null}
       <section className="marketplace-neon-hero pricing-neon-hero">
         <div>
@@ -34,6 +35,7 @@ export default function PricingPage() {
           </article>;
         })}
       </section>
+      <section className="glass-card" style={{ padding: "1.25rem", marginTop: "1.5rem" }}><span className="eyebrow">OPTIONAL EXPERT HELP</span><h2>Prefer CQA to build it with you?</h2><p>Keep the self-service machine builder free to preview, or request premium setup, custom automation and AI worker implementation. An enquiry does not charge you.</p><div style={{ display: "flex", flexWrap: "wrap", gap: ".75rem" }}><Link href="/contact?service=premium-setup" className="button primary">Request Premium Setup</Link><Link href="/contact?service=support" className="button ghost">Customer Support</Link></div></section>
       <section className="cqa-launch-package glass-card" aria-labelledby="launch-package-title">
         <div><span className="eyebrow">PRO LAUNCH PACKAGE</span><h2 id="launch-package-title">Get your machine ready with CQA.</h2><p>For owners who want help implementing their storefront: business setup, offer structure, branding, receptionist and sales follow-up drafts, and a launch review.</p><p className="cqa-package-price"><strong>$997</strong> AUD one-off setup <span>+ $297 AUD / month for Pro</span></p><p className="small">The setup fee applies when you select this package. Standard Pro is available as a monthly plan above.</p></div>
         <Link href={launchApproved ? "/onboarding?plan=pro&package=launch" : "/founding-customers"} className="button primary">{launchApproved ? "Choose Pro Launch Package" : "Register early interest"} →</Link>
