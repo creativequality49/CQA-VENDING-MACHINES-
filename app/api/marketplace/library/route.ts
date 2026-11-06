@@ -5,6 +5,7 @@ import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 export const runtime = "nodejs";
 
 const ORDER_PAGE_SIZE = 500;
+const OFFER_BATCH_SIZE = 100;
 
 export async function GET(req: Request) {
   const match = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") || "");
@@ -28,10 +29,11 @@ export async function GET(req: Request) {
       const validOrders = orders.filter(order => order.business_id && order.machine_id && order.offer_id);
       const offerIds = [...new Set(validOrders.map(order => order.offer_id))];
       const offersById = new Map();
-      if (offerIds.length) {
+      for (let index = 0; index < offerIds.length; index += OFFER_BATCH_SIZE) {
+        const batch = offerIds.slice(index, index + OFFER_BATCH_SIZE);
         const { data: offers, error: offerError } = await admin.from("cqa_offers")
           .select("id,business_id,machine_id,name,offer_type,fulfillment_type,fulfillment_config")
-          .in("id", offerIds);
+          .in("id", batch);
         if (offerError) throw offerError;
         for (const offer of offers || []) offersById.set(offer.id, offer);
       }

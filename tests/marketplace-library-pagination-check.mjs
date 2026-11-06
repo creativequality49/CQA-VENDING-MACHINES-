@@ -74,8 +74,8 @@ const body = await response.json();
 assert.equal(body.products.length, 1004, "all eligible purchases beyond the first 100 must be returned; tenant mismatches stay hidden");
 assert.ok(body.products.some(product => product.orderId === "order-0000"), "the oldest purchase remains in the library");
 assert.deepEqual(orderRanges, [[0, 499], [500, 999], [1000, 1499]]);
-assert.equal(offerBatches.length, 3, "offers are fetched once per page instead of once per order");
-assert.ok(offerBatches.every(batch => batch.length <= 500));
+assert.equal(offerBatches.length, 11, "offers are fetched in bounded batches instead of once per order");
+assert.ok(offerBatches.every(batch => batch.length <= 100));
 assert.ok(body.products.every(product => product.downloadable));
 console.log("PASS full buyer purchase history is paged and offers are batched with tenant binding");
 
