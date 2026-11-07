@@ -1,5 +1,7 @@
 "use client";
 
+import { getCqaAuthOrigin } from "@/lib/cqa-auth-origin";
+
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +36,7 @@ function LoginForm() {
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
   const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
-  const confirmationUrl = `${typeof window === "undefined" ? "" : window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
+  const confirmationUrl = `${getCqaAuthOrigin()}/auth/confirm?next=${encodeURIComponent(next)}`;
 
   function switchMode(value: "login" | "signup") {
     if (loading) return;
