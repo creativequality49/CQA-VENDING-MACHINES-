@@ -196,12 +196,31 @@ export const DEMO_MACHINES: MarketplaceMachine[] = [
   }
 ]
 
-const fallbackUrl = "https://rjxiuukphwybujuclenn.supabase.co";
-const fallbackPublishableKey = "sb_publishable_eycv4056PKiBgUMYrA1sHA_dRCIMMBb";
+/** Require the correct project to be explicitly configured in each Vercel environment.
+ * Never fall back to another business's Supabase database or authentication project.
+ */
+function getCqaSupabaseConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error("CQA Supabase is not configured for this deployment.");
+  }
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:" || !/^[a-z0-9-]+\\.supabase\\.co$/.test(parsed.hostname)) {
+      throw new Error("Invalid Supabase host");
+    }
+    if (parsed.hostname === "rjxiuukphwybujuclenn.supabase.co") {
+      throw new Error("CQA cannot use the Fan X Fantasy Supabase project.");
+    }
+  } catch {
+    throw new Error("CQA Supabase configuration is invalid. Check the deployment environment.");
+  }
+  return { url, key };
+}
 
 export function getPublicSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  const { url, key } = getCqaSupabaseConfig();
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
@@ -209,16 +228,14 @@ let browserSupabaseClient: SupabaseClient | undefined;
 
 export function getBrowserSupabaseClient() {
   if (typeof window !== "undefined" && browserSupabaseClient) return browserSupabaseClient;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  const { url, key } = getCqaSupabaseConfig();
   const client = createClient(url, key, { auth: { detectSessionInUrl: false } });
   if (typeof window !== "undefined") browserSupabaseClient = client;
   return client;
 }
 
 export function getAuthenticatedSupabaseClient(token: string) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  const { url, key } = getCqaSupabaseConfig();
   return createClient(url, key, {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false }
