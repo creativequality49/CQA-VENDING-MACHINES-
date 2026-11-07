@@ -1,0 +1,15 @@
+# Existing marketplace delivery: release requirements
+
+This patch retains the existing private R2 storage, `cqa_orders.buyer_user_id`, library/download APIs and current owner UI. It introduces no second delivery schema.
+
+New paid-file uploads share the existing digital delivery release gate: isolated Stripe test configuration permits testing, while live uploads remain blocked until both existing customer and digital approval flags are explicitly enabled. This prevents unverified production storage from accepting paid content. Product metadata reads and existing buyer downloads remain available.
+
+Digital Checkout now creates a server-authored `pending` order before returning a Stripe URL. That row binds the confirmed, nonanonymous buyer, offer, business, machine, session, expected amount and currency. A failed database binding expires the Stripe session and returns no URL. Digital subscription hybrids are rejected; service and subscription legacy behavior remains separate.
+
+Signed digital fulfillment resolves the durable order and offer, retrieves the Checkout under the verified connected account, and verifies event/session/PaymentIntent facts against that contract. The verified buyer does not change when a payer edits their email in Stripe Checkout. The real PaymentIntent ID is bound before the current Charge is inspected, so earlier refunds are detected by the provider read and later refunds can locate the pending row. Existing terminal order guards prevent late paid events from restoring access or sending a new receipt.
+
+The existing product model versions files by offer: its owner upload UI already requires a new offer for a different attachment and uses compare-and-swap to handle concurrent first uploads. Explicitly review/apply `database/cqa_marketplace_asset_immutability.sql` to protect the same rule against direct owner database writes. It prevents changes to an attached key, size, MIME type and tenant/offer relationships, prevents losing digital eligibility, and requires archiving rather than deleting attached offers. Ordinary copy, price, display and archive edits remain possible. This SQL has not been automatically applied.
+
+Private downloads retain authenticated, short-lived R2 URLs and recheck paid buyer ownership after preparing a URL. Previously issued URLs remain valid until their existing expiry; already downloaded bytes cannot be recalled. Actual bucket privacy and direct-object denial must be verified in the isolated provider environment; a successful HeadObject alone does not prove bucket privacy.
+
+Before customer approval, verify actual database order RLS denies client mutation of trusted payment fields, execute the asset immutability trigger tests on the isolated database, and run real sandbox Checkout → signed webhook → private download → full refund/dispute revocation, including another-buyer denial. Verify Connect event subscriptions include asynchronous success, refunds and disputes. Keep both existing live payment approval gates off until these pass. Unit fixtures and successful builds are not substitutes for these provider/database checks.

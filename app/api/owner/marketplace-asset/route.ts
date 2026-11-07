@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { uploadPrivateMarketplaceAsset } from "@/lib/storage";
+import { isCqaDigitalCheckoutAllowed } from "@/lib/cqa-launch-gate";
 import {
   MARKETPLACE_ASSET_EXTENSIONS, MAX_MARKETPLACE_ASSET_BYTES, MarketplaceUploadError,
   readMarketplaceUploadForm, validateMarketplaceAsset
@@ -44,6 +45,10 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    if (!isCqaDigitalCheckoutAllowed()) return NextResponse.json({
+      error: "Private product uploads are paused while storage privacy and customer launch checks are completed.",
+      code: "CQA_DIGITAL_DELIVERY_PENDING"
+    }, { status: 409, headers: privateHeaders });
     const owner = await verifiedOwner(req);
     if (!owner) return NextResponse.json({ error: "Verified owner account required" }, { status: 401, headers: privateHeaders });
     const form = await readMarketplaceUploadForm(req);

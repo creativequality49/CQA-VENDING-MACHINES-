@@ -16,8 +16,8 @@ returns boolean
 language sql
 stable
 as $$
-  select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin'
-    or coalesce(auth.jwt() -> 'user_metadata' ->> 'role', '') = 'admin';
+  -- app_metadata is maintained by the server. user_metadata is user-editable.
+  select coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin';
 $$;
 
 drop policy if exists "Public can read active subscription tiers" on public.subscription_tiers;

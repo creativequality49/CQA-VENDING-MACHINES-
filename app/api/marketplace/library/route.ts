@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   if (!match) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   const { data, error } = await getPublicSupabaseClient().auth.getUser(match[1]);
   const user = data?.user;
-  if (error || !user?.id || !user.email || !user.email_confirmed_at)
+  if (error || !user?.id || !user.email || !user.email_confirmed_at || user.is_anonymous)
     return NextResponse.json({ error: "Verified account required" }, { status: 401 });
   try {
     const admin = getCqaSupabaseAdmin();

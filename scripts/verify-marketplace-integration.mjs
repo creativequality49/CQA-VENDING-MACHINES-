@@ -104,11 +104,20 @@ function reportFor(config, mode) {
 }
 
 async function privateTempRoot() {
+  assertSecureExpiryStatePlatform();
   const root = await fs.realpath(os.tmpdir());
   const repository = await fs.realpath(repositoryRoot);
   const relative = path.relative(repository, root);
   assert(relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative), "private-state-root-inside-repository", "blocked");
   return root;
+}
+
+function assertSecureExpiryStatePlatform() {
+  // POSIX mode bits/getuid/O_NOFOLLOW are not Windows ACL guarantees. Until
+  // equivalent ACL creation and verification exist, do not persist signed URLs
+  // or send provider requests from this runner on unsupported platforms.
+  assert(process.platform !== "win32" && typeof process.getuid === "function" &&
+    Number.isInteger(constants.O_NOFOLLOW), "secure-expiry-state-unsupported-platform", "blocked");
 }
 
 async function privateState(config, signed, now) {
@@ -135,6 +144,9 @@ export async function verifyReadOnly(config, { fetchImpl = fetch, now = () => Da
   };
   const api = (route, token) => request(`${config.base}${route}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
   try {
+    phase = "secure-expiry-state-platform";
+    assertSecureExpiryStatePlatform();
+    phase = "authenticate-fixtures";
     const client = createClient(config.supabase, config.publicKey, {
       auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
       global: { fetch: request },
@@ -200,6 +212,7 @@ export async function verifyReadOnly(config, { fetchImpl = fetch, now = () => Da
 export async function verifyExpiry(config, file, { fetchImpl = fetch, now = () => Date.now() } = {}) {
   const report = reportFor(config, "verify-expiry");
   try {
+    assertSecureExpiryStatePlatform();
     assert(typeof file === "string" && path.isAbsolute(file), "private-state-file-required", "blocked");
     const directory = path.dirname(file);
     assert(path.resolve(file) === file && path.dirname(directory) === await privateTempRoot() && path.basename(directory).startsWith("cqa-integration-") && path.basename(file) === "expiry.json", "private-state-location-not-allowed", "blocked");

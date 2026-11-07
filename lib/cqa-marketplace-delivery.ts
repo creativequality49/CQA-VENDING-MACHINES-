@@ -7,7 +7,7 @@ import { createSignedDownloadUrl } from "@/lib/storage";
 export async function resolveMarketplaceDownload(token: string, orderId: string) {
   const { data: identity, error: identityError } = await getPublicSupabaseClient().auth.getUser(token);
   const user = identity?.user;
-  if (identityError || !user?.id || !user.email || !user.email_confirmed_at) return { status: 401 as const };
+  if (identityError || !user?.id || !user.email || !user.email_confirmed_at || user.is_anonymous) return { status: 401 as const };
   const admin = getCqaSupabaseAdmin();
   const { data: order, error: orderError } = await admin.from("cqa_orders")
     .select("id,business_id,machine_id,offer_id,buyer_user_id,status")
@@ -32,5 +32,11 @@ export async function resolveMarketplaceDownload(token: string, orderId: string)
       assetKey.includes("..") || assetKey.includes("\\") || /[?#]/.test(assetKey))
     return { status: 409 as const };
   const signed = await createSignedDownloadUrl(assetKey);
+  // A refund/dispute may arrive while resolving the private asset. Do not hand
+  // out a newly prepared URL after that entitlement has become terminal.
+  const { data: current, error: currentError } = await admin.from("cqa_orders")
+    .select("id").eq("id", order.id).eq("buyer_user_id", user.id).eq("status", "paid").maybeSingle();
+  if (currentError) throw currentError;
+  if (!current) return { status: 404 as const };
   return { status: 200 as const, url: signed.url, expiresIn: signed.expiresIn };
 }

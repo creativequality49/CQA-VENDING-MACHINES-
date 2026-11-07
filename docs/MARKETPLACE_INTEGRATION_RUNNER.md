@@ -86,6 +86,15 @@ and raw errors/provider bodies. The selected object is bounded to 4 MiB.
 
 ## Real expiry recheck
 
+Live read-only and expiry probes currently require a POSIX runtime with `getuid`,
+`O_NOFOLLOW` and verified 0700/0600 permissions. Windows is deliberately unsupported:
+both modes return `blocked` with `secure-expiry-state-unsupported-platform` before
+any provider request or signed-URL state creation. Windows mode bits are not treated
+as secure ACL evidence. Offline preflight remains available. Windows regression
+tests assert this denial and zero network calls; the retained full provider-driver,
+permission and expiry cases remain NOT TESTED there and must run in Ubuntu CI.
+No weaker file permissions or shortened expiry substitutes are accepted.
+
 After a successful signed download, the runner creates a mode-0700 temporary
 directory and mode-0600 `expiry.json`. This **restricted local state contains the
 signed URL** so the *same previously working URL* can be tested after expiry.

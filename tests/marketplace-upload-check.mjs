@@ -80,6 +80,7 @@ function harness(options = {}) {
   const route = evaluate('app/api/owner/marketplace-asset/route.ts', {
     'next/server': { NextResponse: { json: (body, init) => Response.json(body, init) } },
     '@/lib/cqa-marketplace-assets': assets,
+    '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => !options.launchClosed },
     '@/lib/cqa-marketplace': { getPublicSupabaseClient: () => ({ auth: { getUser: async token => {
       if (options.providerError) throw new Error('private-auth-provider-detail');
       if (options.badToken || token !== 'valid-token') return { data: { user: null }, error: new Error('invalid') };
@@ -121,6 +122,7 @@ assert.ok(normal.updates[0].filters.some(([kind, key]) => kind === 'eq' && key =
 console.log('PASS real owner upload writes private tenant key and conditionally persists metadata without losing delivery details');
 
 const cases = [
+  { name: 'unapproved live delivery blocks upload before storage or metadata writes', server: { launchClosed: true }, status: 409 },
   { name: 'missing login', request: { noAuth: true }, status: 401 },
   { name: 'invalid token', server: { badToken: true }, status: 401 },
   { name: 'unverified owner', server: { unverified: true }, status: 401 },
@@ -150,6 +152,7 @@ for (const scenario of cases) {
   assert.notEqual(body.uploaded, true, scenario.name + ' must not report success');
   assert.doesNotMatch(JSON.stringify(body), /private-(?:auth|storage|provider)|asset_key|private-other-tenant-key/);
   assert.equal(run.uploads.length, scenario.uploaded || 0, scenario.name + ' storage call count');
+  if (scenario.server?.launchClosed) { assert.equal(run.queries.length,0); assert.equal(run.updates.length,0); assert.equal(body.code,'CQA_DIGITAL_DELIVERY_PENDING'); }
   console.log('PASS ' + scenario.name);
 }
 

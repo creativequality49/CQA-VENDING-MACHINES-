@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     if (digital && !isCqaDigitalCheckoutAllowed()) {
       return NextResponse.json({ error: "Protected digital delivery is paused while customer launch checks are completed.", code: "CQA_DIGITAL_DELIVERY_PENDING" }, { status: 409 });
     }
+    if (digital && context.offer_type === "subscription") return NextResponse.json({ error: "Private digital products currently support one-time purchases only." }, { status: 409 });
     if (!isNewCqaCheckoutAllowed()) {
       return NextResponse.json({ error: CQA_PRELAUNCH_CHECKOUT_MESSAGE, code: "CQA_LAUNCH_PENDING" }, { status: 503 });
     }
@@ -61,7 +62,7 @@ export async function POST(req: Request) {
     if (authorization) {
       const { data: identity, error: identityError } = await publicClient.auth.getUser(authorization[1]);
       const buyer = identity?.user;
-      if (identityError || !buyer?.id || !buyer.email || !buyer.email_confirmed_at ||
+      if (identityError || !buyer?.id || !buyer.email || !buyer.email_confirmed_at || buyer.is_anonymous ||
           (payload.customerEmail && buyer.email.trim().toLowerCase() !== payload.customerEmail.trim().toLowerCase())) {
         return NextResponse.json({ error: "Sign in to a verified buyer account with the correct checkout email.", code: "CQA_BUYER_LOGIN_REQUIRED" }, { status: 401 });
       }
@@ -133,6 +134,7 @@ export async function POST(req: Request) {
       cqaMachineId: String(context.machine_id),
       cqaOfferId: String(context.offer_id),
       cqaPlan: plan,
+      ...(digital ? { cqaDigitalDelivery: "1" } : {}),
       ...(buyerUserId ? { cqaBuyerUserId: buyerUserId } : {})
     };
 
@@ -156,6 +158,7 @@ export async function POST(req: Request) {
         mode: subscription ? "subscription" : "payment",
         line_items: [lineItem],
         customer_email: buyerEmail || payload.customerEmail,
+        ...(digital && buyerUserId ? { client_reference_id: buyerUserId } : {}),
         success_url: `${origin}/checkout/success?marketplace=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/machine/${context.machine_slug}`,
         metadata,
@@ -168,6 +171,18 @@ export async function POST(req: Request) {
 
     if (!checkout.url) {
       return NextResponse.json({ error: "Stripe did not return a secure checkout URL." }, { status: 502 });
+    }
+    if (digital) {
+      const { error: bindingError } = await getCqaSupabaseAdmin().from("cqa_orders").insert({
+        business_id: context.business_id, machine_id: context.machine_id, offer_id: context.offer_id,
+        buyer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents,
+        currency: String(context.currency || "aud").toLowerCase(), stripe_checkout_session_id: checkout.id,
+        status: "pending"
+      });
+      if (bindingError) {
+        await stripe.checkout.sessions.expire(checkout.id, {}, { stripeAccount: context.connected_account_id });
+        return NextResponse.json({ error: "Protected purchase could not be prepared. Please try again." }, { status: 503 });
+      }
     }
 
     // The signed Connect webhook writes the paid order. This keeps anonymous

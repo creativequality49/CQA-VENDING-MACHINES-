@@ -82,6 +82,23 @@ await test("tokens from another project and service-role/public key confusion re
   const service = `e30.${Buffer.from(JSON.stringify({ role: "service_role" })).toString("base64url")}.x`;
   for (const key of [service, "sb_secret_value"]) assert.equal(configuration({ ...env, CQA_TEST_SUPABASE_ANON_KEY: key }).report.code, "admin-key-not-accepted");
 });
+if (process.platform === "win32") {
+  await test("Windows probe fails closed before providers or signed-URL state creation", async () => {
+    let calls = 0;
+    const fetchImpl = async () => { calls++; throw new Error("Provider must not run"); };
+    const report = await verifyReadOnly(config, { fetchImpl });
+    assert.equal(report.status, "blocked");
+    assert.equal(report.checks.at(-1).code, "secure-expiry-state-unsupported-platform");
+    assert.equal(calls, 0); assert(!report.privateStateFile);
+    assert(!JSON.stringify(report).includes("X-Amz"));
+    const expiry = await verifyExpiry(config, "C:/not-created/expiry.json", { fetchImpl });
+    assert.equal(expiry.status, "blocked");
+    assert.equal(expiry.checks.at(-1).code, "secure-expiry-state-unsupported-platform");
+    assert.equal(calls, 0); assert(!expiry.privateStateFile);
+  });
+  console.log("NOT TESTED POSIX provider-driver, file-permission and same-URL expiry cases on Windows: secure runner is explicitly unsupported; run these retained tests in Ubuntu CI.");
+}
+if (process.platform !== "win32") {
 await test("live fixture identity rather than token-string inequality enforces separate accounts", async () => {
   const fake = fixtureFetch({ sameIdentity: true });
   const report = await verifyReadOnly(config, { fetchImpl: fake.fn, now: () => now });
@@ -178,6 +195,7 @@ await test("private expiry state rejects tampering, broad permissions and arbitr
     assert.equal((await verifyExpiry(config, report.privateStateFile)).checks[0].code, "private-state-scope-mismatch");
   } finally { await cleanup(report); }
 });
+}
 await test("unknown flags and incompatible probe modes fail closed", async () => {
   assert.equal((await main(["--upload-test-file"], env)).code, "invalid-arguments");
   assert.equal((await main(["--verify-read-only", "--verify-expiry"], env)).code, "invalid-arguments");
@@ -194,6 +212,7 @@ await test("malformed state-file and repeated modes cannot enable a probe", asyn
 });
 await test("other team preview hostnames and repository temp roots are refused", async () => {
   assert.equal(configuration({ ...env, CQA_TEST_BASE_URL: "https://cqa-vending-machines-test-preview-otherteam.vercel.app" }).report.code, "preview-origin-not-allowed");
+  if (process.platform === "win32") return; // Covered by the explicit fail-closed platform test above.
   const previous = process.env.TMPDIR;
   process.env.TMPDIR = process.cwd();
   try {

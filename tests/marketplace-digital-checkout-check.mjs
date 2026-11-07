@@ -30,7 +30,7 @@ const originalMarket = evaluate('lib/cqa-marketplace.ts', { '@supabase/supabase-
 function gates(env = {}) { return evaluate('lib/cqa-launch-gate.ts', {}, { process: { env } }); }
 function harness(options = {}) {
   const env = { STRIPE_SECRET_KEY: testKey, ...options.env };
-  const events = [], sessions = [], checks = [], queries = [], logs = [], authTokens = [];
+  const events = [], sessions = [], checks = [], queries = [], logs = [], authTokens = [], bindings = [], expirations = [];
   const context = { business_id: businessId, machine_id: machineId, offer_id: offerId, machine_slug: 'test-store',
     offer_type: options.type || 'digital_product', offer_name: 'Synthetic owner PDF', offer_description: 'Test-only file',
     currency: 'aud', price_cents: 1299, business_plan: 'pro', connected_account_id: 'acct_test', charges_enabled: true, onboarding_complete: true,
@@ -41,6 +41,7 @@ function harness(options = {}) {
   const admin = { from(table) {
     const filters = []; queries.push({ table, filters });
     const query = { select() { return query; }, eq(k, v) { filters.push([k, v]); return query; },
+      async insert(row) { bindings.push(row); events.push('bind'); return { error: options.bindingError ? Error('binding failed') : null }; },
       async maybeSingle() { return answer(); }, async single() { return answer(); } };
     function answer() {
       if (options.dbError) return { data: null, error: Error('private-provider-detail') };
@@ -55,8 +56,8 @@ function harness(options = {}) {
   } }, checkout: { sessions: { async create(data, request) {
     events.push('session'); sessions.push({ data, request });
     if (options.stripeError) throw Error('private-stripe-provider-detail');
-    return { url: options.noCheckoutUrl ? null : checkoutUrl };
-  } } } };
+    return { id: 'cs_test_synthetic', url: options.noCheckoutUrl ? null : checkoutUrl };
+  }, async expire(id, _params, request) { expirations.push({ id, request }); } } } };
   const route = evaluate('app/api/marketplace/checkout/route.ts', {
     'next/server': { NextResponse: { json: (body, init) => Response.json(body, init) } },
     '@/lib/cqa-site-url': { getCqaSiteUrl: () => 'https://cqa.example.test' },
@@ -72,7 +73,7 @@ function harness(options = {}) {
           events.push('auth'); authTokens.push(token);
           if (options.authError) throw Error('private-auth-provider-detail');
           if (options.invalidToken || token !== 'verified-buyer-token') return { data: { user: null }, error: Error('Invalid token') };
-          return { data: { user: { id: buyerId, email: 'buyer@example.test', email_confirmed_at: options.unconfirmed ? null : '2026-10-31' } }, error: null };
+          return { data: { user: { id: buyerId, email: 'buyer@example.test', is_anonymous: !!options.anonymous, email_confirmed_at: options.unconfirmed ? null : '2026-10-31' } }, error: null };
         } },
       }) },
     '@/lib/storage': { verifyPrivateMarketplaceAsset: async (...args) => {
@@ -81,7 +82,7 @@ function harness(options = {}) {
       return !options.headMissing;
     } },
   }, { process: { env }, console: { error: (...args) => logs.push(args.map(String).join(' ')), warn: (...args) => logs.push(args.map(String).join(' ')) } });
-  return { ...route, env, events, sessions, checks, queries, logs, authTokens, context,
+  return { ...route, env, events, sessions, checks, queries, logs, authTokens, context, bindings, expirations,
     post(token = 'verified-buyer-token', extra = {}) {
       return route.POST(new Request('https://cqa.example.test/api/marketplace/checkout', { method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token === null ? {} : { Authorization: `Bearer ${token}` }) },
@@ -107,7 +108,10 @@ await test('real digital checkout binds verified buyer, original price, fee, acc
   const { data, request } = h.sessions[0]; assert.equal(data.mode, 'payment'); assert.equal(data.customer_email, 'buyer@example.test');
   assert.equal(data.line_items[0].price_data.unit_amount, 1299); assert.equal(data.line_items[0].price_data.currency, 'aud');
   assert.equal(data.payment_intent_data.application_fee_amount, Math.round(1299 * .03));
-  assert.deepEqual(data.metadata, { cqaBusinessId: businessId, cqaMachineId: machineId, cqaOfferId: offerId, cqaPlan: 'pro', cqaBuyerUserId: buyerId });
+  assert.deepEqual(data.metadata, { cqaBusinessId: businessId, cqaMachineId: machineId, cqaOfferId: offerId, cqaPlan: 'pro', cqaBuyerUserId: buyerId, cqaDigitalDelivery: '1' });
+  assert.equal(data.client_reference_id, buyerId); assert.equal(h.bindings.length, 1);
+  assert.equal(h.bindings[0].status, 'pending'); assert.equal(h.bindings[0].buyer_user_id, buyerId);
+  assert.equal(h.bindings[0].stripe_checkout_session_id, 'cs_test_synthetic'); assert.equal(h.bindings[0].amount_cents,1299);
   assert.deepEqual(data.payment_intent_data.metadata, data.metadata); assert.deepEqual(request, { stripeAccount: 'acct_test' });
   assert.match(data.success_url, /^https:\/\/cqa\.example\.test\/checkout\/success\?/); assert.match(data.success_url, /session_id=\{CHECKOUT_SESSION_ID\}/);
   assert.equal(data.cancel_url, 'https://cqa.example.test/machine/test-store');
@@ -117,8 +121,18 @@ await test('real digital checkout binds verified buyer, original price, fee, acc
   assert.doesNotMatch(JSON.stringify(h.logs), /verified-buyer-token|marketplace\/|private-/);
 });
 
+await test('digital pending binding failure expires checkout and returns no payment URL', async () => {
+  const h=harness({bindingError:true}); const response=await h.post();
+  assert.equal(response.status,503); assert.equal((await response.json()).url,undefined);
+  assert.deepEqual(h.expirations,[{id:'cs_test_synthetic',request:{stripeAccount:'acct_test'}}]);
+});
+await test('digital subscription hybrid is rejected before payment', async () => {
+  const h=harness({type:'subscription',offer:{fulfillment_type:'digital'}});
+  assert.equal((await h.post()).status,409);assert.equal(h.sessions.length,0);assert.equal(h.bindings.length,0);
+});
+
 await test('digital checkout rejects missing invalid unconfirmed and mismatched-email buyers before storage or Stripe', async () => {
-  for (const scenario of [{ token: null }, { token: 'expired-token' }, { options: { invalidToken: true } }, { options: { unconfirmed: true } }, { payload: { customerEmail: 'other@example.test' } }]) {
+  for (const scenario of [{ token: null }, { token: 'expired-token' }, { options: { invalidToken: true } }, { options: { unconfirmed: true } }, { options: { anonymous: true } }, { payload: { customerEmail: 'other@example.test' } }]) {
     const h = harness(scenario.options); const r = await h.post(Object.hasOwn(scenario, 'token') ? scenario.token : 'verified-buyer-token', scenario.payload);
     assert.equal(r.status, 401); assert.equal((await r.json()).code, 'CQA_BUYER_LOGIN_REQUIRED'); assert.equal(h.checks.length, 0); assert.equal(h.sessions.length, 0); assert.equal(h.events.includes('account'), false);
   }

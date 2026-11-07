@@ -5,6 +5,7 @@ import { getStripeClient } from "@/lib/stripe";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
 import { claimCqaWebhookEvent, finishCqaWebhookEvent } from "@/lib/cqa-webhook-events";
+import { verifyMarketplaceDigitalCheckout } from "@/lib/cqa-marketplace-checkout-binding";
 
 export const runtime = "nodejs";
 
@@ -41,7 +42,13 @@ export async function POST(req: Request) {
     }
 
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
-      const session = event.data.object as Stripe.Checkout.Session;
+      let session = event.data.object as Stripe.Checkout.Session;
+      const digitalBinding = await verifyMarketplaceDigitalCheckout(event, session);
+      if (digitalBinding?.terminal) {
+        if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt);
+        return NextResponse.json({ received: true });
+      }
+      if (digitalBinding) session = digitalBinding.session;
       const businessId = session.metadata?.cqaBusinessId;
       if (businessId && (session.payment_status === "paid" || session.payment_status === "no_payment_required")) {
         const { data: account, error: accountError } = await admin.from("cqa_connected_accounts")
@@ -50,12 +57,12 @@ export async function POST(req: Request) {
         if (!event.account || account.stripe_account_id !== event.account) throw new Error("Checkout account does not match business.");
         const email = (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
         const claimedBuyerId = session.metadata?.cqaBuyerUserId || null;
-        let buyerUserId: string | null = null;
-        if (claimedBuyerId && email) {
+        let buyerUserId: string | null = digitalBinding?.buyerUserId || null;
+        if (!digitalBinding && claimedBuyerId && email) {
           const { data: buyerLookup, error: buyerError } = await admin.auth.admin.getUserById(claimedBuyerId);
           if (buyerError) throw buyerError;
           const buyer = buyerLookup?.user;
-          if (buyer?.email_confirmed_at && buyer.email?.trim().toLowerCase() === email) buyerUserId = buyer.id;
+          if (buyer?.email_confirmed_at && !buyer.is_anonymous && buyer.email?.trim().toLowerCase() === email) buyerUserId = buyer.id;
         }
         let paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null;
         if (session.mode === "subscription") {

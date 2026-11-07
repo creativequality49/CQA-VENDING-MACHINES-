@@ -71,12 +71,12 @@ function harness(options = {}) {
     } },
     charges: { retrieve: async () => charge() }
   };
-  const post = new Function('NextResponse', 'getStripeClient', 'getCqaSupabaseAdmin', 'triggerBusinessAutomations', 'claimCqaWebhookEvent', 'finishCqaWebhookEvent', 'notifyCqaOrder', compiled + ';return POST;')(
+  const post = new Function('NextResponse', 'getStripeClient', 'getCqaSupabaseAdmin', 'triggerBusinessAutomations', 'claimCqaWebhookEvent', 'finishCqaWebhookEvent', 'notifyCqaOrder', 'verifyMarketplaceDigitalCheckout', compiled + ';return POST;')(
     { json: (body, config) => ({ body, status: config?.status || 200 }) }, () => stripe, () => admin,
     async () => { state.automations++; },
     async () => ({ duplicate: !!state.duplicate, claimedAt: 'lease' }),
     async (id, _claim, error) => { state.finishes.push({ id, error }); },
-    async () => { state.notifications++; if (state.emailError) throw Error('Email unavailable'); }
+    async () => { state.notifications++; if (state.emailError) throw Error('Email unavailable'); }, async () => null
   );
   return {
     state,
