@@ -15,12 +15,13 @@ export function NavBar() {
             />
           </Link>
 
-          <Link href="/owner/dashboard" className="cqa-dashboard-link">Dashboard</Link>
+          <Link href="/workspace" className="cqa-dashboard-link">Workspace</Link>
 
           <nav className="cqa-desktop-links" aria-label="Primary navigation">
             <Link href="/">Home</Link>
             <Link href="/machines">Machine Store</Link>
             <Link href="/onboarding">Build My Machine</Link>
+            <Link href="/workspace">Business Workspace</Link>
             <Link href="/automations">Automations</Link>
             <Link href="/pricing">Pricing</Link>
             <Link href="/contact?service=support">Support</Link>
@@ -42,7 +43,7 @@ export function NavBar() {
               <Link href="/pricing">Pricing <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>
               <Link href="/automations">Automations <span>06</span></Link>
-              <Link href="/owner/dashboard">Dashboard <span>07</span></Link>
+              <Link href="/workspace">Business Workspace <span>07</span></Link>
               <Link href="/contact?service=support">Support <span>08</span></Link>
               <div className="menu-panel-actions">
                 <Link href="/login?next=/owner/dashboard" className="button ghost">Owner Login</Link>
@@ -56,7 +57,7 @@ export function NavBar() {
       <nav className="mobile-dock" aria-label="Mobile navigation">
         <Link href="/marketplace"><b>⌂</b><span>Explore</span></Link>
         <Link href="/onboarding"><b>＋</b><span>Launch</span></Link>
-        <Link href="/owner/dashboard"><b>▦</b><span>Workspace</span></Link>
+        <Link href="/workspace"><b>▦</b><span>Workspace</span></Link>
         <Link href="/automations"><b>✦</b><span>Automate</span></Link>
       </nav>
     </>
