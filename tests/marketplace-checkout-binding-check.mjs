@@ -48,7 +48,7 @@ for(const t of [
  const helper=new Function('getCqaSupabaseAdmin','getStripeClient',js+';return verifyMarketplaceDigitalCheckout;')(()=>admin,()=>stripe);
  const supplied={id:'checkout',mode:'payment',payment_status:t.unpaid?'unpaid':'paid',amount_total:t.eventAmount??2900,currency:'aud',payment_intent:t.eventPi||'pi',metadata:{...originalMetadata,cqaOfferId:t.eventOffer||'offer',cqaBuyerUserId:t.eventBuyer||'buyer',cqaMachineId:t.eventMachine||'machine',...(t.legacy?{cqaDigitalDelivery:undefined}:{})}};
  const call=()=>helper({account:t.wrongAccount?'other':'seller'},supplied);
- if(t.reject)await assert.rejects(call);else{const result=await call();if(t.unpaid||t.legacy)assert.equal(result,null);else if(t.terminal){assert.equal(result.terminal,true);assert.equal(result.buyerUserId,null)}else{assert.equal(result.terminal,false);assert.equal(result.buyerUserId,'buyer');assert.equal(order.stripe_payment_intent_id,'pi')}}
+ if(t.reject)await assert.rejects(call);else{const result=await call();if(t.unpaid||t.legacy)assert.equal(result,null);else if(t.terminal){assert.equal(result.terminal,true);assert.equal(result.buyerUserId,null)}else{assert.equal(result.terminal,false);assert.equal(result.buyerUserId,'buyer');assert.equal(result.buyerEmail,'buyer@example.test');assert.equal(order.stripe_payment_intent_id,'pi')}}
  assert.equal(mutations,!t.reject&&!t.unpaid&&!t.legacy&&!t.terminal?1:0,t.name);
  if(t.terminal||t.legacy||t.unpaid){assert.equal(providerCalls,0);assert.equal(bindAttempts,0)}
  if(t.unpaid)assert.equal(reads,0);

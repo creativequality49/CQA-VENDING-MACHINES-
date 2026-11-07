@@ -24,7 +24,7 @@ export async function verifyMarketplaceDigitalCheckout(event: Stripe.Event, supp
   if (offerError) throw offerError;
   const digital = offer?.offer_type === 'digital_product' || offer?.fulfillment_type === 'digital';
   if (!digital && supplied.metadata?.cqaDigitalDelivery !== '1') return null;
-  if (digital && pending && ['refunded', 'cancelled', 'disputed'].includes(pending.status)) return { session: supplied, buyerUserId: null, terminal: true };
+  if (digital && pending && ['refunded', 'cancelled', 'disputed'].includes(pending.status)) return { session: supplied, buyerUserId: null, buyerEmail: null, terminal: true };
   if (!digital || !pending || !pending.buyer_user_id || !event.account) throw new Error('Digital checkout has no durable buyer contract.');
   const { data: account, error: accountError } = await admin.from('cqa_connected_accounts').select('stripe_account_id').eq('business_id', pending.business_id).single();
   if (accountError || account?.stripe_account_id !== event.account) throw new Error('Digital checkout account mismatch.');
@@ -51,5 +51,5 @@ export async function verifyMarketplaceDigitalCheckout(event: Stripe.Event, supp
   const { error: bindError } = await admin.from('cqa_orders').update({ stripe_payment_intent_id: pi.id })
     .eq('id', pending.id).eq('business_id', pending.business_id).eq('status', 'pending');
   if (bindError) throw bindError;
-  return { session, buyerUserId: pending.buyer_user_id as string, terminal: false };
+  return { session, buyerUserId: pending.buyer_user_id as string, buyerEmail: identity.user.email.trim().toLowerCase(), terminal: false };
 }

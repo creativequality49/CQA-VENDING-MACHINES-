@@ -148,7 +148,7 @@ export async function POST(req: Request) {
           contactId = contact?.id || null;
         }
 
-        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency });
+        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency, digital: Boolean(digitalBinding), buyerEmail: digitalBinding?.buyerEmail });
 
         await triggerBusinessAutomations(businessId, "purchase", {
           orderId: order?.id || null,
