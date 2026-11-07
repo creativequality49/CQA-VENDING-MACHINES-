@@ -1,8 +1,9 @@
 node_modules
 .next
-.env
-.env.local
-.env.*.local
+# Ignore credential files; track only empty example templates.
+.env*
+!.env.example
+!.env.*.example
 .DS_Store
 npm-debug.log*
 .cqa-reports/
