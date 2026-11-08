@@ -1,5 +1,5 @@
 import Link from "next/link";
-import MachineArtwork from "@/components/MachineArtwork";
+import Image from "next/image";
 import StorefrontExample from "@/components/StorefrontExample";
 import WorkerShowcase from "@/components/WorkerShowcase";
 import MachineBuildDemo from "@/components/MachineBuildDemo";
@@ -14,9 +14,9 @@ const steps = [
 
 export default function HomePage() {
   return <main className="studio-page">
-    <section className="studio-hero studio-wrap">
-      <div className="studio-hero-copy"><span className="studio-kicker">CREATIVE QUALITY AUSTRALIA</span><p className="studio-hero-pre">Your business deserves</p><h1>more than<br/> a link in bio<span>.</span></h1><p className="studio-lead">Your own digital vending machine. A branded place for your products, services and memberships—with AI draft workers to help behind the scenes.</p><div className="studio-actions"><Link href="/onboarding?plan=pro" className="studio-button">Design my machine <span aria-hidden="true">→</span></Link><Link href="/machines" className="studio-button-secondary">Explore the collection</Link></div><p className="studio-micro">Free design preview · No payment to explore</p></div>
-      <div className="studio-hero-visual"><div className="studio-visual-top"><span>CQA / DIGITAL VENDING OS</span><span>THE CONCEPT</span></div><MachineArtwork variant="scene" priority/><div className="studio-visual-caption"><span><b>Your brand. Your storefront.</b><small>Black glass. Illuminated offers. Built around your business.</small></span><span aria-hidden="true">→</span></div></div>
+    <section className="studio-hero studio-wrap studio-activewear-hero">
+      <div className="studio-hero-copy"><span className="studio-kicker">CREATIVE QUALITY AUSTRALIA</span><p className="studio-hero-pre">Turn your business into a</p><h1>digital vending<br/> machine<span>.</span></h1><p className="studio-lead">Your own digital vending machine. A branded place for your products, services and memberships—with AI draft workers to help behind the scenes.</p><div className="studio-actions"><Link href="/onboarding?plan=pro" className="studio-button">Design my machine <span aria-hidden="true">→</span></Link><Link href="/machines" className="studio-button-secondary">Explore the collection</Link></div><p className="studio-micro">Free design preview · No payment to explore</p></div>
+      <div className="studio-hero-visual studio-activewear-visual"><div className="studio-visual-top"><span>CQA / DIGITAL VENDING OS</span><span>ACTIVEWEAR CONCEPT</span></div><div className="studio-activewear-art"><Image src="/images/activewear-vending-hero.png" alt="CQA activewear vending machine with pink illuminated product compartments and a model in black activewear" width={941} height={1672} sizes="(max-width: 760px) 100vw, 440px" priority /></div><div className="studio-visual-caption"><span><b>Your brand. Your storefront.</b><small>Black glass. Illuminated offers. Built around your business.</small></span><span aria-hidden="true">→</span></div></div>
     </section>
     <div className="studio-feature-strip"><div className="studio-wrap"><span>01 <b>Branded storefront</b></span><span>02 <b>Owner workspace</b></span><span>03 <b>AI draft workers</b></span><span>04 <b>Guided setup</b></span></div></div>
 
