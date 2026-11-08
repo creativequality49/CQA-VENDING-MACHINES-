@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import MachineArtwork from "./MachineArtwork";
 import styles from "./CqaMachinePreview.module.css";
 
 export type PreviewOffer = { name: string; price: string };
@@ -24,6 +25,7 @@ export default function CqaMachinePreview({ name, category, description, locatio
         <p>{description.trim() || "Your business description appears here. Tell customers what you offer and why they should choose you."}</p>
         <span className={styles.demoButton}>Explore our offers ↓</span>
       </div>
+      <div className={styles.cabinetReference}><MachineArtwork decorative /><p>Black glass cabinet · illuminated offer bays</p></div>
       <div className={styles.sectionHeading}><h3>Ways to work with us</h3><span>{visibleOffers.length ? "Your draft offers" : "Example placement"}</span></div>
       <div className={styles.offers}><DemoWatermark />{examples.map((offer, index) => <article className={styles.offer} key={index}>
         <div className={styles.offerArtwork}><span>{String(index + 1).padStart(2, "0")}</span><span>✦</span></div>
