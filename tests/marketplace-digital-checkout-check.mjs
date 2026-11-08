@@ -24,12 +24,14 @@ const assetKey = `marketplace/${businessId}/${offerId}/10000000-0000-4000-8000-0
 const checkoutUrl = 'https://checkout.stripe.com/c/pay/cs_test_synthetic';
 const testKey = 'sk_test_' + 'a'.repeat(24);
 const liveKey = 'sk_live_' + 'a'.repeat(24);
+const isolatedEnv = { VERCEL_ENV: 'preview', CQA_COMMERCE_TEST_PROJECT: 'ndzmlywsuywkhgqdbzft',
+  SUPABASE_URL: 'https://ndzmlywsuywkhgqdbzft.supabase.co', NEXT_PUBLIC_SUPABASE_URL: 'https://ndzmlywsuywkhgqdbzft.supabase.co' };
 const assets = evaluate('lib/cqa-marketplace-assets.ts');
 const originalMarket = evaluate('lib/cqa-marketplace.ts', { '@supabase/supabase-js': { createClient() { throw Error('Unexpected real client'); } } });
 
 function gates(env = {}) { return evaluate('lib/cqa-launch-gate.ts', {}, { process: { env } }); }
 function harness(options = {}) {
-  const env = { STRIPE_SECRET_KEY: testKey, ...options.env };
+  const env = { ...isolatedEnv, STRIPE_SECRET_KEY: testKey, ...options.env };
   const events = [], sessions = [], checks = [], queries = [], logs = [], authTokens = [], bindings = [], expirations = [];
   const context = { business_id: businessId, machine_id: machineId, offer_id: offerId, machine_slug: 'test-store',
     offer_type: options.type || 'digital_product', offer_name: 'Synthetic owner PDF', offer_description: 'Test-only file',
@@ -90,15 +92,34 @@ function harness(options = {}) {
     } };
 }
 
-await test('digital gate permits test credentials and requires both explicit live approvals', async () => {
-  for (const prefix of ['sk_test_', 'rk_test_', 'rkcs_test_']) assert.equal(gates({ STRIPE_SECRET_KEY: prefix + 'a'.repeat(24) }).isCqaDigitalCheckoutAllowed(), true);
+await test('digital gate permits isolated sandbox credentials and requires both explicit live approvals', async () => {
+  for (const prefix of ['sk_test_', 'rk_test_', 'rkcs_test_']) assert.equal(gates({ ...isolatedEnv, STRIPE_SECRET_KEY: prefix + 'a'.repeat(24) }).isCqaDigitalCheckoutAllowed(), true);
   for (const env of [{}, { CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' },
     { STRIPE_SECRET_KEY: liveKey }, { STRIPE_SECRET_KEY: liveKey, CQA_CUSTOMER_LAUNCH_APPROVED: 'true' },
     { STRIPE_SECRET_KEY: liveKey, CQA_DIGITAL_DELIVERY_APPROVED: 'true' }]) assert.equal(gates(env).isCqaDigitalCheckoutAllowed(), false);
-  assert.equal(gates({ STRIPE_SECRET_KEY: liveKey, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }).isCqaDigitalCheckoutAllowed(), true);
+  assert.equal(gates({ VERCEL_ENV: 'production', STRIPE_SECRET_KEY: liveKey, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }).isCqaDigitalCheckoutAllowed(), true);
   const h = harness({ env: { STRIPE_SECRET_KEY: liveKey, CQA_CUSTOMER_LAUNCH_APPROVED: 'true' } });
   const response = await h.post(); assert.equal(response.status, 409); assert.equal((await response.json()).code, 'CQA_DIGITAL_DELIVERY_PENDING');
   assert.deepEqual(h.events, []); assert.equal(h.sessions.length, 0);
+});
+
+await test('live keys never enable checkout on Preview even with both approvals', async () => {
+  const h = harness({ env: { VERCEL_ENV: 'preview', STRIPE_SECRET_KEY: liveKey, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' } });
+  const response = await h.post(); assert.equal(response.status,409);
+  assert.equal((await response.json()).code,'CQA_DIGITAL_DELIVERY_PENDING');
+  assert.deepEqual(h.events,[]); assert.equal(h.sessions.length,0); assert.equal(h.bindings.length,0);
+});
+
+await test('test key on production or mismatched database cannot create digital checkout even with approval flags', async () => {
+  for (const override of [{ VERCEL_ENV: 'production' }, { VERCEL_ENV: undefined },
+    { SUPABASE_URL: 'https://rjxiuukphwybujuclenn.supabase.co' }, { NEXT_PUBLIC_SUPABASE_URL: undefined },
+    { CQA_COMMERCE_TEST_PROJECT: undefined }]) {
+    const h = harness({ env: { ...override, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' } });
+    const response = await h.post();
+    assert.equal(response.status, 409);
+    assert.equal((await response.json()).code, 'CQA_DIGITAL_DELIVERY_PENDING');
+    assert.deepEqual(h.events, []); assert.equal(h.sessions.length, 0); assert.equal(h.bindings.length, 0);
+  }
 });
 
 await test('real digital checkout binds verified buyer, original price, fee, account and metadata after storage verification', async () => {

@@ -3,17 +3,52 @@ import ts from 'typescript';
 import assert from 'node:assert/strict';
 import { z } from 'zod';
 const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8').replace(/^import[\s\S]*?;\r?\n/gm, '').replace(/export /g, ''), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
-const allowed = new Function('process', compile('lib/cqa-launch-gate.ts') + ';return isNewCqaCheckoutAllowed;');
-for (const test of [
-  { key: 'sk_live_example', expected: false }, { key: 'rk_live_example', expected: false },
-  { key: undefined, expected: false }, { key: 'unknown', expected: false },
-  { key: 'sk_test_example', expected: true }, { key: 'rk_test_example', expected: true }, { key: 'rkcs_test_example', expected: true },
-  { key: 'sk_live_example', flag: 'true', expected: true },
-  { key: 'sk_live_example', flag: 'TRUE', expected: false }, { key: 'sk_live_example', flag: 'false', expected: false }
-]) {
-  assert.equal(allowed({ env: { STRIPE_SECRET_KEY: test.key, CQA_CUSTOMER_LAUNCH_APPROVED: test.flag } })(), test.expected);
+const gateFactory = new Function('process', compile('lib/cqa-launch-gate.ts') + ';return { isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed };');
+const testProject = 'ndzmlywsuywkhgqdbzft';
+const isolated = { VERCEL_ENV: 'preview', CQA_COMMERCE_TEST_PROJECT: testProject,
+  SUPABASE_URL: `https://${testProject}.supabase.co`, NEXT_PUBLIC_SUPABASE_URL: `https://${testProject}.supabase.co` };
+let cases = 0;
+function check(env, checkout, digital = checkout) {
+  const gates = gateFactory({ env });
+  assert.equal(gates.isNewCqaCheckoutAllowed(), checkout, JSON.stringify(env));
+  assert.equal(gates.isCqaDigitalCheckoutAllowed(), digital, JSON.stringify(env));
+  cases++;
 }
-console.log('PASS launch flag and live/test/missing/unknown credential matrix (10 cases)');
+for (const prefix of ['sk_test_', 'rk_test_', 'rkcs_test_']) {
+  const base = { ...isolated, STRIPE_SECRET_KEY: prefix + 'example' };
+  check(base, true);
+  check({ ...base, SUPABASE_URL: base.SUPABASE_URL + '/', NEXT_PUBLIC_SUPABASE_URL: base.NEXT_PUBLIC_SUPABASE_URL + '/' }, true);
+  for (const VERCEL_ENV of [undefined, 'production', 'development', 'Preview']) {
+    check({ ...base, VERCEL_ENV }, false);
+    check({ ...base, VERCEL_ENV, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }, false);
+  }
+  for (const CQA_COMMERCE_TEST_PROJECT of [undefined, 'rjxiuukphwybujuclenn', 'yes']) check({ ...base, CQA_COMMERCE_TEST_PROJECT }, false);
+  for (const field of ['SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_URL']) {
+    for (const value of [undefined, '', 'https://rjxiuukphwybujuclenn.supabase.co', 'http://' + testProject + '.supabase.co',
+      `https://${testProject}.supabase.co.evil.test`, `https://user:password@${testProject}.supabase.co`,
+      `https://${testProject}.supabase.co:443`, `https://${testProject}.supabase.co/path`,
+      `https://${testProject}.supabase.co?x=1`, `https://${testProject}.supabase.co/#fragment`, ' ' + base[field]]) {
+      check({ ...base, [field]: value }, false);
+      check({ ...base, [field]: value, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }, false);
+    }
+  }
+}
+for (const prefix of ['sk_live_', 'rk_live_', 'rkcs_live_']) {
+  const base = { STRIPE_SECRET_KEY: prefix + 'example', VERCEL_ENV: 'production' };
+  check(base, false);
+  check({ ...base, CQA_CUSTOMER_LAUNCH_APPROVED: 'true' }, true, false);
+  check({ ...base, CQA_DIGITAL_DELIVERY_APPROVED: 'true' }, false);
+  check({ ...base, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }, true);
+  for (const VERCEL_ENV of [undefined, 'preview', 'development', 'Production']) {
+    check({ ...base, VERCEL_ENV, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }, false);
+  }
+  for (const flag of ['TRUE', 'false', '', undefined]) check({ ...base, CQA_CUSTOMER_LAUNCH_APPROVED: flag, CQA_DIGITAL_DELIVERY_APPROVED: flag }, false);
+}
+for (const key of [undefined, '', 'unknown', 'sk_test_', 'sk_live_', 'sk_test_bad key', 'sk_live_example\n']) {
+  check({ ...isolated, STRIPE_SECRET_KEY: key }, false);
+  check({ ...isolated, STRIPE_SECRET_KEY: key, CQA_CUSTOMER_LAUNCH_APPROVED: 'true', CQA_DIGITAL_DELIVERY_APPROVED: 'true' }, false);
+}
+console.log(`PASS sandbox isolation, live approvals and malformed-key matrix (${cases} cases; both gates checked)`);
 for (const kind of ['plan', 'worker']) {
   const post = new Function('NextResponse', 'z', 'isNewCqaCheckoutAllowed', 'CQA_PRELAUNCH_CHECKOUT_MESSAGE', compile('app/api/cqa-billing/checkout/route.ts') + ';return POST;')(
     { json: (body, options) => ({ body, status: options?.status || 200 }) }, z, () => false, 'Payments paused'
