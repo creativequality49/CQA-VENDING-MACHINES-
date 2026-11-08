@@ -82,3 +82,10 @@
 .studio-pricing .marketplace-live-panel{background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;transform:none!important;padding:0!important;max-width:100%!important}
 .studio-pricing .neon-enter-button{background:#83eee9!important;color:#04191b!important;box-shadow:none!important;border:0!important;border-radius:8px!important}
 @media(max-width:760px){.studio-pricing .pricing-neon-hero{grid-template-columns:1fr!important;padding:24px!important}.studio-pricing .pricing-plan-grid>.neon-plan{transform:none!important}}
+
+/* Brooke's selected activewear artwork is the homepage hero. */
+.studio-activewear-hero{padding-block:36px 48px;gap:50px}
+.studio-activewear-visual{width:100%;max-width:440px;justify-self:center}
+.studio-activewear-art{overflow:hidden;border-radius:18px;background:#06070a;border:1px solid #df5a9a40}
+.studio-activewear-art img{display:block;width:100%;height:auto;max-height:620px;object-fit:contain}
+@media(max-width:760px){.studio-activewear-hero{gap:28px;padding-top:24px}.studio-activewear-visual{order:-1;max-width:100%}.studio-activewear-art img{height:420px;width:100%;object-fit:contain}.studio-activewear-visual .studio-visual-caption{display:none}.studio-activewear-hero h1 br{display:none}}
