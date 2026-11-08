@@ -1,0 +1,6 @@
+.artwork{position:relative;overflow:hidden;isolation:isolate;background:#030609;border-radius:20px;margin:0;min-width:0}
+.artwork img{display:block;object-fit:cover;object-position:52% 50%}
+.scene{width:100%;aspect-ratio:1536/863;border:1px solid #a7eaff45;box-shadow:0 18px 65px #000a,0 0 35px #e846aa18}
+.scene img{object-fit:contain}
+.cabinet{width:min(100%,300px);aspect-ratio:0.78;border:1px solid #a7eaff30;box-shadow:0 12px 35px #0008,0 0 20px #a0e9ff19}
+@media(prefers-reduced-motion:no-preference){.artwork{transition:border-color .2s ease}.artwork:hover{border-color:#9eefff80}}

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import MachineArtwork from "@/components/MachineArtwork";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
 import "./machine-store.css";
 
@@ -23,7 +23,7 @@ export default function MachinesPage() {
       <Link href="/workers">AI Powered</Link>
     </nav>
     <section className="cqa-store-list" aria-label="Digital vending machine plans">
-      {featured.map((item, index) => {
+      {featured.map((item) => {
         const plan = CQA_PLANS.find(p => p.key === item.plan)!;
         return <article className="cqa-store-card" key={item.plan}>
           <div className="cqa-store-card-copy">
@@ -37,7 +37,7 @@ export default function MachinesPage() {
               <Link href={`/onboarding?plan=${plan.key}`} className="cqa-store-primary">Get started</Link>
             </div>
           </div>
-          <div className="cqa-store-machine" aria-hidden="true"><div className="cqa-store-machine-top">CQA <span>0{index+1}</span></div><div className="cqa-store-machine-window">{["headphones","camera","sneaker","bag","watch","tablet"].map(item=><span key={item}><Image src={`/images/slots/${item}.svg`} alt="" width={64} height={64} unoptimized /></span>)}</div><div className="cqa-store-machine-foot"><span>EXPLORE</span><b>▣</b></div></div>
+          <MachineArtwork decorative className="cqa-reference-store-art" />
         </article>;
       })}
     </section>

@@ -1,0 +1,19 @@
+/* Image 3 cabinet treatment. Scoped to vending surfaces, not payment logic. */
+.cqa-luxe-home .cqa-luxe-hero-inner{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:28px;padding:48px 24px}
+.cqa-luxe-home .cqa-reference-hero-art{align-self:center}
+.cqa-luxe-home .cqa-luxe-product-art{height:auto;min-height:280px;padding:48px 28px 22px;background:radial-gradient(ellipse at right,#ed51b533,transparent 65%),#04070b}
+.cqa-luxe-product-art>[aria-hidden]{width:180px}
+.cqa-store-card .cqa-reference-store-art{width:min(100%,210px);align-self:center;justify-self:center}
+.machine-detail-shell,.neon-machine{background:linear-gradient(135deg,#19222a,#030609 40%,#111820)!important;border:2px solid #b9edff!important;border-radius:32px!important;box-shadow:inset 0 0 0 8px #121c24,0 0 18px #a6eaff66,0 20px 60px #0009!important;overflow:hidden}
+.machine-detail-rail,.neon-machine-rail{background:linear-gradient(180deg,#05080d,#19232c,#04080d)!important;border-color:#8cb4ca!important}
+.machine-detail-screen:not(.has-media),.neon-machine-screen:not(.has-media){background:linear-gradient(120deg,#101c27,#03080e)!important}
+.machine-offer-bay,.neon-product-bay{background:#04090e!important;border:2px solid #b4efff!important;border-radius:15px;padding:10px!important;gap:3px!important;box-shadow:0 0 14px #b1eaff55,inset 0 0 20px #90cfe555}
+.machine-offer-slot,.neon-product-slot{background:radial-gradient(ellipse at top,#afdfff22,transparent 60%),linear-gradient(155deg,#23333f,#080e15 60%)!important;border:1px solid #96b9ca!important;border-top:4px solid #e4faff!important;border-radius:3px!important;box-shadow:inset 0 7px 13px #d6f3ff33!important;color:#f5fbff}
+.machine-offer-image,.slot-product-image{background-color:#0c1721;background-size:contain!important;background-repeat:no-repeat;background-position:center;box-shadow:inset 0 5px 20px #c4edff22}
+.machine-offer-slot p,.neon-product-slot small{color:#d1e0e8!important}
+.machine-detail-page .slot-icon,.neon-machine .slot-icon{color:#d9f5ff;text-shadow:0 0 12px #a6eaff66}
+.machine-detail-page a:focus-visible,.neon-machine a:focus-visible,.cqa-store a:focus-visible{outline:3px solid #fff;outline-offset:4px}
+.machine-detail-page .slot-action a,.machine-detail-page .slot-action button{min-height:44px}
+@media(min-width:900px){.machine-detail-page .machine-offer-bay{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:700px){.cqa-luxe-home .cqa-luxe-hero-inner{display:flex;flex-direction:column;gap:24px;padding:28px 18px}.cqa-luxe-home .cqa-reference-hero-art{width:100%}.cqa-luxe-home .cqa-luxe-product-art{min-height:240px}.cqa-store-card{grid-template-columns:minmax(0,1fr) minmax(100px,34%)!important}.machine-detail-shell{border-radius:22px!important}.machine-offer-bay{padding:6px!important}}
+@media(max-width:380px){.cqa-store-card{grid-template-columns:1fr!important}.cqa-store-card .cqa-reference-store-art{width:190px;grid-row:1}}
