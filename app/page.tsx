@@ -1,30 +1,46 @@
 import Link from "next/link";
 import MachineArtwork from "@/components/MachineArtwork";
-import { CQA_PLANS } from "@/lib/cqa-marketplace";
+import StorefrontExample from "@/components/StorefrontExample";
+import WorkerShowcase from "@/components/WorkerShowcase";
 import MachineBuildDemo from "@/components/MachineBuildDemo";
-import "./storefront-home.css";
+import { CQA_PLANS } from "@/lib/cqa-marketplace";
 
-const benefits = [["⚡","Fast setup","Preview before paying"],["◇","Secure payments","Stripe-connected billing"],["▱","Fully branded","Your business, your identity"],["∞","24/7 storefront","Customers browse anytime"],["◎","CQA support","Help when you need it"]];
-const machines = [
-  {name:"Business Storefront",kind:"FOR BUSINESS",description:"Products, bookings and subscriptions in one branded storefront.",plan:"pro" as const},
-  {name:"Creator Storefront",kind:"FOR CREATORS",description:"A storefront for digital offers, memberships and services.",plan:"starter" as const},
-  {name:"Enterprise Machine",kind:"ADVANCED OPERATIONS",description:"More selling capacity and guided implementation.",plan:"elite" as const}
+const steps = [
+  ["01", "Choose your direction", "A creator brand, a local service or a business with more to offer. Start with the machine that fits."],
+  ["02", "Make it unmistakably yours", "Add your business details, brand colours, logo and offers. See your preview before paying."],
+  ["03", "Prepare your customer journey", "Review your offers, payment connection and delivery details in your owner workspace."],
+  ["04", "Review, then publish", "Complete the launch requirements and publish your branded storefront when it is ready."]
 ];
-export default function HomePage(){
-return <main className="cqa-luxe-home">
-  <section className="cqa-luxe-hero">
-    <div className="cqa-luxe-hero-inner">
-      <div className="cqa-luxe-hero-copy"><span className="cqa-luxe-overline">CQA DIGITAL VENDING OS</span><p className="cqa-luxe-intro">Turn your business into a</p><h1>DIGITAL<br/>VENDING<br/>MACHINE</h1><p>Sell products, subscriptions, bookings and services through your own branded digital storefront.</p><div className="cqa-luxe-actions"><Link className="cqa-luxe-primary" href="/onboarding?plan=pro">Build My Machine <span aria-hidden="true">→</span></Link><Link className="cqa-luxe-outline" href="/machines">Explore Machines</Link></div><small>Personalise your free preview before deciding whether to pay.</small></div>
-      <MachineArtwork variant="scene" priority className="cqa-reference-hero-art" />
-    </div>
-  </section>
-  <section className="cqa-luxe-benefits" aria-label="Platform benefits">{benefits.map(([symbol,title,detail])=><div key={title}><b aria-hidden="true">{symbol}</b><span><strong>{title}</strong><small>{detail}</small></span></div>)}</section>
-  <section className="cqa-luxe-section" aria-labelledby="founding-interest-title"><div className="cqa-luxe-section-heading"><div><span className="cqa-luxe-overline">FOUNDING CUSTOMER EARLY ACCESS</span><h2 id="founding-interest-title">Your first machine.<em> With guidance.</em></h2><p>We are preparing assisted onboarding for our first ten suitable businesses. Customer payments remain paused while launch verification continues.</p><p>Proposed Starter A$97/month + 5% CQA sale fee + Stripe processing fees. No payment or guaranteed place when joining the interest list.</p></div></div><div className="cqa-luxe-actions"><Link className="cqa-luxe-primary" href="/founding-customers">Request early access →</Link><Link className="cqa-luxe-outline" href="#machine-build-demo">Watch the example build</Link></div></section>
-  <MachineBuildDemo />
-  <section className="cqa-luxe-section"><div className="cqa-luxe-section-heading"><div><span className="cqa-luxe-overline">THE MARKETPLACE</span><h2>Explore the <em>Machine Store</em></h2><p>Choose a machine for your business, then make it your own.</p></div><Link href="/machines">View all machines →</Link></div><div className="cqa-luxe-tabs"><Link href="/machines">All Machines</Link><Link href="/pricing">For Creators</Link><Link href="/pricing">For Business</Link><Link href="/workers">AI Powered</Link></div><div className="cqa-luxe-products">{machines.map((m)=>{const plan=CQA_PLANS.find(p=>p.key===m.plan)!;return <article key={m.plan} className="cqa-luxe-product"><div className="cqa-luxe-product-art"><MachineArtwork decorative /><span>{m.kind}</span></div><div className="cqa-luxe-product-copy"><h3>{m.name}</h3><p>{m.description}</p><p className="cqa-luxe-price">From <strong>${plan.price}</strong> AUD/month</p><Link href={`/onboarding?plan=${plan.key}`}>Preview machine →</Link></div></article>})}</div></section>
-  <section className="cqa-luxe-builder"><div className="cqa-luxe-builder-visual" aria-hidden="true"><MachineArtwork decorative /></div><div><span className="cqa-luxe-overline">DESIGN FIRST · PAY LATER</span><h2>Create <em>Your Own</em> Machine</h2><p>See how your business could look before subscribing.</p><ol><li>Choose plan</li><li>Customise</li><li>Preview</li><li>Pay & activate</li></ol><Link href="/onboarding" className="cqa-luxe-primary">Start Building Now →</Link></div></section>
-  <section className="cqa-luxe-section"><div className="cqa-luxe-section-heading"><div><span className="cqa-luxe-overline">CLEAR MONTHLY PRICING</span><h2>Choose <em>Your Plan</em></h2><p>Real CQA plans and current prices, in AUD.</p></div><Link href="/pricing">Compare inclusions →</Link></div><div className="cqa-luxe-plans">{CQA_PLANS.map(p=><article key={p.key} className={p.key==="pro"?"featured":""}><span>{p.key==="pro"?"MOST POPULAR":"DIGITAL MACHINE"}</span><h3>{p.name}</h3><p className="cqa-luxe-plan-price">${p.price}<small> AUD/month</small></p><p>{p.slots} · {p.setupMode}</p><ul>{p.features.slice(0,4).map(t=><li key={t}>{t}</li>)}</ul><Link href={`/onboarding?plan=${p.key}`}>Preview {p.name} →</Link></article>)}</div></section>
-  <section className="cqa-luxe-service-grid"><Link href="/contact?service=premium-setup"><b>◇</b><span><strong>Premium Setup</strong><small>Done-with-you branding and implementation</small></span><span>→</span></Link><Link href="/contact?service=custom-automation"><b>⚙</b><span><strong>Custom Automation</strong><small>Business workflows and integrations</small></span><span>→</span></Link><Link href="/contact?service=support"><b>◎</b><span><strong>Customer Support</strong><small>Help with your machine or account</small></span><span>→</span></Link></section>
-  <footer className="cqa-luxe-footer"><span>Built with Stripe · Supabase · Next.js</span><span>Creative Quality Australia · Secure customer access</span></footer>
-</main>;
+
+export default function HomePage() {
+  return <main className="studio-page">
+    <section className="studio-hero studio-wrap">
+      <div className="studio-hero-copy"><span className="studio-kicker">CREATIVE QUALITY AUSTRALIA</span><p className="studio-hero-pre">Your business deserves</p><h1>more than<br/> a link in bio<span>.</span></h1><p className="studio-lead">Your own digital vending machine. A branded place for your products, services and memberships—with AI draft workers to help behind the scenes.</p><div className="studio-actions"><Link href="/onboarding?plan=pro" className="studio-button">Design my machine <span aria-hidden="true">→</span></Link><Link href="/machines" className="studio-button-secondary">Explore the collection</Link></div><p className="studio-micro">Free design preview · No payment to explore</p></div>
+      <div className="studio-hero-visual"><div className="studio-visual-top"><span>CQA / DIGITAL VENDING OS</span><span>THE CONCEPT</span></div><MachineArtwork variant="scene" priority/><div className="studio-visual-caption"><span><b>Your brand. Your storefront.</b><small>Black glass. Illuminated offers. Built around your business.</small></span><span aria-hidden="true">→</span></div></div>
+    </section>
+    <div className="studio-feature-strip"><div className="studio-wrap"><span>01 <b>Branded storefront</b></span><span>02 <b>Owner workspace</b></span><span>03 <b>AI draft workers</b></span><span>04 <b>Guided setup</b></span></div></div>
+
+    <section className="studio-section studio-wrap">
+      <div className="studio-section-head"><div><span className="studio-kicker">ONE PLATFORM. YOUR KIND OF BUSINESS.</span><h2>Make your next<br/>impression count.</h2></div><p>Give customers something clear to explore, an offer they understand and a simple way to take the next step.</p></div>
+      <div className="studio-audience-grid">
+        <article className="studio-audience"><StorefrontExample kind="beauty"/><div><span className="studio-kicker">FOR SERVICE BUSINESSES</span><h3>Turn interest into an enquiry.</h3><p>Show treatments, services and memberships with a clear booking or enquiry path.</p><Link href="/onboarding?plan=pro">Design a business machine →</Link></div></article>
+        <article className="studio-audience"><StorefrontExample kind="creator"/><div><span className="studio-kicker">FOR CREATORS</span><h3>Give every offer a home.</h3><p>Organise digital offers, memberships and business enquiries around your own brand.</p><Link href="/onboarding?plan=starter">Design a creator machine →</Link></div></article>
+      </div>
+      <p className="studio-micro">Sample businesses and layouts shown. Digital checkout and customer launch remain subject to verification.</p>
+    </section>
+
+    <section className="studio-dark-band"><div className="studio-wrap studio-section"><div className="studio-section-head"><div><span className="studio-kicker">FROM FIRST IDEA TO YOUR FIRST PREVIEW</span><h2>Build with intention.<br/><em>See it take shape.</em></h2></div><Link href="/onboarding" className="studio-text-link">Start your free preview →</Link></div><div className="studio-steps">{steps.map(([number,title,description])=><article key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}</div><MachineBuildDemo/></div></section>
+
+    <section className="studio-section studio-wrap"><div className="studio-section-head"><div><span className="studio-kicker">A LITTLE MORE HEADSPACE</span><h2>Your business knowledge.<br/><em>Three focused workers.</em></h2></div><p>Prepare replies, follow-ups and marketing copy. You review the drafts and decide what happens next.</p></div><WorkerShowcase compact/><div className="studio-actions"><Link href="/workers" className="studio-button-secondary">Meet your draft workers →</Link></div></section>
+
+    <section className="studio-section studio-wrap studio-plan-section"><div className="studio-section-head"><div><span className="studio-kicker">CLEAR PLANS. ROOM TO GROW.</span><h2>Choose your starting point.</h2></div><Link href="/pricing" className="studio-text-link">Compare every inclusion →</Link></div><div className="studio-plans">{CQA_PLANS.map(plan=><article key={plan.key} className={plan.key==="pro"?"studio-plan studio-plan-featured":"studio-plan"}><span className="studio-kicker">{plan.key==="pro"?"THE BUSINESS BUILDER":plan.key==="starter"?"YOUR FIRST MACHINE":"GUIDED IMPLEMENTATION"}</span><h3>{plan.name}</h3><p className="studio-price">${plan.price}<small> AUD / month</small></p><p>{plan.slots} · {plan.setupMode}</p><ul>{plan.features.slice(1,4).map(feature=><li key={feature}>{feature}</li>)}</ul><p className="studio-plan-fee">{plan.fee}% CQA sale fee + Stripe processing</p><Link href={`/onboarding?plan=${plan.key}`} className={plan.key==="pro"?"studio-button":"studio-button-secondary"}>Preview {plan.name} →</Link></article>)}</div></section>
+
+    <section className="studio-section studio-wrap studio-faq"><div><span className="studio-kicker">A FEW GOOD QUESTIONS</span><h2>Know what<br/>comes next.</h2><Link href="/contact?service=support" className="studio-text-link">Talk to CQA →</Link></div><div>
+      <details><summary>Can I try the design before paying?</summary><p>Yes. Use the free questionnaire and preview to see an illustrative storefront with your business details. A preview is not a published or payment-enabled machine.</p></details>
+      <details><summary>Will the AI workers run my business automatically?</summary><p>The receptionist, sales and marketing workers prepare drafts using your business information. Customer replies, publishing and commitments remain under your review.</p></details>
+      <details><summary>Can customers pay and receive downloads now?</summary><p>Live customer payments remain paused while payment, private delivery and account-isolation verification is completed. Explore the preview or register for assisted early access.</p></details>
+      <details><summary>What if I want help with setup?</summary><p>Request premium setup or custom automation support. We will confirm the scope with you before implementation. The optional Pro Launch Package is listed on the pricing page.</p></details>
+    </div></section>
+    <section className="studio-wrap studio-final"><div><span className="studio-kicker">YOUR NEXT CHAPTER STARTS WITH A PREVIEW</span><h2>Make room for<br/><em>your big idea.</em></h2><p>Design first. Review the details. Take the next step with confidence.</p></div><div><Link href="/onboarding?plan=pro" className="studio-button">Create my free preview →</Link><Link href="/founding-customers" className="studio-text-link">Register for assisted early access →</Link></div></section>
+  </main>;
 }

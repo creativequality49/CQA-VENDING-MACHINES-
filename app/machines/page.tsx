@@ -1,46 +1,15 @@
 import Link from "next/link";
 import MachineArtwork from "@/components/MachineArtwork";
+import StorefrontExample from "@/components/StorefrontExample";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
-import "./machine-store.css";
 
-const featured = [
-  { name: "Business Storefront", tag: "FOR BUSINESS", description: "Your complete digital vending machine. Present products, services and subscriptions in one branded storefront.", plan: "pro" as const, bullets: ["Branded machine preview", "Products, services and bookings", "Stripe connection after activation"] },
-  { name: "Creator Storefront", tag: "FOR CREATORS", description: "Sell digital offers, memberships and services from a storefront designed around your brand.", plan: "starter" as const, bullets: ["Custom branding", "Guided product setup", "Private owner workspace"] },
-  { name: "Enterprise Machine", tag: "ADVANCED SETUP", description: "Expanded capacity and hands-on setup for businesses with more complex operations.", plan: "elite" as const, bullets: ["Expanded selling capacity", "Integration planning", "Priority setup review"] }
+const collection = [
+  {kind:"beauty" as const, plan:"pro", name:"The Business Machine", tag:"SERVICES · BOOKINGS · MEMBERSHIPS", description:"For the local expert, the growing studio and the service business ready for a clearer customer experience.", details:["Services and booking enquiries","Your brand, imagery and business details","Three AI draft workers included"]},
+  {kind:"creator" as const, plan:"starter", name:"The Creator Machine", tag:"DIGITAL OFFERS · CONTENT · ENQUIRIES", description:"Bring your ideas and offers together in a storefront that feels like your brand.", details:["Four selling slots to start","Guided setup and owner workspace","Individual draft workers available as add-ons"]},
+  {kind:"business" as const, plan:"elite", name:"The Enterprise Machine", tag:"MORE CAPACITY · GUIDED IMPLEMENTATION", description:"For a broader catalogue, more connected tools and a business that needs extra setup support.", details:["Expanded selling and integration capacity","Three AI draft workers included","Priority CQA review and launch support"]}
 ];
-
-export default function MachinesPage() {
-  return <main className="container cqa-store">
-    <header className="cqa-store-heading">
-      <span className="eyebrow">CQA MACHINE STORE</span>
-      <h1>Find your digital vending machine.</h1>
-      <p>Choose a machine, personalise a free preview, then decide whether to subscribe. No payment is needed to preview.</p>
-    </header>
-    <nav className="cqa-store-tabs" aria-label="Explore CQA solutions">
-      <Link href="/machines" aria-current="page">All Machines</Link>
-      <Link href="/pricing">For Creators</Link>
-      <Link href="/pricing">For Business</Link>
-      <Link href="/workers">AI Powered</Link>
-    </nav>
-    <section className="cqa-store-list" aria-label="Digital vending machine plans">
-      {featured.map((item) => {
-        const plan = CQA_PLANS.find(p => p.key === item.plan)!;
-        return <article className="cqa-store-card" key={item.plan}>
-          <div className="cqa-store-card-copy">
-            <span className="cqa-store-tag">{item.tag}</span>
-            <h2>{item.name}</h2>
-            <p>{item.description}</p>
-            <ul>{item.bullets.map(b => <li key={b}>{b}</li>)}</ul>
-            <p className="cqa-store-price">From <strong>${plan.price}</strong><span> AUD/month</span></p>
-            <div className="cqa-store-actions">
-              <Link href="/pricing" className="cqa-store-outline">View details</Link>
-              <Link href={`/onboarding?plan=${plan.key}`} className="cqa-store-primary">Get started</Link>
-            </div>
-          </div>
-          <MachineArtwork decorative className="cqa-reference-store-art" />
-        </article>;
-      })}
-    </section>
-    <section className="cqa-store-help"><h2>Want CQA to set it up for you?</h2><p>Request premium implementation or custom automation support separately from the self-service builder.</p><Link href="/contact?service=premium-setup" className="cqa-store-outline">Request premium setup</Link></section>
-  </main>;
+export default function MachinesPage(){
+return <main className="studio-page"><header className="studio-wrap studio-collection-hero"><div><span className="studio-kicker">THE CQA COLLECTION</span><h1>A machine for<br/><em>your next move.</em></h1><p className="studio-lead">Choose your direction. Bring your brand. Explore what your business could become.</p><div className="studio-actions"><a href="#collection" className="studio-button">Find my machine ↓</a><Link href="/pricing" className="studio-button-secondary">Compare plans</Link></div></div><MachineArtwork variant="scene" priority/></header>
+<section className="studio-wrap studio-section" id="collection"><div className="studio-section-head"><div><span className="studio-kicker">THREE WAYS TO START</span><h2>Your storefront.<br/>With a purpose.</h2></div><p>Every machine starts with your business details. These example layouts show different ways to present an offer.</p></div><div className="studio-collection">{collection.map(item=>{const plan=CQA_PLANS.find(p=>p.key===item.plan)!;return <article className="studio-collection-card" key={item.plan}><StorefrontExample kind={item.kind}/><div className="studio-collection-copy"><span className="studio-kicker">{item.tag}</span><h2>{item.name}</h2><p>{item.description}</p><ul>{item.details.map(detail=><li key={detail}>{detail}</li>)}</ul><div className="studio-collection-cost"><b>${plan.price}<small> AUD / month</small></b><span>{plan.fee}% CQA sale fee + Stripe processing</span></div><div className="studio-actions"><Link className="studio-button" href={`/onboarding?plan=${plan.key}`}>Preview {plan.name} →</Link><Link className="studio-text-link" href="/pricing">Full plan details →</Link></div></div></article>})}</div></section>
+<section className="studio-wrap studio-final"><div><span className="studio-kicker">A THOUGHTFUL START</span><h2>Your idea.<br/><em>Our guidance.</em></h2><p>Want help shaping your offers, branding or setup? Tell us what you are building.</p></div><Link href="/contact?service=premium-setup" className="studio-button">Discuss my setup →</Link></section></main>;
 }

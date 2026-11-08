@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MachineArtwork from "@/components/MachineArtwork";
 import { CQA_PLANS } from "@/lib/cqa-marketplace";
 import { isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
 
@@ -11,7 +12,7 @@ const planCopy = {
 export default function PricingPage() {
   const launchApproved = isNewCqaCheckoutAllowed();
   return (
-    <main className="container neon-pricing-page cqa-offer-page cqa-mobile-pricing" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
+    <main className="container neon-pricing-page cqa-offer-page cqa-mobile-pricing studio-pricing" style={{ paddingTop: "2.5rem", paddingBottom: "4rem" }}>
       <style>{`@media(max-width:700px){.cqa-mobile-pricing{padding-top:1rem!important}.cqa-mobile-pricing .pricing-neon-hero{padding:1.1rem!important}.cqa-mobile-pricing .pricing-neon-hero h1{font-size:2rem}.cqa-mobile-pricing .pricing-plan-grid{display:grid;grid-template-columns:1fr;gap:1rem}.cqa-mobile-pricing .neon-plan{min-width:0;width:100%;padding:1.2rem!important}.cqa-mobile-pricing .neon-enter-button{display:flex;justify-content:center;text-align:center;width:100%}.cqa-mobile-pricing .plan-display strong{font-size:2.3rem}}`}</style>
       {!launchApproved ? <aside className="glass-card" style={{ padding: "1.25rem", marginBottom: "1.5rem" }}><strong>Customer launch is not yet approved.</strong><p>Explore the plans and free preview while we finish verification. New live checkouts are paused.</p><Link href="/founding-customers" className="button primary">Register early interest →</Link></aside> : null}
       <section className="marketplace-neon-hero pricing-neon-hero">
@@ -20,7 +21,7 @@ export default function PricingPage() {
           <h1>Choose your digital vending machine.</h1>
           <p>Give customers one place to browse your offers, buy, request a booking and get in touch. Start with a monthly plan, or choose the Pro Launch Package for help putting your machine together.</p>
         </div>
-        <div className="marketplace-live-panel"><span>MAIN OFFER</span><strong>PRO</strong><small>$297 AUD / month</small></div>
+        <div className="marketplace-live-panel"><MachineArtwork variant="scene" priority /></div>
       </section>
       <section className="neon-plan-grid pricing-plan-grid" aria-label="Monthly machine plans">
         {CQA_PLANS.map((plan) => {
@@ -31,6 +32,7 @@ export default function PricingPage() {
             <div className="plan-display"><span>{plan.name.toUpperCase()}</span><strong>${plan.price}</strong><small>AUD / MONTH</small></div>
             <p className="plan-intro">{item.intro}</p>
             <div className="plan-features">{item.features.map(feature => <span key={feature}>✓ {feature}</span>)}</div>
+            <p className="studio-plan-cost-note">{plan.fee}% CQA sale fee + Stripe processing fees</p>
             <Link href={`/onboarding?plan=${plan.key}`} className="neon-enter-button">{launchApproved ? item.cta : `Preview ${plan.name}`} →</Link>
           </article>;
         })}
