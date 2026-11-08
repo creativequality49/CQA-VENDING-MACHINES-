@@ -11,9 +11,9 @@ export default function StorefrontExample({ kind = "beauty" }: { kind?: keyof ty
   const example = examples[kind];
   return <div className={`studio-example studio-example-${example.tone}`}>
     <div className="studio-example-bar"><span aria-hidden="true">● ● ●</span><span>ILLUSTRATIVE STOREFRONT</span></div>
-    <div className="studio-example-brand"><b>{example.letter}</b><span>{example.name}<small>Powered by CQA</small></span><span aria-hidden="true">↗</span></div>
+    <div className="studio-example-brand"><b>{example.letter}</b><span>{example.name}<small>Powered by CQA</small></span><span aria-hidden="true">→</span></div>
     <div className="studio-example-intro"><span className="studio-kicker">{example.category}</span><h3>{example.headline}</h3><p>{example.description}</p></div>
-    <div className="studio-example-offers">{example.offers.map(([name, action, icon]) => <div key={name}><div className="studio-example-product"><Image src={`/images/slots/${icon}.svg`} alt="" width={64} height={64}/></div><strong>{name}</strong><span>{action} <span aria-hidden="true">↗</span></span></div>)}</div>
+    <div className="studio-example-offers">{example.offers.map(([name, action, icon]) => <div key={name}><div className="studio-example-product"><Image src={`/images/slots/${icon}.svg`} alt="" width={64} height={64}/></div><strong>{name}</strong><span>{action} <span aria-hidden="true">→</span></span></div>)}</div>
     <Link className="studio-example-link" href={example.slug ? `/machine/${example.slug}` : "/onboarding?plan=starter"}>{example.slug ? "Open interactive demo" : "Create your own preview"} <span aria-hidden="true">→</span></Link>
   </div>;
 }

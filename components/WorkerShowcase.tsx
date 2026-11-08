@@ -48,7 +48,7 @@ export default function WorkerShowcase({ compact = false, dashboardReady = false
                 <p>“{details.sample}”</p>
               </div>
               <ul>{details.outputs.map(output => <li key={output}>{output}</li>)}</ul>
-              <Link className="studio-text-link" href={compact ? "/workers#workers" : dashboardReady ? "/owner/dashboard?worker=" + id : "/contact?service=ai-worker"}>{compact ? "Explore this role" : dashboardReady ? "Open worker dashboard" : "Request activation"} ↗</Link>
+              <Link className="studio-text-link" href={compact ? "/workers#workers" : dashboardReady ? "/owner/dashboard?worker=" + id : "/contact?service=ai-worker"}>{compact ? "Explore this role" : dashboardReady ? "Open worker dashboard" : "Request activation"} →</Link>
               <div className="studio-meta"><strong>Included with Pro &amp; Enterprise</strong><span>Starter add-on · ${price} AUD/month</span></div>
             </article>
           );
