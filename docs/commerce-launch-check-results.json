@@ -1,0 +1,115 @@
+{
+  "sourceBase": "c07a88e00326b930bc933bc554f0d245130a1fbc",
+  "observedAt": "2026-11-08T10:46:51.457942+00:00",
+  "realIntegrationVerified": false,
+  "localChecks": [
+    {
+      "name": "acquisition-entry-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "auth-confirm-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "billing-cancellation-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "digital-delivery-guard-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "generation-entitlement-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "launch-gate-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "login-cooldown-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-checkout-binding-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-delivery-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-digital-checkout-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-integration-runner-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-library-session-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-receipt-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-upload-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "marketplace-webhook-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "onboarding-draft-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "platform-webhook-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "purchase-automation-dedupe-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "reset-network-feedback-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "vault-auth-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "webhook-claim-check.mjs",
+      "exitCode": 0
+    },
+    {
+      "name": "node-test-suites",
+      "exitCode": 0
+    },
+    {
+      "name": "typecheck",
+      "exitCode": 0
+    },
+    {
+      "name": "lint",
+      "exitCode": 0
+    },
+    {
+      "name": "build",
+      "exitCode": 0
+    }
+  ],
+  "dependencyAudit": {
+    "info": 0,
+    "low": 3,
+    "moderate": 11,
+    "high": 8,
+    "critical": 0,
+    "total": 22
+  }
+}
