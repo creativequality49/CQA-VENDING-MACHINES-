@@ -18,7 +18,7 @@ assert.ok(fs.existsSync('app/founding-customers/page.tsx'));
 const demo=fs.readFileSync('components/MachineBuildDemo.tsx','utf8');
 assert.match(demo,/id="machine-build-demo"/);
 for(const path of ['/videos/cqa-machine-build.mp4','/videos/cqa-machine-build.webm','/videos/cqa-machine-build.vtt','/videos/cqa-machine-build-poster.jpg'])assert.ok(fs.existsSync(`public${path}`),`Published demo asset exists: ${path}`);
-assert.match(source,/Customer payments remain paused/);
+assert.match(source,/Live customer payments remain paused/);
 const wizard=fs.readFileSync('app/onboarding/page.tsx','utf8');
 assert.match(wizard,/Customer payments are paused while CQA completes launch verification/);
 assert.match(wizard,/Save a draft without paying/);

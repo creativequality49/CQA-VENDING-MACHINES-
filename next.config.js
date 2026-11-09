@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // Local sandbox copies and private verification artifacts are not app inputs.
+  outputFileTracingExcludes: {
+    "/*": ["./work/**/*", "./.cqa-reports/**/*"],
+  },
   async redirects() {
     return [
       {
