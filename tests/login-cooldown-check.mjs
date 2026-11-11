@@ -7,8 +7,8 @@ const find=(node,p)=>{if(!node||typeof node!=='object')return;if(p(node))return 
 const button=(h,text)=>find(h.render(),n=>n.type==='button'&&n.props.children===text);
 function harness(auth,mode='login'){
  const state=[mode,' owner@example.test ','password123','','',false,null,0],refs=[];let si=0,ri=0,effect,tick;const pushes=[];
- const fn=new Function('require','exports','useState','useMemo','useRef','useEffect','useRouter','useSearchParams','getBrowserSupabaseClient','cqaLoginFailure','window','const Link=()=>null;'+compile('app/login/page.tsx')+';return LoginForm;')(
- ()=>({jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})}),{},initial=>{const i=si++;if(!(i in state))state[i]=initial;return[state[i],v=>{state[i]=v}]},f=>f(),initial=>refs[ri++]||=( {current:initial}),f=>{effect=f},()=>({push:p=>pushes.push(p),refresh(){}}),()=>new URLSearchParams('next=/vault'),()=>({auth}),feedback,{location:{origin:'https://example.test'},setInterval:f=>{tick=f;return 1},clearInterval(){}}
+ const fn=new Function('require','exports','useState','useMemo','useRef','useEffect','useRouter','useSearchParams','getBrowserSupabaseClient','cqaLoginFailure','getCqaAuthOrigin','window','const Link=()=>null;'+compile('app/login/page.tsx')+';return LoginForm;')(
+ ()=>({jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})}),{},initial=>{const i=si++;if(!(i in state))state[i]=initial;return[state[i],v=>{state[i]=v}]},f=>f(),initial=>refs[ri++]||=( {current:initial}),f=>{effect=f},()=>({push:p=>pushes.push(p),refresh(){}}),()=>new URLSearchParams('next=/vault'),()=>({auth}),feedback,()=> 'https://www.creativequalityaustralia.tech',{location:{origin:'https://example.test'},setInterval:f=>{tick=f;return 1},clearInterval(){}}
  );return{state,refs,pushes,render(){si=ri=0;const tree=fn();effect();return tree},tick(){tick?.()}};
 }
 let clock=100000;const realNow=Date.now;Date.now=()=>clock;
