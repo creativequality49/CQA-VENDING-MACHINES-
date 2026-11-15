@@ -26,16 +26,19 @@ export async function GET(req: Request) {
     const user = await getUser(req);
     if (!user) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
     const admin = getCqaSupabaseAdmin();
-    const { data: businesses } = await admin.from("cqa_businesses").select("id,name").eq("owner_id", user.id).order("created_at").limit(20);
+    const { data: businesses, error: businessError } = await admin.from("cqa_businesses").select("id,name").eq("owner_id", user.id).order("created_at").limit(20);
+    if (businessError) throw new Error("Unable to load the automation workspace. Reload to try again.");
     const businessIds = (businesses || []).map((item) => item.id);
     if (!businessIds.length) return NextResponse.json({ templates: CQA_AUTOMATION_TEMPLATES, businesses: [], automations: [], runs: [], contacts: [], connections: [], context: [] });
-    const [{ data: automations }, { data: runs }, { data: contacts }, { data: connections }, { data: context }] = await Promise.all([
+    const results = await Promise.all([
       admin.from("cqa_automations").select("id,business_id,name,description,trigger_type,status,template_key,created_at,cqa_automation_steps(id,step_order,step_type,name,enabled,config)").in("business_id", businessIds).order("created_at", { ascending: false }),
       admin.from("cqa_automation_runs").select("id,business_id,automation_id,status,trigger_type,current_step_order,next_run_at,error_text,created_at,completed_at,output").in("business_id", businessIds).order("created_at", { ascending: false }).limit(40),
       admin.from("cqa_contacts").select("id,business_id,email,name,status,tags,source,created_at").in("business_id", businessIds).order("created_at", { ascending: false }).limit(100),
       admin.from("cqa_business_connections").select("id,business_id,provider,label,status,capabilities,metadata,updated_at").in("business_id", businessIds).order("provider"),
       admin.from("cqa_context_items").select("id,business_id,kind,title,content,active,updated_at").in("business_id", businessIds).order("updated_at", { ascending: false }).limit(100)
     ]);
+    if (results.some((result) => result.error)) throw new Error("Unable to load the automation workspace. Reload to try again.");
+    const [{ data: automations }, { data: runs }, { data: contacts }, { data: connections }, { data: context }] = results;
     return NextResponse.json({ templates: CQA_AUTOMATION_TEMPLATES, businesses: businesses || [], automations: automations || [], runs: runs || [], contacts: contacts || [], connections: connections || [], context: context || [] });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to load CQA automations." }, { status: 500 });
