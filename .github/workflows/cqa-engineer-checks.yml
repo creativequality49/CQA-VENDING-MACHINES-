@@ -36,4 +36,6 @@ jobs:
       - name: Run regressions, lint, types and build
         run: node scripts/cqa-engineer/checks.mjs
 
+# The harness supplies missing public config placeholders to its build child only.
+# These are non-credential compilation fixtures, not integration/deployment config.
 # No secrets, writes, migrations, live transactions or deployment steps.

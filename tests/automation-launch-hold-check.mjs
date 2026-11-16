@@ -27,7 +27,10 @@ for(const env of [
  {STRIPE_SECRET_KEY:'rk_test_fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'true'},
  {STRIPE_SECRET_KEY:'rkcs_test_fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'true'},
  {STRIPE_SECRET_KEY:'unknown',CQA_CUSTOMER_LAUNCH_APPROVED:'true'},
- {STRIPE_SECRET_KEY:'sk_live_fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'TRUE'}
+ {STRIPE_SECRET_KEY:'sk_live_fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'TRUE'},
+ {VERCEL_ENV:'preview',STRIPE_SECRET_KEY:'sk_live_fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'true'},
+ {VERCEL_ENV:'production',STRIPE_SECRET_KEY:'sk_test_fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'true'},
+ {VERCEL_ENV:'preview',CQA_COMMERCE_TEST_PROJECT:'ndzmlywsuywkhgqdbzft',SUPABASE_URL:'https://ndzmlywsuywkhgqdbzft.supabase.co',NEXT_PUBLIC_SUPABASE_URL:'https://ndzmlywsuywkhgqdbzft.supabase.co',STRIPE_SECRET_KEY:'sk_test_fixture'}
 ]) {
  const {html,gates}=page(env);
  assert.equal(gates.isCqaLiveCatalogCheckoutAllowed(),false);
@@ -38,9 +41,9 @@ for(const env of [
  assert.match(html,/without paying or committing to a subscription/);
  for(const offer of catalog.CQA_AUTOMATION_OFFERS.filter(offer=>offer.paymentUrl))assert.equal(html.includes(offer.paymentUrl),false);
 }
-console.log('PASS closed live/missing/unknown and sandbox configurations render no external payment URLs across eight cases');
+console.log('PASS closed live/missing/unknown and sandbox configurations render no external payment URLs across eleven cases');
 for(const prefix of ['sk_live_','rk_live_','rkcs_live_']) {
- const {html,gates}=page({STRIPE_SECRET_KEY:prefix+'fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'true'});
+ const {html,gates}=page({VERCEL_ENV:'production',STRIPE_SECRET_KEY:prefix+'fixture',CQA_CUSTOMER_LAUNCH_APPROVED:'true'});
  assert.equal(gates.isCqaLiveCatalogCheckoutAllowed(),true);
  assert.match(html,/LIVE CHECKOUT/);
  const offers=catalog.CQA_AUTOMATION_OFFERS.filter(offer=>offer.paymentUrl);

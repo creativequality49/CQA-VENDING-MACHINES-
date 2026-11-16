@@ -1,0 +1,4 @@
+# This repository function is an isolated test webhook receiver. It is not
+# authenticated with a user JWT: the handler MUST verify the Stripe signature.
+[functions.cqa-test-webhook]
+verify_jwt = false

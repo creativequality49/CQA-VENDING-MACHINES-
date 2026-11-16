@@ -29,10 +29,19 @@ await mkdir(join(reportRoot, 'checks'), { recursive: true });
 const results = [];
 for (const command of commands) {
   const started = Date.now();
+  // Prerendered auth UI requires explicit public Supabase configuration. Supply
+  // non-credential placeholders only to the build child when absent. Never use
+  // these for dev/start, provider probes, migrations or integration evidence.
+  const buildOnlyPublicConfig = command.name === 'production-build' ? {
+    ...(process.env.NEXT_PUBLIC_SUPABASE_URL === undefined
+      ? { NEXT_PUBLIC_SUPABASE_URL: 'https://cqa-build-only.supabase.co' } : {}),
+    ...(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY === undefined && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === undefined
+      ? { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_build_only_fixture' } : {}),
+  } : {};
   // Logs stay local; public JSON contains names, durations and exit codes only.
   const result = await new Promise(resolve => {
     const child = spawn(process.execPath, command.args, { cwd: repoRoot, shell: false, stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' } });
+      env: { ...process.env, ...buildOnlyPublicConfig, NEXT_TELEMETRY_DISABLED: '1' } });
     let output = '', timedOut = false, spawnError = false;
     const collect = chunk => { if (output.length < 200000) output += chunk.toString().slice(0, 200000 - output.length); };
     child.stdout.on('data', collect); child.stderr.on('data', collect);

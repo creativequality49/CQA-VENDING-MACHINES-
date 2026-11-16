@@ -39,6 +39,7 @@ export function NavBar() {
               </div>
               <Link href="/">Home <span>01</span></Link>
               <Link href="/machines">Machine Store <span>02</span></Link>
+              <Link href="/digital-products">Digital Kits <span>CATALOGUE</span></Link>
               <Link href="/onboarding">Build My Machine <span>03</span></Link>
               <Link href="/pricing">Pricing <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>

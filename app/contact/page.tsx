@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, Suspense, useState } from "react";
+import { FormEvent, Suspense, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -8,15 +8,22 @@ function ContactForm() {
   const search = useSearchParams();
   const service = search.get("service") || "general";
   const price = search.get("price") || "";
+  const product = search.get("product") || "";
   const [status, setStatus] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
 
+  const inFlight = useRef(false);
+  const implementation = service === "automation-implementation";
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (inFlight.current) return;
+    inFlight.current = true;
     setStatus("sending");
     setError("");
-    const form = new FormData(event.currentTarget);
-    const response = await fetch("/api/contact", {
+    try {
+      const form = new FormData(event.currentTarget);
+      const response = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -24,18 +31,18 @@ function ContactForm() {
         email: form.get("email"),
         phone: form.get("phone"),
         businessName: form.get("businessName"),
-        message: form.get("message"),
+        message: product ? `Digital kit: ${product}\n${form.get("message") || ""}` : form.get("message"),
         service,
         price
       })
     });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      setError(result.error || "Your enquiry could not be sent.");
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || result.ok !== true) throw new Error(result.error || "Your enquiry could not be confirmed. Please try again.");
+      setStatus("sent");
+    } catch (failure) {
+      setError(failure instanceof TypeError ? "We could not reach CQA. Check your connection and try again." : failure instanceof Error ? failure.message : "Your enquiry could not be saved. Please try again.");
       setStatus("idle");
-      return;
-    }
-    setStatus("sent");
+    } finally { inFlight.current = false; }
   }
 
   if (status === "sent") {
@@ -58,10 +65,11 @@ function ContactForm() {
     <div className="grid grid-2" style={{ alignItems: "start" }}>
       <section>
         <span className="eyebrow">CQA SALES & IMPLEMENTATION</span>
-        <h1>{isSupport ? "How can CQA help you?" : "Get expert help building your automation."}</h1>
+        <h1>{isSupport ? "How can CQA help you?" : implementation ? "Send your automation implementation brief." : "Get expert help building your automation."}</h1>
         <p className="small" style={{ maxWidth: 650 }}>
           {isSupport ? "Send a support request about your account, machine or subscription. Include your machine name if applicable. Your request is recorded for follow-up." : "Request done-for-you machine setup, custom automations, AI workers or an AI-readiness audit. Your enquiry is stored in the CQA sales pipeline. Want to build your own machine? Use the free preview instead."}
         </p>
+        {implementation ? <p className="small">Include the package or worker name, receipt reference, workflow and tools you use. Do not send passwords, API keys or payment-card details.</p> : null}
         <div style={{ display: "flex", flexWrap: "wrap", gap: ".75rem", marginTop: "1rem" }}><Link href="/pricing" className="button primary">Build My Machine</Link><Link href="/onboarding" className="button ghost">Try Free Preview</Link></div>
         {!isSupport ? <div className="revenue-stack" style={{ marginTop: "1.25rem" }}>
           <div><span>01</span><strong>Describe the bottleneck</strong><small>What is manual, slow or costing revenue?</small></div>
@@ -73,13 +81,13 @@ function ContactForm() {
       <form onSubmit={submit} className="glass-card" style={{ padding: "1.4rem", display: "grid", gap: ".8rem" }}>
         <span className="eyebrow">{label.toUpperCase()}</span>
         <h2 style={{ marginTop: 0 }}>Start your request{price ? ` · $${price} AUD` : ""}</h2>
-        <input name="name" required placeholder="Your name" />
-        <input name="email" type="email" required placeholder="Email" />
+        <input name="name" required placeholder="Your name" aria-label="Your name" autoComplete="name" />
+        <input name="email" type="email" required placeholder="Email" aria-label="Email address" autoComplete="email" />
         <div className="grid grid-2">
-          <input name="phone" placeholder="Phone (optional)" />
-          <input name="businessName" placeholder="Business name (optional)" />
+          <input name="phone" placeholder="Phone (optional)" aria-label="Phone (optional)" autoComplete="tel" />
+          <input name="businessName" placeholder="Business name (optional)" aria-label="Business name (optional)" autoComplete="organization" />
         </div>
-        <textarea name="message" required rows={7} placeholder={isSupport ? "Describe your issue and the machine or account affected. Do not include passwords or payment card details." : "What would you like CQA to build or automate?"} />
+        <textarea name="message" required rows={7} aria-label={implementation ? "Implementation brief" : isSupport ? "Support request" : "Project requirements"} placeholder={implementation ? "Package or worker purchased:\nReceipt reference:\nDesired business outcome:\nCurrent workflow:\nTools to connect:" : isSupport ? "Describe your issue and the machine or account affected. Do not include passwords or payment card details." : "What would you like CQA to build or automate?"} />
         {error ? <div role="alert" style={{ padding: ".75rem", border: "1px solid rgba(255,70,100,.4)", borderRadius: 10 }}>{error}</div> : null}
         <button type="submit" className="button primary" disabled={status === "sending"} style={{ justifyContent: "center" }}>
           {status === "sending" ? "Saving request…" : "Send to CQA"}

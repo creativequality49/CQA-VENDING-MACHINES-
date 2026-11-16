@@ -43,7 +43,7 @@ export default function AutomationsPage() {
         <div>
           <span className="eyebrow">CQA AUTOMATION MARKETPLACE</span>
           <h1>{launchApproved ? "Buy the business outcome. CQA builds the automation behind it." : "Explore the business outcome. Register for assisted early access."}</h1>
-          <p>{launchApproved ? "Choose a ready-to-deploy automation, pay securely through Stripe, then complete your implementation brief. The setup fee is charged once; the monthly fee keeps the live automation supported and maintained." : "Customer launch is not yet approved. Automation purchases are paused while we verify delivery, payments and customer access. These are proposed offers; register your interest without paying or committing to a subscription."}</p>
+          <p>{launchApproved ? "Agree your workflow scope, tool compatibility and delivery timing with CQA, review the setup and monthly costs, then complete your implementation brief after confirmed payment." : "Customer launch is not yet approved. Automation purchases are paused while we verify delivery, payments and customer access. These are proposed offers; register your interest without paying or committing to a subscription."}</p>
           <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
             <a href="#packages" className="button primary">View Automation Packages</a>
             <Link href="/contact" className="button ghost">Request a Custom Build</Link>
@@ -61,6 +61,7 @@ export default function AutomationsPage() {
       <section id="packages" style={{ paddingTop: "1rem" }}>
         <span className="eyebrow">CORE PACKAGES</span>
         <h2>Scale from one automation to an AI operations layer.</h2>
+        <p className="small">Starter covers one agreed workflow. Pro connects up to three automations. Specialist workers below have a defined job, such as lead qualification or follow-up. Confirm scope, tool compatibility and delivery timing with CQA.</p>
         <div className="grid grid-3" style={{ marginTop: "1rem" }}>{packages.map((offer, index) => renderOffer(offer, index === 1))}</div>
       </section>
 
@@ -81,6 +82,29 @@ export default function AutomationsPage() {
           <Link href="/contact" className="button primary">Request a Custom Quote</Link>
         </section>
       ) : null}
+
+      <section className="glass-card" aria-labelledby="automation-comparison" style={{ padding: "1.25rem", marginTop: "2rem" }}>
+        <h2 id="automation-comparison">Compare the core packages</h2>
+        <div className="grid grid-3">{packages.map((offer) => <article key={offer.id}>
+          <h3>{offer.name}</h3><p className="small">{offer.id === "automation_starter" ? "One agreed workflow" : offer.id === "automation_pro" ? "Up to three connected automations" : "AI workers, integrations and multi-step workflows"}</p>
+          <p className="small">Setup: <Money value={offer.setupAud!} /> AUD<br/>Monthly: <Money value={offer.monthlyAud!} /> AUD<br/>{launchApproved ? "First payment" : "Proposed first payment"}: <Money value={firstPaymentAud(offer)!} /> AUD</p>
+        </article>)}</div>
+        <p className="small">Monitoring frequency, support response times, integration costs and delivery dates must be agreed for your project.</p>
+      </section>
+      <section aria-labelledby="automation-faq" style={{ marginTop: "2rem" }}>
+        <h2 id="automation-faq">Your implementation questions</h2>
+        {[
+          ["How does implementation work?", "Discuss the workflow and tools with CQA, agree the scope and review the charges before purchase. After a confirmed purchase, send your implementation brief and payment reference."],
+          ["What information should I provide?", "Your business details, chosen package, desired outcome, workflow and tools. Do not send passwords, API keys or card details through the contact form."],
+          ["Which integrations are supported?", "Compatibility depends on the tools and permitted access your workflow requires. Confirm compatibility with CQA before committing."],
+          ["How long will delivery take?", "Delivery timing is agreed for each project; these package summaries do not promise a universal turnaround."],
+          ["Who owns the automation?", "Agree bespoke deliverables, configuration exports, licences, access and offboarding arrangements in your implementation brief."],
+          ["How do cancellation and refunds work?", "Review the CQA refund policy and agree any project-specific terms before purchase. Contact support to request cancellation or discuss a service problem."],
+          ["Are third-party costs included?", "Confirm required software subscriptions, usage charges and who pays them in your agreed scope before incurring extra costs."],
+          ["How is business data handled?", "Review the privacy policy and agree required access, retention and security arrangements before sharing business data. Use only authorised sources and access methods."]
+        ].map(([question, answer]) => <details key={question} className="glass-card" style={{ padding: "1rem", marginBottom: ".7rem" }}><summary style={{ cursor: "pointer", fontWeight: 700 }}>{question}</summary><p className="small">{answer}</p></details>)}
+        <p className="small"><Link href="/terms">Service terms</Link> · <Link href="/refund-policy">Refunds and cancellation</Link> · <Link href="/privacy">Privacy</Link> · <Link href="/contact?service=automation-implementation">Discuss your implementation</Link></p>
+      </section>
 
       <section className="glass-card" style={{ padding: "1.25rem", marginTop: "1.25rem" }}>
         <span className="eyebrow">DATA & PLATFORM RESPONSIBILITY</span>

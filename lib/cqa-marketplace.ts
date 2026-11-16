@@ -1,3 +1,4 @@
+import { requireCqaSupabaseUrl } from "@/lib/cqa-supabase-config";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export type PlanKey = "starter" | "pro" | "elite";
@@ -196,12 +197,15 @@ export const DEMO_MACHINES: MarketplaceMachine[] = [
   }
 ]
 
-const fallbackUrl = "https://rjxiuukphwybujuclenn.supabase.co";
-const fallbackPublishableKey = "sb_publishable_eycv4056PKiBgUMYrA1sHA_dRCIMMBb";
+function getCqaSupabaseConfig() {
+  const url = requireCqaSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!key?.trim() || key.startsWith("sb_secret_")) throw new Error("CQA Supabase public key is not configured correctly.");
+  return { url, key };
+}
 
 export function getPublicSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  const { url, key } = getCqaSupabaseConfig();
   return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
 }
 
@@ -209,16 +213,14 @@ let browserSupabaseClient: SupabaseClient | undefined;
 
 export function getBrowserSupabaseClient() {
   if (typeof window !== "undefined" && browserSupabaseClient) return browserSupabaseClient;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  const { url, key } = getCqaSupabaseConfig();
   const client = createClient(url, key, { auth: { detectSessionInUrl: false } });
   if (typeof window !== "undefined") browserSupabaseClient = client;
   return client;
 }
 
 export function getAuthenticatedSupabaseClient(token: string) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackPublishableKey;
+  const { url, key } = getCqaSupabaseConfig();
   return createClient(url, key, {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false }

@@ -1,8 +1,10 @@
+import { getCqaPreviewIsolationDiagnostics } from "@/lib/cqa-preview-isolation";
 import { getStripeKeyConfigurationStatus } from "@/lib/stripe";
 import { getCqaChatProvider, getCqaEmbeddingProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { requireCqaSupabaseUrl } from "@/lib/cqa-supabase-config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -44,10 +46,9 @@ export async function GET() {
   }
 
   try {
-    const supabaseUrl =
-      process.env.SUPABASE_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      "https://rjxiuukphwybujuclenn.supabase.co";
+    const supabaseUrl = requireCqaSupabaseUrl(
+      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    );
     const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/functions/v1/cqa-stripe-webhook`, {
       method: "GET",
       cache: "no-store"
@@ -81,6 +82,10 @@ export async function GET() {
     legacyServiceRole === "ok" &&
     ai === "ok";
 
+  const previewIsolation = process.env.VERCEL_ENV === "preview"
+    ? await getCqaPreviewIsolationDiagnostics({ ...process.env, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL })
+    : undefined;
+
   return NextResponse.json(
     {
       status: launchConfigurationReady ? "ok" : "degraded",
@@ -98,7 +103,8 @@ export async function GET() {
       connectWebhookSecret,
       launchConfigurationReady,
       commerceReady,
-      aiWorkforceReady
+      aiWorkforceReady,
+      ...(previewIsolation ? { previewIsolation } : {})
     },
     {
       status: launchConfigurationReady ? 200 : 503,

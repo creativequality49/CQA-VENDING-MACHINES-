@@ -1,5 +1,7 @@
 "use client";
 
+import { getCqaAuthOrigin } from "@/lib/cqa-auth-origin";
+
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -34,7 +36,7 @@ function LoginForm() {
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
   const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
-  const confirmationUrl = `${typeof window === "undefined" ? "" : window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`;
+  const confirmationUrl = () => `${getCqaAuthOrigin()}/auth/confirm?next=${encodeURIComponent(next)}`;
 
   function switchMode(value: "login" | "signup") {
     if (loading) return;
@@ -60,7 +62,7 @@ function LoginForm() {
 
   async function resendConfirmation() {
     await runAuthAction(async () => {
-      const { error: authError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: confirmationUrl } });
+      const { error: authError } = await supabase.auth.resend({ type: "signup", email: email.trim(), options: { emailRedirectTo: confirmationUrl() } });
       if (authError) throw authError;
       startEmailCooldown();
       setMessageAction("confirmation");
@@ -72,7 +74,7 @@ function LoginForm() {
     const address = email.trim();
     if (!address || !/^[^\s@]+@[^\s@]+$/.test(address)) { setError("Enter a valid email address first."); return; }
     await runAuthAction(async () => {
-      const { error: authError } = await supabase.auth.signInWithOtp({ email: address, options: { shouldCreateUser: false, emailRedirectTo: confirmationUrl } });
+      const { error: authError } = await supabase.auth.signInWithOtp({ email: address, options: { shouldCreateUser: false, emailRedirectTo: confirmationUrl() } });
       if (authError) throw authError;
       startEmailCooldown();
       setMessageAction("signin");
@@ -84,7 +86,7 @@ function LoginForm() {
     event.preventDefault();
     await runAuthAction(async () => {
       if (mode === "signup") {
-        const { data, error: authError } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: confirmationUrl } });
+        const { data, error: authError } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: confirmationUrl() } });
         if (authError) throw authError;
         if (!data.session) {
           startEmailCooldown();
