@@ -1,3 +1,4 @@
+import { getCqaPreviewIsolationDiagnostics } from "@/lib/cqa-preview-isolation";
 import { getStripeKeyConfigurationStatus } from "@/lib/stripe";
 import { getCqaChatProvider, getCqaEmbeddingProvider } from "@/lib/cqa-ai-provider";
 import { NextResponse } from "next/server";
@@ -81,6 +82,10 @@ export async function GET() {
     legacyServiceRole === "ok" &&
     ai === "ok";
 
+  const previewIsolation = process.env.VERCEL_ENV === "preview"
+    ? await getCqaPreviewIsolationDiagnostics({ ...process.env, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL })
+    : undefined;
+
   return NextResponse.json(
     {
       status: launchConfigurationReady ? "ok" : "degraded",
@@ -98,7 +103,8 @@ export async function GET() {
       connectWebhookSecret,
       launchConfigurationReady,
       commerceReady,
-      aiWorkforceReady
+      aiWorkforceReady,
+      ...(previewIsolation ? { previewIsolation } : {})
     },
     {
       status: launchConfigurationReady ? 200 : 503,

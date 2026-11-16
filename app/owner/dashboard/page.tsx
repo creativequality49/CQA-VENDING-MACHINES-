@@ -241,7 +241,7 @@ export default function OwnerDashboardPage() {
 
       <section className="glass-card" style={{ padding: "1.25rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", alignItems: "end" }}>
-          <div><span className="eyebrow">AI WORKER STORE</span><h2>Receptionist, sales and marketing drafts</h2><p className="small">Three draft workers are included in active Pro and Enterprise. Starter can add individual subscriptions. Review outputs before sending or publishing.</p></div>
+          <div><span id="ai-workforce" className="eyebrow">AI WORKER STORE</span><h2>Receptionist, sales and marketing drafts</h2><p className="small">Three draft workers are included in active Pro and Enterprise. Starter can add individual subscriptions. Review outputs before sending or publishing.</p></div>
           {planSubscription?.stripe_customer_id ? <button className="button ghost" type="button" onClick={manageBilling} disabled={Boolean(billingBusy)}>Manage billing</button> : null}
         </div>
         <div className="grid grid-2">
