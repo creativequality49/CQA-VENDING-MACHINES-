@@ -29,3 +29,6 @@ jobs:
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
+          # Compile-only public fixtures; no credentials or provider verification.
+          NEXT_PUBLIC_SUPABASE_URL: "https://cqa-build-only.supabase.co"
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_build_only_fixture"
