@@ -63,3 +63,15 @@ export async function verifyPrivateMarketplaceAsset(key: string, expectedSize: n
   const object = await getR2Client().send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
   return object.ContentLength === expectedSize && object.ContentType?.split(";")[0].trim() === expectedType;
 }
+
+/** Legacy CQA catalogue objects must exist and contain bytes before payment. */
+export async function verifyPrivateCatalogAsset(key: string): Promise<boolean> {
+  if (!key || key.startsWith("/") || key.includes("..") || /[\\?#]/.test(key) || /^[a-z]+:\/\//i.test(key)) return false;
+  const bucket = process.env.R2_BUCKET;
+  if (!bucket) throw new Error("Missing private storage configuration");
+  const client = getR2Client();
+  try {
+    const object = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return Number.isSafeInteger(object.ContentLength) && (object.ContentLength ?? 0) > 0;
+  } finally { client.destroy(); }
+}

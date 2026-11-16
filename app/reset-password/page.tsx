@@ -1,5 +1,7 @@
 "use client";
 
+import { getCqaAuthOrigin } from "@/lib/cqa-auth-origin";
+
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { completeCqaAuthCallback, clearCqaRecoveryMarker, requireCqaRecoverySession } from "@/lib/cqa-auth-callback";
@@ -50,7 +52,7 @@ export default function ResetPasswordPage() {
         setMessage("Password updated. Log in with your new password.");
       } else {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`
+          redirectTo: `${getCqaAuthOrigin()}/reset-password`
         });
         if (resetError) throw resetError;
         setMessage("If this email has a CQA account, a recovery link has been sent. Check your inbox and spam folder.");

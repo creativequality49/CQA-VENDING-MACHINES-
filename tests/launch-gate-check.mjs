@@ -71,8 +71,8 @@ const response = await marketplacePost(new Request('https://example.test/checkou
 assert.equal(response.status, 503); assert.equal(response.body.code, 'CQA_LAUNCH_PENDING'); assert.equal(providerCalls, 0);
 console.log('PASS new storefront service checkout blocked before Stripe');
 for (const sellable of [false, true]) {
-  const catalogPost = new Function('NextResponse', 'requireUserSession', 'getProductById', 'getProductReadiness', 'isNewCqaCheckoutAllowed', 'CQA_PRELAUNCH_CHECKOUT_MESSAGE', 'getStripeClient', compile('app/api/stripe/checkout/route.ts') + ';return POST;')(
-    { json: (body, options) => ({ body, status: options?.status || 200 }) }, async () => ({ user: { id: 'buyer' } }),
+  const catalogPost = new Function('NextResponse', 'requireUserSession', 'getMachine', 'getProductById', 'getProductReadiness', 'isNewCqaCheckoutAllowed', 'CQA_PRELAUNCH_CHECKOUT_MESSAGE', 'getStripeClient', compile('app/api/stripe/checkout/route.ts') + ';return POST;')(
+    { json: (body, options) => ({ body, status: options?.status || 200 }) }, async () => ({ user: { id: 'buyer' } }), () => ({ products: [{ id: 'product' }] }),
     () => ({ id: 'product' }), () => ({ sellable, checks: {} }), () => false, 'Payments paused',
     () => { throw Error('Catalog Stripe must not run'); }
   );

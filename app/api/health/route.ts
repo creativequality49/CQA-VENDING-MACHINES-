@@ -4,6 +4,7 @@ import { getCqaChatProvider, getCqaEmbeddingProvider } from "@/lib/cqa-ai-provid
 import { NextResponse } from "next/server";
 import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
+import { requireCqaSupabaseUrl } from "@/lib/cqa-supabase-config";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -45,10 +46,9 @@ export async function GET() {
   }
 
   try {
-    const supabaseUrl =
-      process.env.SUPABASE_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      "https://rjxiuukphwybujuclenn.supabase.co";
+    const supabaseUrl = requireCqaSupabaseUrl(
+      process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+    );
     const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/functions/v1/cqa-stripe-webhook`, {
       method: "GET",
       cache: "no-store"

@@ -1,8 +1,9 @@
+import { verifyPrivateCatalogAsset } from "@/lib/storage";
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { isNewCqaCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { NextResponse } from "next/server";
 import { requireUserSession } from "@/lib/auth";
-import { getProductById, getProductReadiness } from "@/lib/catalog";
+import { getMachine, getProductById, getProductReadiness } from "@/lib/catalog";
 import { getStripeClient } from "@/lib/stripe";
 
 function getSiteUrl(req: Request) {
@@ -21,6 +22,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing productId or machineSlug" }, { status: 400 });
     }
 
+    const machine = getMachine(machineSlug);
+    if (!machine || !machine.products.some(item => item.id === productId)) {
+      return NextResponse.json({ error: "Product does not belong to the requested machine." }, { status: 404 });
+    }
     const product = getProductById(productId);
     if (!product) {
       return NextResponse.json({ error: "Unknown product" }, { status: 404 });
@@ -41,6 +46,12 @@ export async function POST(req: Request) {
     const priceId = process.env[product.stripePriceEnv]?.trim();
     if (!priceId) {
       return NextResponse.json({ error: "Stripe price is not configured for this product" }, { status: 409 });
+    }
+
+    try {
+      if (!(await verifyPrivateCatalogAsset(product.assetKey))) throw new Error("Unavailable asset");
+    } catch {
+      return NextResponse.json({ error: "Secure product delivery is unavailable. No payment was taken." }, { status: 503 });
     }
 
     const siteUrl = getSiteUrl(req);

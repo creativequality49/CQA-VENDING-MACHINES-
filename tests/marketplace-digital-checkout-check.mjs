@@ -27,7 +27,7 @@ const liveKey = 'sk_live_' + 'a'.repeat(24);
 const isolatedEnv = { VERCEL_ENV: 'preview', CQA_COMMERCE_TEST_PROJECT: 'ndzmlywsuywkhgqdbzft',
   SUPABASE_URL: 'https://ndzmlywsuywkhgqdbzft.supabase.co', NEXT_PUBLIC_SUPABASE_URL: 'https://ndzmlywsuywkhgqdbzft.supabase.co' };
 const assets = evaluate('lib/cqa-marketplace-assets.ts');
-const originalMarket = evaluate('lib/cqa-marketplace.ts', { '@supabase/supabase-js': { createClient() { throw Error('Unexpected real client'); } } });
+const originalMarket = evaluate('lib/cqa-marketplace.ts', { '@/lib/cqa-supabase-config': evaluate('lib/cqa-supabase-config.ts'), '@supabase/supabase-js': { createClient() { throw Error('Unexpected real client'); } } });
 
 function gates(env = {}) { return evaluate('lib/cqa-launch-gate.ts', {}, { process: { env } }); }
 function harness(options = {}) {
