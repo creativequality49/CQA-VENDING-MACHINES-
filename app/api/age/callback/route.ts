@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { AGE_COOKIE, createAgeToken } from "../../../../lib/age-assurance";
+import { safeAgeReturnPath } from "../../../../lib/age-return-path";
 
 export const runtime="nodejs";
 
@@ -7,8 +8,7 @@ export async function GET(request:NextRequest){
   const apiKey=process.env.YOTI_AGE_API_KEY;
   const sdkId=process.env.YOTI_SDK_ID;
   const sessionId=request.nextUrl.searchParams.get("sessionId");
-  const requested=request.nextUrl.searchParams.get("returnTo")||"/fanxfantasy";
-  const returnTo=requested.startsWith("/")?requested:"/fanxfantasy";
+  const returnTo=safeAgeReturnPath(request.nextUrl.searchParams.get("returnTo"));
   if(!apiKey||!sdkId||!sessionId){
     const u=new URL("/age-check",request.url);u.searchParams.set("returnTo",returnTo);u.searchParams.set("error","Age verification result was incomplete.");return NextResponse.redirect(u);
   }

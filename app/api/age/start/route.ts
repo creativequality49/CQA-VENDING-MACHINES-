@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeAgeReturnPath } from "../../../../lib/age-return-path";
 
 export const runtime = "nodejs";
 
@@ -9,8 +10,7 @@ export async function POST(request: NextRequest){
     return NextResponse.redirect(new URL("/age-check?error=Age+assurance+is+not+configured",request.url),303);
   }
   const form=await request.formData().catch(()=>null);
-  const requested=String(form?.get("returnTo")||"/fanxfantasy");
-  const returnTo=requested.startsWith("/")?requested:"/fanxfantasy";
+  const returnTo=safeAgeReturnPath(form?.get("returnTo"));
   const origin=new URL(request.url).origin;
   const callback=`${origin}/api/age/callback?returnTo=${encodeURIComponent(returnTo)}`;
   const cancel=`${origin}/age-check?returnTo=${encodeURIComponent(returnTo)}`;
