@@ -29,7 +29,7 @@ export function MarketplaceCheckoutButton({ machineSlug, offerId, label = "Buy s
       }
       if (requiresBuyerAccount && !token) {
         setNeedsLogin(true);
-        throw new Error("Sign in to your buyer account to purchase and collect this download.");
+        throw new Error("Sign in to your customer account to purchase, track your order and receive your delivery.");
       }
       const response = await fetch("/api/marketplace/checkout", {
         method: "POST",

@@ -126,7 +126,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                       <div style={{ display: "grid", gap: ".75rem" }}>
                         {payableService ? (
                           <>
-                            <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="PAY FOR SERVICE" />
+                            <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="PAY FOR SERVICE" requiresBuyerAccount />
                             <p className="small">Payment covers this service. Arrange the time and details with the business; payment does not reserve an appointment.</p>
                           </>
                         ) : null}
@@ -137,7 +137,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                     ) : deliveryPending ? (
                       <button className="neon-enter-button" type="button" disabled>DELIVERY SETUP PENDING</button>
                     ) : (
-                      <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "START SUBSCRIPTION" : "BUY WITH STRIPE"} />
+                      <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "START SUBSCRIPTION" : "BUY WITH STRIPE"} requiresBuyerAccount />
                     )}
                   </div>
                 </article>

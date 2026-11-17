@@ -6,6 +6,7 @@ import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { triggerBusinessAutomations } from "@/lib/cqa-automation-engine";
 import { claimCqaWebhookEvent, finishCqaWebhookEvent } from "@/lib/cqa-webhook-events";
 import { verifyMarketplaceDigitalCheckout } from "@/lib/cqa-marketplace-checkout-binding";
+import { verifyMarketplaceBuyerBinding } from "@/lib/cqa-marketplace-buyer-binding";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,7 @@ export async function POST(req: Request) {
         return NextResponse.json({ received: true });
       }
       if (digitalBinding) session = digitalBinding.session;
+      const buyerBinding = digitalBinding ? null : await verifyMarketplaceBuyerBinding(event, session);
       const businessId = session.metadata?.cqaBusinessId;
       if (businessId && (session.payment_status === "paid" || session.payment_status === "no_payment_required")) {
         const { data: account, error: accountError } = await admin.from("cqa_connected_accounts")
@@ -56,14 +58,7 @@ export async function POST(req: Request) {
         if (accountError) throw accountError;
         if (!event.account || account.stripe_account_id !== event.account) throw new Error("Checkout account does not match business.");
         const email = (session.customer_details?.email || session.customer_email || "").trim().toLowerCase();
-        const claimedBuyerId = session.metadata?.cqaBuyerUserId || null;
-        let buyerUserId: string | null = digitalBinding?.buyerUserId || null;
-        if (!digitalBinding && claimedBuyerId && email) {
-          const { data: buyerLookup, error: buyerError } = await admin.auth.admin.getUserById(claimedBuyerId);
-          if (buyerError) throw buyerError;
-          const buyer = buyerLookup?.user;
-          if (buyer?.email_confirmed_at && !buyer.is_anonymous && buyer.email?.trim().toLowerCase() === email) buyerUserId = buyer.id;
-        }
+        const buyerUserId: string | null = digitalBinding?.buyerUserId || buyerBinding?.buyerUserId || null;
         let paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || null;
         if (session.mode === "subscription") {
           // Subscription Checkout stores its payment on the original invoice.
@@ -98,6 +93,22 @@ export async function POST(req: Request) {
           ...orderDetails, status: "pending", buyer_user_id: null
         }, { onConflict: "stripe_checkout_session_id", ignoreDuplicates: true });
         if (insertError) throw insertError;
+
+        if (paymentIntentId) {
+          const { data: currentOrder, error: currentOrderError } = await admin.from("cqa_orders")
+            .select("id,status,stripe_payment_intent_id")
+            .eq("stripe_checkout_session_id", session.id).eq("business_id", businessId).maybeSingle();
+          if (currentOrderError) throw currentOrderError;
+          if (!currentOrder || (currentOrder.stripe_payment_intent_id && currentOrder.stripe_payment_intent_id !== paymentIntentId))
+            throw new Error("Checkout payment does not match its stored purchase.");
+          // Authenticated services have a pending row before Checkout opens.
+          // Bind its PI before inspecting Stripe's latest charge so concurrent
+          // refunds can find it and make revocation terminal, just as for files.
+          const { error: bindError } = await admin.from("cqa_orders")
+            .update({ stripe_payment_intent_id: paymentIntentId })
+            .eq("id", currentOrder.id).eq("status", "pending");
+          if (bindError) throw bindError;
+        }
 
         let revokedStatus: "refunded" | "cancelled" | null = null;
         if (paymentIntentId) {
@@ -148,7 +159,7 @@ export async function POST(req: Request) {
           contactId = contact?.id || null;
         }
 
-        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency, digital: Boolean(digitalBinding), buyerEmail: digitalBinding?.buyerEmail });
+        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency, digital: Boolean(digitalBinding), buyerEmail: digitalBinding?.buyerEmail || buyerBinding?.buyerEmail });
 
         await triggerBusinessAutomations(businessId, "purchase", {
           orderId: order?.id || null,

@@ -103,3 +103,12 @@ required authentication when testing automation.
 - `/api/stripe/webhook`
 - `/api/signed-download`
 - `/api/cron/automations` scheduled automation endpoint
+
+## Customer purchase and fulfilment workspace
+
+`/account` gives verified customers their purchase history, service briefs,
+progress, protected deliveries and subscription-management entry points.
+`/owner/orders` gives business owners a scoped fulfilment queue with private file
+uploads and revision-checked handovers. Digital products use the existing private
+library. See [customer fulfilment](docs/customer-fulfillment.md) for the required
+database migration, rollout boundary and integration-verification steps.

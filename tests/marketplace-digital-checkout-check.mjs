@@ -147,6 +147,33 @@ await test('digital pending binding failure expires checkout and returns no paym
   assert.equal(response.status,503); assert.equal((await response.json()).url,undefined);
   assert.deepEqual(h.expirations,[{id:'cs_test_synthetic',request:{stripeAccount:'acct_test'}}]);
 });
+await test('authenticated service and subscription purchases persist customer ownership before checkout navigation', async () => {
+  for (const type of ['service', 'subscription']) {
+    const h = harness({ type });
+    const response = await h.post();
+    assert.equal(response.status, 200);
+    assert.equal(h.bindings.length, 1);
+    assert.equal(h.bindings[0].customer_user_id, buyerId);
+    assert.equal(h.bindings[0].buyer_user_id, buyerId);
+    assert.equal(h.bindings[0].status, 'pending');
+    assert.equal(h.sessions[0].data.client_reference_id, buyerId);
+    assert.equal(h.sessions[0].data.metadata.cqaDigitalDelivery, undefined);
+    assert.equal(h.sessions[0].data.mode, type === 'subscription' ? 'subscription' : 'payment');
+    assert.equal(h.checks.length, 0, 'services do not pretend to be digital downloads');
+  }
+});
+await test('service persistence failure expires the session and anonymous service purchases remain unclaimed', async () => {
+  const failed = harness({ type: 'service', bindingError: true });
+  const response = await failed.post();
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).url, undefined);
+  assert.equal(failed.expirations.length, 1);
+  const guest = harness({ type: 'service' });
+  assert.equal((await guest.post(null)).status, 200);
+  assert.equal(guest.bindings.length, 0);
+  assert.equal(guest.sessions[0].data.client_reference_id, undefined);
+  assert.equal(guest.sessions[0].data.metadata.cqaBuyerUserId, undefined);
+});
 await test('digital subscription hybrid is rejected before payment', async () => {
   const h=harness({type:'subscription',offer:{fulfillment_type:'digital'}});
   assert.equal((await h.post()).status,409);assert.equal(h.sessions.length,0);assert.equal(h.bindings.length,0);

@@ -28,10 +28,12 @@ export async function notifyCqaOrder(input: { businessId: string; orderId: strin
   }
   const total = new Intl.NumberFormat("en-AU", { style: "currency", currency: input.currency.toUpperCase() }).format(input.amountCents / 100);
   const details = `${offerName}\nTotal paid: ${total}\nOrder reference: ${input.orderId}`;
-  const recipient = input.digital ? input.buyerEmail : input.customerEmail;
+  const recipient = input.buyerEmail || input.customerEmail;
   const delivery = input.digital
     ? `Open your private purchases: ${getCqaSiteUrl()}/marketplace/library\nSign in with the verified account used for this purchase. Download access is checked each time you request a link. ${business.email ? `For help, contact ${business.email}.` : "Contact the business if you need help accessing your purchase."}`
-    : business.email ? `For fulfilment or booking enquiries, contact ${business.email}.` : "The business will arrange fulfilment or booking with you.";
+    : input.buyerEmail
+      ? `Track your order, submit your brief and receive delivery in your customer workspace: ${getCqaSiteUrl()}/account\nSign in with the verified account used for this purchase.${business.email ? ` For support, contact ${business.email}.` : ""}`
+      : business.email ? `For fulfilment or booking enquiries, contact ${business.email}.` : "The business will arrange fulfilment or booking with you.";
   if (recipient) await sendCqaTransactionalEmail(`order/${input.checkoutId}/customer`, recipient, `Payment confirmed — ${business.name}`, `Thanks for your purchase from ${business.name}.\n\n${details}\n\n${delivery}`, business.email || undefined);
   if (business.email) await sendCqaTransactionalEmail(`order/${input.checkoutId}/owner`, business.email, `New paid order — ${business.name}`, `${details}\nCustomer: ${input.customerEmail || "No email supplied"}\n\n${input.digital ? "Private download instructions have been sent to the verified buyer account. Manage support from your owner dashboard." : "Arrange fulfilment or booking from your owner dashboard."}`);
 }

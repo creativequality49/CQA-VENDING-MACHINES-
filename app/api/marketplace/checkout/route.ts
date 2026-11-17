@@ -158,7 +158,7 @@ export async function POST(req: Request) {
         mode: subscription ? "subscription" : "payment",
         line_items: [lineItem],
         customer_email: buyerEmail || payload.customerEmail,
-        ...(digital && buyerUserId ? { client_reference_id: buyerUserId } : {}),
+        ...(buyerUserId ? { client_reference_id: buyerUserId } : {}),
         success_url: `${origin}/checkout/success?marketplace=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/machine/${context.machine_slug}`,
         metadata,
@@ -172,16 +172,17 @@ export async function POST(req: Request) {
     if (!checkout.url) {
       return NextResponse.json({ error: "Stripe did not return a secure checkout URL." }, { status: 502 });
     }
-    if (digital) {
+    if (digital || buyerUserId) {
       const { error: bindingError } = await getCqaSupabaseAdmin().from("cqa_orders").insert({
         business_id: context.business_id, machine_id: context.machine_id, offer_id: context.offer_id,
-        buyer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents,
+        buyer_user_id: buyerUserId, customer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents,
+        purchase_snapshot: { title: String(context.offer_name).slice(0, 300), offerType: String(context.offer_type), fulfillmentType: String(offer.fulfillment_type || "none") },
         currency: String(context.currency || "aud").toLowerCase(), stripe_checkout_session_id: checkout.id,
         status: "pending"
       });
       if (bindingError) {
         await stripe.checkout.sessions.expire(checkout.id, {}, { stripeAccount: context.connected_account_id });
-        return NextResponse.json({ error: "Protected purchase could not be prepared. Please try again." }, { status: 503 });
+        return NextResponse.json({ error: "Your purchase record could not be prepared. Please try again." }, { status: 503 });
       }
     }
 

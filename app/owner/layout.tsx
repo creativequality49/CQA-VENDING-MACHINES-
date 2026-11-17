@@ -17,7 +17,7 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
             <Link href="/owner/automations">Automations</Link>
             <Link href="/marketplace">Marketplace</Link>
           </div>
-          <span className="owner-workspace-live"><i /> SYSTEM ONLINE</span>
+          <span className="owner-workspace-live">OWNER WORKSPACE</span>
         </nav>
       </div>
       {children}

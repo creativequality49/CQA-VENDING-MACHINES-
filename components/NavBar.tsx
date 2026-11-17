@@ -24,6 +24,7 @@ export function NavBar() {
             <Link href="/workspace">Business Workspace</Link>
             <Link href="/automations">Automations</Link>
             <Link href="/pricing">Pricing</Link>
+            <Link href="/account">My purchases</Link>
             <Link href="/contact?service=support">Support</Link>
           </nav>
 
@@ -45,6 +46,8 @@ export function NavBar() {
               <Link href="/workers">AI Workers <span>05</span></Link>
               <Link href="/automations">Automations <span>06</span></Link>
               <Link href="/workspace">Business Workspace <span>07</span></Link>
+              <Link href="/account">My purchases <span>ACCOUNT</span></Link>
+              <Link href="/owner/orders">Order fulfilment <span>BUSINESS</span></Link>
               <Link href="/contact?service=support">Support <span>08</span></Link>
               <div className="menu-panel-actions">
                 <Link href="/login?next=/owner/dashboard" className="button ghost">Owner Login</Link>
