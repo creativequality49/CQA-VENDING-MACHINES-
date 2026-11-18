@@ -1,5 +1,7 @@
 # CQA Vending OS — Deployment Readiness Report & Backend Linking Status
 
+> Historical report: its Prisma setup recommendations are superseded. The app uses Supabase SQL migrations; unused Prisma packages/scripts have been removed. See `customer-fulfillment.md` and `commerce-launch-verification.md` for current verification requirements.
+
 **Date:** September 7, 2026  
 **Project:** CQA Vending Machines (`creativequality49/CQA-VENDING-MACHINES-`)  
 **Status:** 🟡 **NOT READY FOR FULL PRODUCTION DEPLOYMENT**

@@ -3,6 +3,20 @@
 This release extends the existing CQA marketplace. It does not replace the
 GitHub design or create another application/repository.
 
+## Initial sale scope
+
+New consumer checkout supports one-time protected digital products and scoped
+services, bookings and consultations. A service requires published delivery
+scope, delivery timing, customer support and refund/cancellation terms, each
+nonempty and at most 5,000 characters. Payment does not reserve an appointment.
+Recurring consumer purchases and physical/shipping purchases remain enquiries
+until renewal and shipping workflows are implemented and verified. Existing
+subscription management remains available for historical customers. Platform
+owner subscription billing is separate and retains its existing lifecycle.
+
+No catalogue entry is evidence of a deliverable: publish a real priced offer
+with its completed private assets or an agreed service commitment before launch.
+
 ## Customer journey
 
 1. The customer signs in or creates an email-confirmed Supabase account.

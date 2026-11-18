@@ -55,9 +55,9 @@ requirements and remaining integration evidence.
 
 ## Database setup
 
-Schema material lives in `database/*.sql`. This repository currently has no
-`prisma/schema.prisma` or `prisma/seed.ts`, so the advertised `db:migrate`,
-`db:push` and `db:seed` package scripts are not a usable database setup path.
+Schema material lives in `database/*.sql` and `supabase/migrations/*.sql`.
+Unused Prisma dependencies and nonfunctional database scripts have been removed;
+Supabase SQL migrations are the database setup path.
 Review the applicable SQL and migration order against an isolated database
 before applying it; do not run the SQL collection blindly against production.
 

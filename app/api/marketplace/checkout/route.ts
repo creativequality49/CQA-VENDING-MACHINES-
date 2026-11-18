@@ -1,3 +1,4 @@
+import { getCqaOfferCheckoutHold } from "@/lib/cqa-offer-readiness";
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { verifyPrivateMarketplaceAsset } from "@/lib/storage";
@@ -42,10 +43,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This offer is not available for checkout." }, { status: 404 });
     }
     const { data: offer, error: offerError } = await getCqaSupabaseAdmin().from("cqa_offers")
-      .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config")
+      .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config,shipping_required")
       .eq("id", context.offer_id).eq("business_id", context.business_id).eq("machine_id", context.machine_id).maybeSingle();
     if (offerError) throw offerError;
     if (!offer) return NextResponse.json({ error: "This offer is no longer available." }, { status: 404 });
+    const readinessHold = getCqaOfferCheckoutHold(offer) || getCqaOfferCheckoutHold({ ...offer, offer_type: context.offer_type });
+    if (readinessHold) return NextResponse.json({ error: readinessHold.message, code: readinessHold.code }, { status: 409 });
     const digital = context.offer_type === "digital_product" || offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
     if (digital && !isCqaDigitalCheckoutAllowed()) {
       return NextResponse.json({ error: "Protected digital delivery is paused while customer launch checks are completed.", code: "CQA_DIGITAL_DELIVERY_PENDING" }, { status: 409 });

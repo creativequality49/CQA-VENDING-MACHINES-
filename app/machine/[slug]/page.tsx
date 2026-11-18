@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { MarketplaceCheckoutButton } from "@/components/MarketplaceCheckoutButton";
-import { isCqaDigitalCheckoutAllowed } from "@/lib/cqa-launch-gate";
+import { isCqaDigitalCheckoutAllowed, isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
+import { getCqaOfferCheckoutHold } from "@/lib/cqa-offer-readiness";
 import { DEMO_MACHINES, formatAud, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
 
 async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> {
@@ -34,6 +35,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
   const machine = live || DEMO_MACHINES.find((item) => item.slug === slug);
   if (!machine) notFound();
 
+  const checkoutAllowed = isNewCqaCheckoutAllowed();
   const theme = themeClass(machine.theme);
   const primaryColor = machine.customization?.primaryColor;
   const brandStyle: CSSProperties = typeof primaryColor === "string" && /^#[0-9a-f]{6}$/i.test(primaryColor)
@@ -55,7 +57,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
           <span className="rail-label">COLLECT</span>
           <div className="rail-collect" />
           <span className="rail-label">STATUS</span>
-          <div className="rail-status">ONLINE</div>
+          <div className="rail-status">{machine.demo ? "DEMO" : "PUBLISHED"}</div>
         </aside>
 
         <div className="machine-detail-main">
@@ -66,7 +68,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
               <p>{machine.business.description || machine.subtitle}</p>
             </div>
             <div className="machine-detail-live">
-              <span><i /> {machine.demo ? "DEMO" : "LIVE"}</span>
+              <span><i /> {machine.demo ? "DEMO" : "PUBLISHED"}</span>
               <small>{machine.business.location_text || "Australia"}</small>
             </div>
           </header>
@@ -98,6 +100,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
               const deliveryPending = offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
               const payableService = purchasable && !deliveryPending && ["service", "booking", "consultation"].includes(offer.offer_type);
               const details = offer.fulfillment_config || {};
+              const checkoutHold = getCqaOfferCheckoutHold(offer);
               return (
                 <article key={offer.id} className="machine-offer-slot">
                   <span className="slot-number">{String(index + 1).padStart(2, "0")}</span>
@@ -117,6 +120,8 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                       <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`}>
                         TRY DEMO →
                       </Link>
+                    ) : checkoutHold ? (
+                      <div><Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>ENQUIRE ABOUT THIS OFFER →</Link><p className="small">{checkoutHold.message}</p></div>
                     ) : deliveryPending && purchasable ? (
                       isCqaDigitalCheckoutAllowed() ? <div style={{ display: "grid", gap: ".75rem" }}>
                         <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="BUY DIGITAL PRODUCT" requiresBuyerAccount />
@@ -124,12 +129,12 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                       </div> : <div><button className="neon-enter-button" type="button" disabled>DELIVERY SETUP PENDING</button><p className="small">Digital checkout is paused during customer launch checks.</p></div>
                     ) : bookingLike || !purchasable ? (
                       <div style={{ display: "grid", gap: ".75rem" }}>
-                        {payableService ? (
+                        {payableService && checkoutAllowed ? (
                           <>
                             <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="PAY FOR SERVICE" requiresBuyerAccount />
                             <p className="small">Payment covers this service. Arrange the time and details with the business; payment does not reserve an appointment.</p>
                           </>
-                        ) : null}
+                        ) : payableService ? <p className="small">{!checkoutAllowed ? "Customer payments are paused during launch verification." : "Contact the business to confirm service scope, delivery timing, support and refund terms before payment."}</p> : null}
                         <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>
                           {offer.offer_type === "quote" || !purchasable ? "REQUEST QUOTE →" : "ENQUIRE ABOUT SERVICE →"}
                         </Link>
@@ -137,7 +142,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                     ) : deliveryPending ? (
                       <button className="neon-enter-button" type="button" disabled>DELIVERY SETUP PENDING</button>
                     ) : (
-                      <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label={offer.offer_type === "subscription" ? "START SUBSCRIPTION" : "BUY WITH STRIPE"} requiresBuyerAccount />
+                      <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>ENQUIRE ABOUT THIS OFFER →</Link>
                     )}
                   </div>
                 </article>
@@ -147,7 +152,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
 
           <footer className="machine-detail-footer">
             <div><span>DELIVERY DETAILS</span><small>See each offer’s terms</small></div>
-            <div><span>STRIPE READY</span><small>Connected payments</small></div>
+            <div><span>{machine.demo ? "DEMO · NO PAYMENTS" : !checkoutAllowed ? "PAYMENTS PAUSED" : "PAYMENTS VERIFIED AT CHECKOUT"}</span><small>{machine.demo ? "Demonstration offers only" : !checkoutAllowed ? "Launch verification pending" : "Availability checked before payment"}</small></div>
             <div><span>OWNER CONTROLLED</span><small>Private dashboard</small></div>
             <div><span>AI OPTIONAL</span><small>Approval-gated workers</small></div>
           </footer>

@@ -39,7 +39,7 @@ function harness(options = {}) {
     ...options.context };
   const offer = { id: offerId, business_id: businessId, machine_id: machineId, offer_type: context.offer_type,
     fulfillment_type: context.offer_type === 'digital_product' ? 'digital' : 'manual',
-    fulfillment_config: { asset_key: assetKey, asset_size_bytes: 64, asset_content_type: 'application/pdf', ...options.config }, ...options.offer };
+    fulfillment_config: { deliveryDescription: 'A customer-specific service report', deliveryTiming: 'Within three business days', supportDetails: 'Contact support@example.test', refundTerms: 'Refund before work starts', asset_key: assetKey, asset_size_bytes: 64, asset_content_type: 'application/pdf', ...options.config }, ...options.offer };
   const admin = { from(table) {
     const filters = []; queries.push({ table, filters });
     const query = { select() { return query; }, eq(k, v) { filters.push([k, v]); return query; },
@@ -62,6 +62,7 @@ function harness(options = {}) {
   }, async expire(id, _params, request) { expirations.push({ id, request }); } } } };
   const route = evaluate('app/api/marketplace/checkout/route.ts', {
     'next/server': { NextResponse: { json: (body, init) => Response.json(body, init) } },
+    '@/lib/cqa-offer-readiness': evaluate('lib/cqa-offer-readiness.ts'),
     '@/lib/cqa-site-url': { getCqaSiteUrl: () => 'https://cqa.example.test' },
     '@/lib/cqa-launch-gate': gates(env),
     '@/lib/stripe': { getStripeClient: () => stripe },
@@ -147,8 +148,8 @@ await test('digital pending binding failure expires checkout and returns no paym
   assert.equal(response.status,503); assert.equal((await response.json()).url,undefined);
   assert.deepEqual(h.expirations,[{id:'cs_test_synthetic',request:{stripeAccount:'acct_test'}}]);
 });
-await test('authenticated service and subscription purchases persist customer ownership before checkout navigation', async () => {
-  for (const type of ['service', 'subscription']) {
+await test('authenticated service purchases persist customer ownership before checkout navigation', async () => {
+  for (const type of ['service', 'booking', 'consultation']) {
     const h = harness({ type });
     const response = await h.post();
     assert.equal(response.status, 200);
@@ -174,6 +175,38 @@ await test('service persistence failure expires the session and anonymous servic
   assert.equal(guest.sessions[0].data.client_reference_id, undefined);
   assert.equal(guest.sessions[0].data.metadata.cqaBuyerUserId, undefined);
 });
+await test('unsupported recurring and shipping workflows cannot create a provider session or bind an order', async () => {
+  for (const scenario of [
+    { type: 'subscription' }, { type: 'physical_product' },
+    { type: 'quote' }, { type: 'external' }, { type: 'unknown' },
+    { type: 'subscription', offer: { fulfillment_type: 'digital' } },
+    { type: 'physical_product', offer: { fulfillment_type: 'digital' } },
+    { type: 'service', offer: { fulfillment_type: 'subscription' } },
+    { type: 'service', offer: { fulfillment_type: 'shipping' } },
+    { type: 'service', offer: { shipping_required: true } },
+    { type: 'service', context: { offer_type: 'subscription' }, offer: { offer_type: 'service' } },
+  ]) {
+    const h = harness(scenario); const response = await h.post();
+    assert.equal(response.status, 409); assert.equal((await response.json()).url, undefined);
+    assert.deepEqual(h.events, []); assert.equal(h.sessions.length, 0); assert.equal(h.bindings.length, 0);
+  }
+});
+await test('paid service booking and consultation require all four published fulfilment commitments', async () => {
+  for (const type of ['service', 'booking', 'consultation']) {
+    for (const field of ['deliveryDescription', 'deliveryTiming', 'supportDetails', 'refundTerms']) {
+      for (const value of [undefined, null, '', '   ', 42, 'x'.repeat(5001)]) {
+        const h = harness({ type, config: { [field]: value } }); const response = await h.post();
+        assert.equal(response.status, 409); assert.equal((await response.json()).code, 'CQA_FULFILLMENT_SETUP_PENDING');
+        assert.deepEqual(h.events, []); assert.equal(h.sessions.length, 0); assert.equal(h.bindings.length, 0);
+      }
+    }
+    for (const config of [null, [], 'not-configured']) {
+      const h = harness({ type, offer: { fulfillment_config: config } });
+      assert.equal((await h.post()).status, 409); assert.equal(h.sessions.length, 0);
+    }
+  }
+});
+
 await test('digital subscription hybrid is rejected before payment', async () => {
   const h=harness({type:'subscription',offer:{fulfillment_type:'digital'}});
   assert.equal((await h.post()).status,409);assert.equal(h.sessions.length,0);assert.equal(h.bindings.length,0);
@@ -224,8 +257,8 @@ await test('provider failures and unusable prices never return a checkout URL or
   }
 });
 
-await test('legacy service and subscription checkout preserve original anonymous pricing and fee behavior', async () => {
-  for (const type of ['service', 'subscription']) {
+await test('ready service checkout preserve original anonymous pricing and fee behavior', async () => {
+  for (const type of ['service', 'booking', 'consultation']) {
     const h = harness({ type }); const r = await h.post(null); assert.equal(r.status, 200); assert.equal(h.checks.length, 0);
     const data = h.sessions[0].data; assert.equal(data.mode, type === 'subscription' ? 'subscription' : 'payment');
     assert.equal(data.line_items[0].price_data.unit_amount, 1299); assert.equal(data.metadata.cqaBuyerUserId, undefined);
@@ -313,13 +346,14 @@ await test('actual storefront keeps live digital holds closed and marks sandbox 
     business: { id: businessId, category: 'Testing', name: 'Synthetic business', description: '', plan: 'pro', verified: false },
     offers: [ { id: offerId, name: 'Digital file', offer_type: 'digital_product', fulfillment_type: 'digital', price_cents: 1299 },
       { id: foreignId, name: 'Digital fulfilment', offer_type: 'physical_product', fulfillment_type: 'digital', price_cents: 1299 },
-      { id: 'service', name: 'Service', offer_type: 'service', price_cents: 1299 },
+      { id: 'service', name: 'Service', offer_type: 'service', price_cents: 1299, fulfillment_config: { deliveryDescription: 'Delivered report', deliveryTiming: 'Three days', supportDetails: 'Email us', refundTerms: 'Refund before work starts' } },
       { id: 'subscription', name: 'Subscription', offer_type: 'subscription', price_cents: 1299 } ] };
   for (const [allowed, demo] of [[false, false], [true, false], [true, true]]) {
     const page = evaluate('app/machine/[slug]/page.tsx', {
       'next/link': { default: 'Link' }, 'next/navigation': { notFound() { throw Error('Unexpected missing machine'); } },
       'react/jsx-runtime': { jsx, jsxs: jsx }, '@/components/MarketplaceCheckoutButton': { MarketplaceCheckoutButton: 'Checkout' },
-      '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => allowed },
+      '@/lib/cqa-offer-readiness': evaluate('lib/cqa-offer-readiness.ts'),
+      '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => allowed, isNewCqaCheckoutAllowed: () => true },
       '@/lib/cqa-marketplace': { DEMO_MACHINES: [], formatAud: originalMarket.formatAud, getPublicSupabaseClient: () => ({
         from() { const q = { select() { return q; }, eq() { return q; }, single: async () => ({ data: { ...machine, demo }, error: null }) }; return q; },
       }) },
@@ -327,9 +361,9 @@ await test('actual storefront keeps live digital holds closed and marks sandbox 
     const tree = await page({ params: Promise.resolve({ slug: 'test-store' }) });
     const digital = find(tree, node => node.type === 'Checkout' && node.props.offerId === offerId);
     const alternate = find(tree, node => node.type === 'Checkout' && node.props.offerId === foreignId);
-    if (allowed && !demo) { assert.equal(digital.props.requiresBuyerAccount, true); assert.equal(alternate.props.requiresBuyerAccount, true); }
+    if (allowed && !demo) { assert.equal(digital.props.requiresBuyerAccount, true); assert.equal(alternate, undefined); }
     else { assert.equal(digital, undefined); assert.equal(alternate, undefined); }
-    assert.equal(Boolean(find(tree, node => node.type === 'Checkout' && node.props.offerId === 'subscription')), !demo);
+    assert.equal(Boolean(find(tree, node => node.type === 'Checkout' && node.props.offerId === 'subscription')), false);
     assert.equal(Boolean(find(tree, node => node.type === 'Checkout' && node.props.offerId === 'service')), !demo);
     if (!allowed) assert.ok(find(tree, node => node.type === 'button' && node.props.disabled && /DELIVERY SETUP PENDING/.test(textOf(node))));
   }

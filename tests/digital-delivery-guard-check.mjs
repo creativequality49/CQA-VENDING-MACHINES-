@@ -7,6 +7,8 @@ const source = fs.readFileSync('app/api/marketplace/checkout/route.ts', 'utf8');
 const compiled = ts.transpileModule(source.replace(/^import[\s\S]*?;\r?\n/gm, '').replace(/export /g, ''), {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None }
 }).outputText;
+const readinessJs = ts.transpileModule(fs.readFileSync('lib/cqa-offer-readiness.ts', 'utf8').replace(/export /g, ''), { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None } }).outputText;
+const readiness = new Function(readinessJs + ';return getCqaOfferCheckoutHold;')();
 for (const variant of [
   { offerType: 'digital_product', fulfillmentType: 'none' },
   { offerType: 'service', fulfillmentType: 'digital' },
@@ -15,11 +17,11 @@ for (const variant of [
   let stripeCalls = 0;
   const tables = [];
   const context = { offer_type: variant.offerType, business_id: 'business', offer_id: 'offer' };
-  const post = new Function('NextResponse', 'z', 'getPublicSupabaseClient', 'getCqaSupabaseAdmin', 'getStripeClient', 'isCqaDigitalCheckoutAllowed', compiled + ';return POST;')(
-    { json: (body, options) => ({ body, status: options?.status || 200 }) }, z,
+  const post = new Function('getCqaOfferCheckoutHold', 'NextResponse', 'z', 'getPublicSupabaseClient', 'getCqaSupabaseAdmin', 'getStripeClient', 'isCqaDigitalCheckoutAllowed', compiled + ';return POST;')(
+    readiness, { json: (body, options) => ({ body, status: options?.status || 200 }) }, z,
     () => ({ rpc: async () => ({ data: context, error: null }) }),
     () => ({ from(table) { tables.push(table); const query = { select() { return query; }, eq() { return query; },
-      maybeSingle: async () => ({ data: { fulfillment_type: variant.fulfillmentType }, error: null }) }; return query; } }),
+      maybeSingle: async () => ({ data: { offer_type: variant.offerType, fulfillment_type: variant.fulfillmentType, fulfillment_config: { deliveryDescription: 'Report', deliveryTiming: 'Three days', supportDetails: 'Email support', refundTerms: 'Refund before work' } }, error: null }) }; return query; } }),
     () => { stripeCalls++; throw Error('Provider must never be touched for unavailable digital delivery'); }, () => false
   );
   const response = await post(new Request('https://example.test/api/marketplace/checkout', {
