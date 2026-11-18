@@ -92,12 +92,13 @@ the offer remaining in the catalogue and does not grant delivery access. The
 connected business must configure its Stripe customer portal before customers
 can use that provider-hosted screen.
 
-The intended first remote target is the existing isolated **CQA Launch Test**
-project, `ndzmlywsuywkhgqdbzft`. An application attempt was rejected by automatic
-approval review because explicit permission for changing that project's existing
-data had not been given. No remote schema or order data was changed. Approve this
-specific migration before applying it there. Production requires a separate
-rollout after integration verification.
+The migration was applied to the existing isolated **CQA Launch Test** project,
+`ndzmlywsuywkhgqdbzft`, after the user approved proceeding with isolated testing
+on 19 November 2026 (Australia/Adelaide). Remote verification confirmed the
+new schema, RLS and server-only function privileges. Anonymous Data API reads
+and unsigned-in deployed customer/owner requests returned HTTP 401. Production
+has not received this migration and requires a separate verified rollout.
+See `customer-test-results-2026-11-19.md` for the remaining integration scope.
 
 ## Service configuration and verification
 

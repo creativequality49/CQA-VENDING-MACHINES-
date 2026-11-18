@@ -1,5 +1,10 @@
 # Customer launch audit — 18 November 2026
 
+> Update, 19 November: the user approved isolated testing and the customer
+> fulfilment migration was applied to CQA Launch Test. The migration approval
+> blocker below is historical; see `customer-test-results-2026-11-19.md`.
+> Production rollout and real-provider acceptance remain incomplete.
+
 Scope: the existing CQA Vending Machines / Machine Market repository and the
 one-time customer purchase and fulfilment journey. This is not approval to
 charge customers or proof that external services work end to end.
