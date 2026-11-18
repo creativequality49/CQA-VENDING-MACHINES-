@@ -73,7 +73,7 @@ business's platform subscription and Stripe Connect onboarding.
 ## Database rollout
 
 The new schema is in
-`supabase/migrations/20261117113349_customer_fulfillment.sql`. It requires the
+`supabase/migrations/20261118235214_customer_fulfillment.sql`. It requires the
 existing CQA marketplace tables and buyer-entitlement columns; it is not a
 replacement baseline for a blank Supabase project.
 

@@ -67,7 +67,7 @@ try {
       [orderId,businessId,machineId,offerId,buyer,status]);
   }
 
-  const migration = await readFile(new URL('../supabase/migrations/20261117113349_customer_fulfillment.sql', import.meta.url), 'utf8');
+  const migration = await readFile(new URL('../supabase/migrations/20261118235214_customer_fulfillment.sql', import.meta.url), 'utf8');
   await db.exec(migration);
   assert.equal((await db.query('select customer_user_id from public.cqa_orders where id=$1', [order])).rows[0].customer_user_id, buyer);
   await role('service_role');

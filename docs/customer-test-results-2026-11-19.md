@@ -7,8 +7,11 @@ certify the six separate Sites applications or authorize live customer charges.
 ## Completed evidence
 
 - User approved proceeding with isolated testing. Applied the committed
-  `20261117113349_customer_fulfillment.sql` migration to **CQA Launch Test**
+  `20261118235214_customer_fulfillment.sql` migration to **CQA Launch Test**
   (`ndzmlywsuywkhgqdbzft`). Production was not migrated.
+  The Management API recorded version `20261118235214`; the existing CLI-created
+  migration file was renamed to match that remote history version, preventing
+  a later CLI push from attempting the same migration under its original version.
 - Verified new workspace/event tables, purchase snapshot column, indexes,
   owner-scoped read policies and RLS. Anonymous roles have no table access;
   browser roles cannot mutate fulfilment. Transition function is SECURITY
