@@ -392,8 +392,8 @@ export default function OwnerOrdersPage() {
           <Link className={styles.back} href="/owner/dashboard">
             ← Owner dashboard
           </Link>
-          <p className={styles.eyebrow}>FULFILMENT WORKSPACE</p>
-          <h1>Turn orders into outcomes.</h1>
+          <p className={styles.eyebrow}>Fulfilment workspace</p>
+          <h1>Customer orders</h1>
           <p className={styles.subtitle}>
             {business ? business.name : "Your customer orders"} · Customer
             details, private files and a clear handover.
@@ -521,7 +521,7 @@ export default function OwnerOrdersPage() {
                 <div className={styles.detailHeader}>
                   <div>
                     <p className={styles.eyebrow}>
-                      ORDER #{selected.id.slice(0, 8).toUpperCase()}
+                      Order #{selected.id.slice(0, 8).toUpperCase()}
                     </p>
                     <h2>{selected.offerName}</h2>
                     <p>
@@ -556,7 +556,7 @@ export default function OwnerOrdersPage() {
                 )}
                 {selected.digital && (
                   <section className={styles.card}>
-                    <p className={styles.eyebrow}>PROTECTED DIGITAL DELIVERY</p>
+                    <p className={styles.eyebrow}>Protected digital delivery</p>
                     <h3>Managed through the customer library</h3>
                     <p className={styles.muted}>
                       {paid
@@ -704,7 +704,7 @@ export default function OwnerOrdersPage() {
                 {!selected.digital &&
                   selected.workspace.state === "delivered" && (
                     <section className={styles.card}>
-                      <p className={styles.eyebrow}>HANDOVER COMPLETE</p>
+                      <p className={styles.eyebrow}>Handover complete</p>
                       <h3>Delivered to your customer</h3>
                       {selected.workspace.deliveryMessage && (
                         <p className={styles.delivery}>

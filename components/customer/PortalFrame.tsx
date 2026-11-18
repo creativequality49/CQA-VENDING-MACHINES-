@@ -35,25 +35,25 @@ export function PortalFrame({
             aria-current={!detail ? "page" : undefined}
             className={!detail ? styles.selectedNav : ""}
           >
-            <span aria-hidden="true">▦</span> Overview
+            <span aria-hidden="true">▦</span> My orders
           </Link>
           <Link href="/marketplace/library">
-            <span aria-hidden="true">↓</span> Digital library
+            <span aria-hidden="true">↓</span> Downloads
           </Link>
           <Link href="/machines">
-            <span aria-hidden="true">◇</span> Explore machines
+            <span aria-hidden="true">◇</span> Browse marketplace
           </Link>
         </nav>
         <div className={styles.supportCard}>
           <span className={styles.supportIcon} aria-hidden="true">
             ✧
           </span>
-          <strong>A little help goes a long way.</strong>
+          <strong>Need help with an order?</strong>
           <p>
             Questions about an order? Our team can help you find the next step.
           </p>
           <Link href="/contact?service=support">
-            Contact support <span aria-hidden="true">↗</span>
+            Contact support <span aria-hidden="true">→</span>
           </Link>
         </div>
         <div className={styles.sidebarFoot}>
@@ -70,17 +70,17 @@ export function PortalFrame({
             aria-label="Sign out"
             title="Sign out"
           >
-            {loggingOut ? "…" : "↪"}
+            {loggingOut ? "Signing out…" : "Sign out"}
           </button>
         </div>
       </aside>
       <section className={styles.content}>
         <div className={styles.topline}>
           <span>
-            WORKSPACE <i>/</i> {detail ? "ORDER DETAILS" : "OVERVIEW"}
+            MY ACCOUNT <i>/</i> {detail ? "ORDER DETAILS" : "MY ORDERS"}
           </span>
           <Link href="/marketplace" className={styles.marketLink}>
-            Visit marketplace <span aria-hidden="true">↗</span>
+            Visit marketplace <span aria-hidden="true">→</span>
           </Link>
         </div>
         {children}

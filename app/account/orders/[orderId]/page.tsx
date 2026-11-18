@@ -252,7 +252,7 @@ function OrderWorkspace({
           {digital ? (
             <section className={styles.panel}>
               <span className={styles.eyebrow}>YOUR DIGITAL PURCHASE</span>
-              <h2>Your next step, ready to open.</h2>
+              <h2>{paid ? "Download your purchase" : "Your digital purchase"}</h2>
               <p className={styles.bodyCopy}>
                 Eligible digital purchases are delivered through a protected
                 download link. Your access is checked each time you request a
@@ -269,7 +269,7 @@ function OrderWorkspace({
                 <span aria-hidden="true">↓</span>
               </button>
               <Link href="/marketplace/library" className={styles.inlineLink}>
-                View your digital library ↗
+                View your digital library →
               </Link>
             </section>
           ) : delivered ? (
@@ -312,7 +312,7 @@ function OrderWorkspace({
             <section className={styles.panel}>
               <div className={styles.panelHeading}>
                 <div>
-                  <span className={styles.eyebrow}>MAKE IT YOURS</span>
+                  <span className={styles.eyebrow}>PROJECT DETAILS</span>
                   <h2>
                     {hasIntake
                       ? "Your project brief"
@@ -328,7 +328,7 @@ function OrderWorkspace({
               <p className={styles.bodyCopy}>
                 {order.workspace.state === "in_progress"
                   ? "Work is underway. Your current brief is below; contact support if anything important changes."
-                  : "A few clear details help the business deliver work that fits. Your brief is saved to this order."}
+                  : "Tell the business what you need. These details are saved with your order."}
               </p>
               <form
                 onSubmit={(event) => void save(event)}
@@ -397,7 +397,7 @@ function OrderWorkspace({
                         : hasIntake
                           ? "Save changes"
                           : "Send project brief"}{" "}
-                      <span aria-hidden="true">↗</span>
+                      <span aria-hidden="true">→</span>
                     </button>
                   )}
                 </div>
@@ -406,7 +406,7 @@ function OrderWorkspace({
           )}
           {delivered && order.workspace.intake && (
             <section className={styles.panel}>
-              <span className={styles.eyebrow}>THE BRIEF WE WORKED FROM</span>
+              <span className={styles.eyebrow}>YOUR PROJECT DETAILS</span>
               <h2>{order.workspace.intake.businessName}</h2>
               <h3 className={styles.smallHeading}>Your goals</h3>
               <p className={styles.deliveryMessage}>
@@ -503,7 +503,7 @@ function OrderWorkspace({
                 href={`/machine/${encodeURIComponent(order.machineSlug)}`}
                 className={styles.secondaryButton}
               >
-                Visit the machine ↗
+                Visit the machine →
               </Link>
             )}
           </section>
@@ -517,7 +517,7 @@ function OrderWorkspace({
             <Link
               href={`/contact?service=support&order=${encodeURIComponent(order.id)}`}
             >
-              Contact support ↗
+              Contact support →
             </Link>
           </section>
         </aside>

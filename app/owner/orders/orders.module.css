@@ -5,6 +5,8 @@
   color: #eef0f8;
   padding: 40px clamp(18px, 4vw, 68px) 80px;
   font-family: Inter, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
 }
 .header {
   max-width: 1440px;
@@ -15,17 +17,20 @@
   align-items: center;
 }
 .back {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: #a2abc0;
   text-decoration: none;
-  font-size: 13px;
+  font-size: 14px;
 }
 .back:hover {
   color: #ff78ba;
 }
 .eyebrow {
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.19em;
+  letter-spacing: 0.06em;
   color: #ff78ba;
   margin: 25px 0 10px;
 }
@@ -38,7 +43,7 @@
 .subtitle,
 .muted {
   color: #919bb0;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.7;
 }
 .layout {
@@ -51,6 +56,7 @@
 }
 .orders,
 .detail {
+  min-width: 0;
   border: 1px solid #222a3d;
   background: #0d111c;
   border-radius: 20px;
@@ -69,7 +75,7 @@
 }
 .sectionTitle span,
 .row time {
-  font-size: 11px;
+  font-size: 14px;
   color: #8792a9;
 }
 .order {
@@ -91,15 +97,17 @@
   box-shadow: inset 3px 0 #ff4ba1;
 }
 .order strong {
-  font-size: 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 16px;
 }
 .order b {
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
 }
 .order p {
   color: #95a0b7;
-  font-size: 12px;
+  font-size: 14px;
   overflow-wrap: anywhere;
   margin: 11px 0 18px;
 }
@@ -111,15 +119,17 @@
 }
 .status,
 .mutedStatus {
+  max-width: 100%;
+  box-sizing: border-box;
   display: inline-block;
   border: 1px solid #62415c;
   background: #291827;
   color: #ff9bcc;
   border-radius: 20px;
   padding: 5px 9px;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
-  white-space: nowrap;
+  white-space: normal;
 }
 .mutedStatus {
   border-color: #384256;
@@ -137,10 +147,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: 44px;
+  box-sizing: border-box;
   padding: 10px 16px;
   border-radius: 9px;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 750;
   text-decoration: none;
   cursor: pointer;
@@ -188,7 +199,7 @@
   margin: 8px 0;
 }
 .detailHeader p:last-child {
-  font-size: 13px;
+  font-size: 14px;
   color: #97a2b8;
   overflow-wrap: anywhere;
 }
@@ -205,7 +216,7 @@
   gap: 8px;
 }
 .summary span {
-  font-size: 11px;
+  font-size: 14px;
   color: #95a0b5;
 }
 .summary strong {
@@ -220,7 +231,8 @@
 }
 .card h3,
 .callout h3 {
-  font-size: 15px;
+  font-size: 18px;
+  line-height: 1.4;
   margin: 0 0 13px;
 }
 .intake {
@@ -236,13 +248,13 @@
 }
 .intake dt {
   text-transform: capitalize;
-  font-size: 11px;
+  font-size: 14px;
   color: #99a5ba;
   margin-bottom: 6px;
 }
 .intake dd {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -259,19 +271,20 @@
   margin-top: 20px;
 }
 .callout p {
-  font-size: 12px;
+  font-size: 14px;
   color: #c1a8be;
   margin: 0;
   line-height: 1.7;
 }
 .label {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: #d4dbea;
   margin: 20px 0 10px;
 }
 .textarea {
+  min-height: 140px;
   width: 100%;
   resize: vertical;
   box-sizing: border-box;
@@ -281,7 +294,7 @@
   color: #eaf0ff;
   padding: 13px;
   font: inherit;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.7;
 }
 .textarea:focus {
@@ -304,10 +317,13 @@
 }
 .upload input {
   max-width: 100%;
-  font-size: 12px;
+  font-size: 14px;
   color: #a6b1c7;
 }
 .upload input::file-selector-button {
+  min-height: 44px;
+  box-sizing: border-box;
+  font: inherit;
   background: #232c40;
   border: 1px solid #43506a;
   padding: 9px 12px;
@@ -318,12 +334,12 @@
 }
 .file {
   color: #8bd5b5;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
 .small {
-  font-size: 11px;
+  font-size: 14px;
   color: #8795ad;
   line-height: 1.6;
 }
@@ -347,18 +363,18 @@
   padding-bottom: 0;
 }
 .timeline strong {
-  font-size: 12px;
+  font-size: 14px;
   text-transform: capitalize;
 }
 .timeline span {
   display: block;
-  font-size: 11px;
+  font-size: 14px;
   color: #8d9bb4;
   margin: 8px 0;
 }
 .timeline p {
   white-space: pre-wrap;
-  font-size: 12px;
+  font-size: 14px;
   color: #c1cadb;
   line-height: 1.8;
   overflow-wrap: anywhere;
@@ -368,7 +384,7 @@
   padding: 52px 24px;
   text-align: center;
   color: #8e9bb3;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.8;
 }
 .empty h2 {
@@ -397,7 +413,7 @@
   box-sizing: border-box;
   border-radius: 10px;
   padding: 15px 18px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
 }
 .error {
@@ -448,5 +464,77 @@
   }
   .summary {
     gap: 28px;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 24px 16px 96px;
+  }
+  .header {
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .header > button {
+    width: 100%;
+  }
+  .layout {
+    gap: 20px;
+  }
+  .orders {
+    max-height: 440px;
+  }
+  .sectionTitle {
+    padding: 18px 16px;
+  }
+  .order {
+    padding: 20px 16px;
+  }
+  .order .row,
+  .timeline .row {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .order strong {
+    flex: 1 1 135px;
+  }
+  .order b {
+    margin-left: auto;
+  }
+  .pagination {
+    padding: 16px;
+    gap: 12px;
+  }
+  .pagination button {
+    flex: 1;
+  }
+  .detail,
+  .card,
+  .callout {
+    padding: 18px;
+  }
+  .detailHeader h2 {
+    font-size: 24px;
+    overflow-wrap: anywhere;
+  }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .summary strong,
+  .timeline strong {
+    overflow-wrap: anywhere;
+  }
+  .callout button,
+  .upload button {
+    width: 100%;
+  }
+  .upload input {
+    width: 100%;
+    min-height: 44px;
+  }
+  .empty {
+    padding: 36px 20px;
   }
 }

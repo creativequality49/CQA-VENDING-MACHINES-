@@ -128,20 +128,12 @@ export default function AccountPage() {
     >
       <header className={styles.pageHeading}>
         <div>
-          <span className={styles.eyebrow}>YOUR NEXT CHAPTER STARTS HERE</span>
-          <h1>
-            Everything you’ve
-            <br />
-            put in motion<span>.</span>
-          </h1>
-          <p>
-            Your purchases, project updates and deliverables.
-            <br className={styles.desktopBreak} /> One place to keep moving
-            forward.
-          </p>
+          <span className={styles.eyebrow}>MY ACCOUNT</span>
+          <h1>Your purchases</h1>
+          <p>Track your orders, share project details and access your deliveries.</p>
         </div>
         <Link href="/machines" className={styles.primaryButton}>
-          Explore machines <span aria-hidden="true">↗</span>
+          Browse products & services <span aria-hidden="true">→</span>
         </Link>
       </header>
       {session.logoutError && (
@@ -173,7 +165,7 @@ export default function AccountPage() {
               <strong>
                 {actionCount
                   ? `${actionCount} ${actionCount === 1 ? "order needs" : "orders need"} your details on this page`
-                  : "Good things start with a clear next step."}
+                  : "Your orders and next steps are here."}
               </strong>
               <p>
                 {actionCount
@@ -246,11 +238,11 @@ export default function AccountPage() {
                 <div className={styles.emptyIcon} aria-hidden="true">
                   ◇
                 </div>
-                <span className={styles.eyebrow}>ROOM FOR SOMETHING GREAT</span>
+                <span className={styles.eyebrow}>YOUR PURCHASES</span>
                 <h3>
                   {offset
                     ? "No more orders here."
-                    : "Your first purchase belongs here."}
+                    : "You haven’t placed an order yet."}
                 </h3>
                 <p>
                   {offset
@@ -258,7 +250,7 @@ export default function AccountPage() {
                     : "When you purchase from a CQA machine, your order and next steps will appear in this workspace."}
                 </p>
                 <Link href="/machines" className={styles.primaryButton}>
-                  Find your next step <span aria-hidden="true">↗</span>
+                  Browse products & services <span aria-hidden="true">→</span>
                 </Link>
               </div>
             ) : filtered.length === 0 ? (
@@ -319,7 +311,7 @@ export default function AccountPage() {
                       <Link
                         href={`/account/orders/${encodeURIComponent(order.id)}`}
                       >
-                        Open order <span aria-hidden="true">↗</span>
+                        Open order <span aria-hidden="true">→</span>
                       </Link>
                     </div>
                   </article>
@@ -360,9 +352,9 @@ export default function AccountPage() {
           </section>
           <div className={styles.bottomNote}>
             <span aria-hidden="true">⌁</span>
-            <p>Built for your business. Kept in your workspace.</p>
+            <p>Your order details and deliveries stay in your account.</p>
             <Link href="/contact?service=support">
-              Need a hand? <span aria-hidden="true">↗</span>
+              Need a hand? <span aria-hidden="true">→</span>
             </Link>
           </div>
         </>
