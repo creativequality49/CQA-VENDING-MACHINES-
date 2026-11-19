@@ -1,13 +1,13 @@
 .page {
-  --portal-line: #6ca9c42e;
+  --portal-line: #ffffff24;
   --portal-cyan: #8aeef9;
   --portal-muted: #a0b1c9;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 85% 0, #143548b3 0, transparent 42%),
-    radial-gradient(ellipse at 0 55%, #281c4680 0, transparent 45%),
-    linear-gradient(#83b7d208 1px, transparent 1px),
-    linear-gradient(90deg, #83b7d208 1px, transparent 1px), #070c17;
+    radial-gradient(ellipse at 85% 0, #2f2f2fb3 0, transparent 42%),
+    radial-gradient(ellipse at 0 55%, #22222280 0, transparent 45%),
+    linear-gradient(#aeaeae08 1px, transparent 1px),
+    linear-gradient(90deg, #aeaeae08 1px, transparent 1px), #0c0c0c;
   background-size: auto, auto, 64px 64px, 64px 64px, auto;
   color: #edf5ff;
   padding: 40px clamp(18px, 4vw, 68px) 80px;
@@ -66,8 +66,8 @@
 .detail {
   min-width: 0;
   border: 1px solid var(--portal-line);
-  background: linear-gradient(145deg, #111e2fe8, #0a1423ed);
-  box-shadow: inset 0 1px 0 #c9f5ff0d, 0 24px 64px #00000026;
+  background: linear-gradient(145deg, #1c1c1ce8, #131313ed);
+  box-shadow: inset 0 1px 0 #ffffff0d, 0 24px 64px #00000026;
   backdrop-filter: blur(16px);
   border-radius: 20px;
   overflow: hidden;
@@ -78,7 +78,7 @@
   align-items: center;
   padding: 22px 20px;
   border-bottom: 1px solid var(--portal-line);
-  background: linear-gradient(90deg, #1631464d, #1a1b3533);
+  background: linear-gradient(90deg, #2d2d2d4d, #1d1d1d33);
 }
 .sectionTitle h2 {
   font-size: 16px;
@@ -103,7 +103,7 @@
 }
 .order:hover,
 .active {
-  background: linear-gradient(105deg, #18384b8c, #31284b52);
+  background: linear-gradient(105deg, #3333338c, #2c2c2c52);
 }
 .active {
   box-shadow: inset 3px 0 var(--portal-cyan), inset 0 1px 0 #99eaff14;
@@ -135,7 +135,7 @@
   box-sizing: border-box;
   display: inline-block;
   border: 1px solid #6bdce657;
-  background: #12343c9c;
+  background: #2d2d2d9c;
   color: #a1f3f4;
   border-radius: 20px;
   padding: 5px 9px;
@@ -145,7 +145,7 @@
 }
 .mutedStatus {
   border-color: #60719069;
-  background: #1b263c9c;
+  background: #2525259c;
   color: #b4c2d9;
 }
 .pagination {
@@ -182,10 +182,10 @@
   box-shadow: 0 6px 28px #4dd7eb40, inset 0 1px 0 #ffffff80;
 }
 .secondary {
-  background: #14253ac7;
+  background: #232323c7;
   color: #d9ebfb;
   border: 1px solid #6a9fbe57;
-  box-shadow: inset 0 1px 0 #c9f5ff08;
+  box-shadow: inset 0 1px 0 #ffffff08;
 }
 .secondary:hover {
   border-color: #8aeef99c;
@@ -240,8 +240,8 @@
 }
 .card {
   border: 1px solid var(--portal-line);
-  background: linear-gradient(135deg, #14243a9c, #10182ce0);
-  box-shadow: inset 0 1px 0 #c9f5ff08;
+  background: linear-gradient(135deg, #2222229c, #181818e0);
+  box-shadow: inset 0 1px 0 #ffffff08;
   border-radius: 13px;
   padding: 23px;
   margin-top: 20px;
@@ -284,8 +284,8 @@
   padding: 24px;
   border: 1px solid #9e91ee66;
   border-radius: 12px;
-  background: linear-gradient(115deg, #242645c7, #143146c7);
-  box-shadow: inset 0 1px 0 #c4b8ff14, 0 8px 32px #090b2026;
+  background: linear-gradient(115deg, #282828c7, #2c2c2cc7);
+  box-shadow: inset 0 1px 0 #ffffff14, 0 8px 32px #090b2026;
   margin-top: 20px;
 }
 .callout p {
@@ -308,7 +308,7 @@
   box-sizing: border-box;
   border: 1px solid #6287a35e;
   border-radius: 10px;
-  background: #080f1ac7;
+  background: #0e0e0ec7;
   color: #eaf5ff;
   padding: 13px;
   font: inherit;
@@ -342,7 +342,7 @@
   min-height: 44px;
   box-sizing: border-box;
   font: inherit;
-  background: #19314b;
+  background: #2e2e2e;
   border: 1px solid #6b9fbd73;
   padding: 9px 12px;
   color: #e4f4ff;
@@ -442,7 +442,7 @@
 }
 .notice {
   border: 1px solid #2e6856;
-  background: #112b24;
+  background: #252525;
   color: #a9e8cf;
 }
 .warning {
