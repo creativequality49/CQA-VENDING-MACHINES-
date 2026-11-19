@@ -1,0 +1,22 @@
+.page { min-height: 82vh; max-width: 1600px; margin: auto; display: grid; grid-template-columns: 1.15fr 1fr; background: #101010; color: #f3f5f7; }
+.visual { min-width: 0; position: relative; display: flex; flex-direction: column; padding: 48px 32px 28px; overflow: hidden; border-right: 1px solid #ffffff18; background: radial-gradient(ellipse at 50% 45%,#36363666,transparent 65%),#111; }
+.intro { position: relative; z-index: 1; padding: 0 16px; }
+.kicker { font-size: 12px; letter-spacing: .12em; color: #b9e9ef; font-weight: 700; }
+.intro h2 { font-size: clamp(32px,3.8vw,52px); letter-spacing: -.04em; line-height: 1.12; margin: 22px 0 16px; font-weight: 650; }
+.intro p { color: #b8bcc5; font-size: 16px; line-height: 1.7; max-width: 420px; }
+.visualFoot { display: flex; align-items: center; justify-content: center; gap: 16px; font-size: 11px; letter-spacing: .1em; color: #b9c4ce; margin-top: auto; padding-top: 24px; }
+.visualFoot i { width: 25px; height: 1px; background: #a3e9ff50; }
+.formArea { display: grid; align-content: center; padding: 48px clamp(20px,4vw,64px); min-width: 0; background: linear-gradient(145deg,#20202080,#101010); }
+.formCard { width: 100%; max-width: 520px; margin: auto; padding: 32px; border: 1px solid #ffffff24; border-radius: 20px; background: linear-gradient(140deg,#2a2a2ad9,#171717ee); box-shadow: inset 0 1px #ffffff14,0 24px 60px #00000030; }
+.title { font-size: clamp(28px,2.6vw,38px); line-height: 1.15; letter-spacing: -.035em; margin: 14px 0 16px; }
+.formCard :global(.small) { font-size: 14px; line-height: 1.65; color: #c0c3cc; }
+.formCard :global(.eyebrow) { color: #a8e4ee; font-size: 12px; letter-spacing: .08em; }
+.formCard input { min-height: 48px; font-size: 16px; }
+.formCard button { min-height: 46px; font-size: 14px; }
+.formCard :global(.button.primary) { background: linear-gradient(110deg,#b4f1f8,#81d9ee); border: 1px solid #d8fbff; color: #07181e; box-shadow: 0 0 24px #a9ecff0c; }
+.formCard :global(.button.ghost) { color: #dce5ed; background: #ffffff04; border-color: #ffffff26; }
+.formCard a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: #c1e9f0; }
+.formCard button:focus-visible, .formCard a:focus-visible, .formCard input:focus-visible { outline: 2px solid #a0eaff; outline-offset: 4px; }
+@media(max-width:1000px) { .page { grid-template-columns: 1fr 1fr; } .visual { padding: 36px 18px 24px; } .formArea { padding: 32px 20px; } .formCard { padding: 24px; } }
+@media(max-width:760px) { .page { display: flex; flex-direction: column; } .formArea { order: -1; padding: 28px 18px; } .visual { border-right: 0; border-top: 1px solid #ffffff18; padding: 28px 18px; } .intro h2 { font-size: 32px; } .intro p { font-size: 15px; } .formCard { max-width: 540px; } }
+@media(prefers-reduced-motion:reduce) { .page * { animation: none!important; transition: none!important; } }

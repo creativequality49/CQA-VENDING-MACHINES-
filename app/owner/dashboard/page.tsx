@@ -1,5 +1,8 @@
 "use client";
 
+import dashboardStyles from "./dashboard.module.css";
+import { WorkspaceConstellation } from "@/components/WorkspaceConstellation";
+
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { hasIncludedCqaWorker } from "@/lib/cqa-worker-access";
 import Link from "next/link";
@@ -197,12 +200,23 @@ export default function OwnerDashboardPage() {
   const workerBillingById = new Map(workerSubscriptions.map((item) => [item.worker_id, item]));
   const planDefinition = CQA_PLANS.find((item) => item.key === business.plan);
   return (
-    <main className="container owner-dashboard" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
+    <main className={`${dashboardStyles.page} container owner-dashboard`} style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
       <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}><div><span className="eyebrow">CQA OWNER WORKSPACE</span><h1 style={{ marginBottom: ".4rem" }}>{business.name}</h1><p className="small">{business.category} · {business.plan.toUpperCase()} · Machine status: <strong>{machine?.status || business.status}</strong></p></div><div style={{ display: "flex", gap: ".6rem", flexWrap: "wrap" }}><Link className="button primary" href="/owner/setup">Build / Edit Machine</Link><Link className="button ghost" href="/owner/orders">Order fulfilment</Link><Link className="button ghost" href="/owner/marketplace-upload">Private product files</Link><Link className="button ghost" href="/owner/integrations">Connections</Link><button className="button ghost" type="button" onClick={logout}>Log out</button></div></div>
         {message ? <div role="status" style={{ marginTop: "1rem", padding: ".75rem", border: "1px solid rgba(80,255,180,.35)", borderRadius: 10 }}>{message}</div> : null}
         {error ? <div role="alert" style={{ marginTop: "1rem", padding: ".75rem", border: "1px solid rgba(255,70,100,.4)", borderRadius: 10 }}>{error}</div> : null}
       </section>
+
+      <div style={{ marginBottom: "1rem" }}>
+      <WorkspaceConstellation nodes={[
+        { id: "store", label: "Storefront", href: machine ? `/machine/${machine.slug}` : "/owner/setup", description: "Open your business storefront" },
+        { id: "orders", label: "Orders", href: "/owner/orders", description: "Customer briefs and fulfilment" },
+        { id: "files", label: "Private files", href: "/owner/marketplace-upload", description: "Manage protected product files" },
+        { id: "connections", label: "Connections", href: "/owner/integrations", description: "Manage your service integrations" },
+        { id: "workers", label: "AI workers", href: "/workers", description: "Explore available AI workers" },
+        { id: "settings", label: "Machine setup", href: "/owner/setup", description: "Edit your business machine" },
+      ]} />
+      </div>
 
       <section className="grid grid-3" style={{ marginBottom: "1rem" }}>
         <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">OFFERS</span><h2>{offers.length}</h2><p className="small">Products, services and bookings configured.</p></article>
