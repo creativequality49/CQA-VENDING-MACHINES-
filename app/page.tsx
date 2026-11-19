@@ -20,14 +20,14 @@ export default function HomePage() {
         <span className={styles.category}><i aria-hidden="true" /> Creative Quality Australia</span>
         <h1>Your ideas.<br />A storefront<br />of their own.</h1>
         <p className={styles.lead}>Bring your products, services and memberships together in a digital vending machine built around your brand.</p>
-        <div className={styles.actions}><Link href="/onboarding?plan=pro" className={styles.primary}>Design my machine <span aria-hidden="true">→</span></Link><Link href="/machines" className={styles.textLink}>Explore the collection <span aria-hidden="true">→</span></Link></div>
+        <div className={styles.actions}><Link href="/onboarding?plan=pro" className={styles.primary}>Design my machine <span aria-hidden="true">→</span></Link><Link href="/digital-vending-machine" className={styles.textLink}>Explore the interactive machine <span aria-hidden="true">→</span></Link></div>
         <p className={styles.micro}>Free design preview. No payment to explore.</p>
         <Link href="#machine-build-demo" className={styles.textLink}>Watch the example build <span aria-hidden="true">→</span></Link>
       </div>
       <figure className={styles.heroVisual}>
-        <div className={styles.heroImage}><Image src="/images/activewear-vending-hero.png" alt="Illustrative CQA activewear storefront: an illuminated digital vending machine beside a model in black activewear" width={941} height={1672} sizes="(max-width: 760px) calc(100vw - 40px), 46vw" priority /></div>
-        <span className={styles.imageLabel}>A CQA storefront concept</span>
-        <figcaption><span>Your brand.<br /><strong>Made visible.</strong></span><Link href="/onboarding?plan=pro" aria-label="Create your own storefront preview">→</Link></figcaption>
+        <div className={styles.heroImage}><Image src="/images/cqa-digital-vending-machine.png" alt="CQA Digital Vending Machine concept with a robotic arm behind glass, digital product tiles and an illuminated ENTER control" width={1086} height={1448} sizes="(max-width: 760px) calc(100vw - 40px), 46vw" priority /></div>
+        <span className={styles.imageLabel}>CQA Digital Vending Machine</span>
+        <figcaption><span>Your digital world.<br /><strong>Step inside.</strong></span><Link href="/digital-vending-machine" aria-label="Explore the interactive CQA Digital Vending Machine">→</Link></figcaption>
       </figure>
     </section>
     <section className={`${styles.wrap} ${styles.introStrip}`} aria-label="What your workspace brings together"><p>One place.<br /><strong>Your kind of business.</strong></p><ul><li>Branded storefronts</li><li>A connected owner workspace</li><li>AI draft workers</li><li>Guided setup</li></ul></section>

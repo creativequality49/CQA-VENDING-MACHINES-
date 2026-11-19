@@ -28,7 +28,7 @@
 .micro { color: #65718a; font-size: 14px; line-height: 1.65; margin: 19px 0 0; }
 .heroVisual { position: relative; min-width: 0; margin: 0; border-radius: 26px; overflow: hidden; background: #19191d; }
 .heroImage { height: clamp(470px, 44vw, 610px); }
-.heroImage img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 34%; }
+.heroImage img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .imageLabel { position: absolute; top: 22px; left: 22px; padding: 8px 14px; border: 1px solid #ffffff52; border-radius: 100px; background: #fff; color: #3e4b63; font-size: 14px; }
 .heroVisual figcaption { position: absolute; inset: auto 0 0; display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 60px 28px 28px; background: linear-gradient(transparent, #080c18d9); color: #fff; font-size: 23px; line-height: 1.4; }
 .heroVisual figcaption strong { font-weight: 500; }
