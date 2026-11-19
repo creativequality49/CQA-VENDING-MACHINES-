@@ -1,0 +1,12 @@
+@font-face { font-family: 'CQA Syne'; font-style: normal; font-weight: 400 800; font-display: swap; src: url('/fonts/syne-variable.ttf') format('truetype'); }
+.studio-footer.studio-footer { background: #f4f6fa; color: #24314b; border-top: 1px solid #dde3ed; padding-bottom: 52px; }
+.studio-footer.studio-footer p { color: #667187; font-size:14px; }
+.studio-footer.studio-footer strong { color: #162441; font-size:12px; }
+.studio-footer.studio-footer a { color: #334765; font-size:14px; min-height:36px; }
+.studio-footer.studio-footer .studio-footer-brand { font-family:'CQA Syne',system-ui,sans-serif; font-size:28px; color:#182c50; }
+.studio-footer.studio-footer .studio-footer-brand span { color:#315da2!important; }
+.studio-footer a:focus-visible { outline-color:#315da2; }
+@media(max-width:760px) { body { padding-bottom:0; } }
+
+body:has(.studio-page),body:has(.studio-pricing) { background:#fff; }
+body:has(.studio-page),body:has(.studio-pricing) { background:#fff!important; }

@@ -7,6 +7,8 @@ import "./cqa-reference.css";
 import "./inner-pages-premium.css";
 import "./vending-reference.css";
 import "./studio.css";
+import "./creative-theme.css";
+import "./public-catalog-theme.css";
 import { NavBar } from "@/components/NavBar";
 
 // Keep the public fallback aligned with the domain attached to the production
