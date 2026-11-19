@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import VendingConsole from "@/components/VendingConsole";
 import StorefrontExample from "@/components/StorefrontExample";
 import WorkerShowcase from "@/components/WorkerShowcase";
 import MachineBuildDemo from "@/components/MachineBuildDemo";
@@ -14,9 +14,23 @@ const steps = [
 
 export default function HomePage() {
   return <main className="studio-page">
-    <section className="studio-hero studio-wrap studio-activewear-hero">
-      <div className="studio-hero-copy"><span className="studio-kicker">CREATIVE QUALITY AUSTRALIA</span><h1 style={{ color: "#FF2D8D" }}>CQ Australia<br/> Vending machine<br/> Automation</h1><p className="studio-lead">Your own digital vending machine. A branded place for your products, services and memberships—with AI draft workers to help behind the scenes.</p><div className="studio-actions"><Link href="/onboarding?plan=pro" className="studio-button">Design my machine <span aria-hidden="true">→</span></Link><Link href="/machines" className="studio-button-secondary">Explore the collection</Link></div><p className="studio-micro">Free design preview · No payment to explore</p><Link href="#machine-build-demo" className="studio-text-link">Watch the example build →</Link></div>
-      <div className="studio-hero-visual studio-activewear-visual"><div className="studio-visual-top"><span>CQA / DIGITAL VENDING OS</span><span>ACTIVEWEAR CONCEPT</span></div><div className="studio-activewear-art"><Image src="/images/activewear-vending-hero.png" alt="CQA activewear vending machine with pink illuminated product compartments and a model in black activewear" width={941} height={1672} sizes="(max-width: 760px) 100vw, 440px" priority /></div><div className="studio-visual-caption"><span><b>Your brand. Your storefront.</b><small>Black glass. Illuminated offers. Built around your business.</small></span><span aria-hidden="true">→</span></div></div>
+    <section className="studio-hero studio-wrap cqa-machine-hero">
+      <div className="studio-hero-copy">
+        <span className="studio-kicker">CQA / DIGITAL VENDING SYSTEM</span>
+        <h1>Your business.<br/><em>Inside a machine.</em></h1>
+        <p className="studio-lead">Products, services, bookings and memberships. One branded machine for customers to explore, select and connect with your business.</p>
+        <div className="studio-actions"><Link href="/onboarding?plan=pro" className="studio-button">Design my machine <span aria-hidden="true">→</span></Link><Link href="/machines" className="studio-button-secondary">Explore the collection</Link></div>
+        <p className="studio-micro">Free design preview · No payment to explore</p>
+        <Link href="#machine-build-demo" className="studio-text-link">Watch the example build →</Link>
+      </div>
+      <VendingConsole label="CQA BUSINESS MACHINE" items={[
+        { code: "A1", title: "Products", description: "Give every product its own display bay. Build a storefront around your brand.", image: "/images/slots/sneaker.svg", href: "/machines" },
+        { code: "A2", title: "Services", description: "Present your services with a clear next step for enquiries and quotes.", image: "/images/slots/bag.svg", href: "/machines" },
+        { code: "A3", title: "Bookings", description: "Let customers explore appointment and booking offers in one place.", image: "/images/slots/watch.svg", href: "/machines" },
+        { code: "B1", title: "Digital goods", description: "Preview a branded machine for digital products and collections.", image: "/images/slots/tablet.svg", href: "/onboarding?plan=starter" },
+        { code: "B2", title: "Memberships", description: "Design recurring offers and membership experiences for your audience.", image: "/images/slots/headphones.svg", href: "/pricing" },
+        { code: "B3", title: "AI workers", description: "Explore AI draft workers for customer enquiries, sales and marketing.", image: "/images/slots/camera.svg", href: "/workers" }
+      ]}/>
     </section>
     <div className="studio-feature-strip"><div className="studio-wrap"><span>01 <b>Branded storefront</b></span><span>02 <b>Owner workspace</b></span><span>03 <b>AI draft workers</b></span><span>04 <b>Guided setup</b></span></div></div>
 

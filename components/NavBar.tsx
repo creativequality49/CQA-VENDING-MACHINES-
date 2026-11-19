@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NavMenu from "@/components/NavMenu";
 import { isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
 
 export function NavBar() {
@@ -27,7 +28,7 @@ export function NavBar() {
             <Link href="/contact?service=support">Support</Link>
           </nav>
 
-          <details className="cqa-menu">
+          <NavMenu>
             <summary className="cqa-menu-trigger" aria-label="Open navigation menu">
               <span className="cqa-hamburger" aria-hidden="true"><i /><i /><i /></span>
               <b>MENU</b>
@@ -51,7 +52,7 @@ export function NavBar() {
                 <Link href="/onboarding" className="button primary">Launch My Machine</Link>
               </div>
             </nav>
-          </details>
+          </NavMenu>
         </div>
       </header>
 
