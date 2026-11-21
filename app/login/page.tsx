@@ -1,5 +1,8 @@
 "use client";
 
+import { WorkspaceConstellation } from "@/components/WorkspaceConstellation";
+import styles from "./login.module.css";
+
 import { getCqaAuthOrigin } from "@/lib/cqa-auth-origin";
 
 import { FormEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -36,6 +39,7 @@ function LoginForm() {
 
   const requestedNext = searchParams.get("next") || "/owner/dashboard";
   const next = requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !/[\\\u0000-\u0020]/.test(requestedNext) ? requestedNext : "/owner/dashboard";
+  const customerAccess = next.startsWith("/account") || next.startsWith("/marketplace/library") || next.startsWith("/machine/");
   const confirmationUrl = () => `${getCqaAuthOrigin()}/auth/confirm?next=${encodeURIComponent(next)}`;
 
   function switchMode(value: "login" | "signup") {
@@ -105,11 +109,11 @@ function LoginForm() {
   }
 
   return (
-    <section className="glass-card" style={{ width: "100%", maxWidth: 540, padding: "1.5rem" }}>
+    <section className={styles.formCard}>
       <div style={{ marginBottom: "1.25rem" }}>
-        <span className="eyebrow">CQA BUSINESS OWNER ACCESS</span>
-        <h1 style={{ marginBottom: ".55rem" }}>{mode === "login" ? "Log in to your machine" : "Create your owner account"}</h1>
-        <p className="small" style={{ margin: 0 }}>Manage your CQA business machine, offers, bookings, AI workers and launch status.</p>
+        <span className="eyebrow">{customerAccess ? "CQA CUSTOMER ACCESS" : "CQA BUSINESS OWNER ACCESS"}</span>
+        <h1 className={styles.title}>{customerAccess ? mode === "login" ? "Welcome back" : "Create your customer account" : mode === "login" ? "Enter your workspace" : "Create your owner account"}</h1>
+        <p className="small" style={{ margin: 0 }}>{customerAccess ? "Your purchases, project briefs and private deliveries, together in one secure workspace." : "Manage your CQA business machine, offers, bookings, AI workers and launch status."}</p>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".5rem", marginBottom: "1rem" }}>
@@ -130,7 +134,7 @@ function LoginForm() {
         {message ? <div role="status" style={{ display: "grid", gap: ".75rem", padding: ".8rem 1rem", borderRadius: 10, border: "1px solid rgba(80,255,180,.35)", background: "rgba(80,255,180,.07)" }}><span className="small">{message}</span><button className="button ghost" type="button" disabled={loading || !email || emailWait > 0} onClick={messageAction === "signin" ? sendSignInLink : resendConfirmation}>{emailWait > 0 ? `Request another email in ${emailWait}s` : messageAction === "signin" ? "Send a fresh sign-in link" : "Resend confirmation email"}</button></div> : null}
         {emailWait > 0 ? <p className="small" role="status">Email requests are paused for {emailWait}s. Check your inbox and spam folder for the latest link. You can still log in with your password.</p> : null}
         {mode === "login" ? <button className="button ghost" type="button" disabled={loading || !email.trim() || emailWait > 0} onClick={sendSignInLink}>Email me a sign-in link</button> : null}
-        <button className="button primary" type="submit" disabled={loading || (mode === "signup" && emailWait > 0)} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Working…" : mode === "login" ? "Log in" : "Create owner account"}</button>
+        <button className="button primary" type="submit" disabled={loading || (mode === "signup" && emailWait > 0)} style={{ width: "100%", justifyContent: "center" }}>{loading ? "Working…" : mode === "login" ? "Log in" : customerAccess ? "Create customer account" : "Create owner account"}</button>
       </form>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", marginTop: "1.2rem" }}>
@@ -143,5 +147,12 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
-  return <main className="container" style={{ minHeight: "82vh", display: "grid", placeItems: "center", paddingTop: "3rem", paddingBottom: "3rem" }}><Suspense fallback={<p>Loading secure owner access…</p>}><LoginForm /></Suspense></main>;
+  return <main className={styles.page}>
+    <section className={styles.visual} aria-label="CQA workspace introduction">
+      <div className={styles.intro}><span className={styles.kicker}>CQA / CONNECTED WORKSPACE</span><h2>Your business.<br />One connected world.</h2><p>Bring your storefront, customer orders and delivery workflow into focus.</p></div>
+      <WorkspaceConstellation variant="ambient" />
+      <div className={styles.visualFoot}><span>STOREFRONT</span><i aria-hidden="true" /><span>ORDERS</span><i aria-hidden="true" /><span>DELIVERY</span></div>
+    </section>
+    <div className={styles.formArea}><Suspense fallback={<p role="status">Loading secure access…</p>}><LoginForm /></Suspense></div>
+  </main>;
 }

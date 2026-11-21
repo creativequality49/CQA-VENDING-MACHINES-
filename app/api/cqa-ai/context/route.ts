@@ -11,7 +11,7 @@ const schema = z.object({
   kind: z.enum(["note", "faq", "policy", "url", "file", "instruction"]).default("note"),
   title: z.string().min(2).max(200),
   content: z.string().min(2).max(30000),
-  metadata: z.record(z.unknown()).optional()
+  metadata: z.record(z.string(), z.unknown()).optional()
 });
 
 export async function POST(req: Request) {

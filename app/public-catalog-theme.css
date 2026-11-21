@@ -1,0 +1,52 @@
+/* Public collection and pricing only. Embedded storefront/draft previews retain their dark canvas. */
+.studio-page,.studio-pricing{--studio-aqua:#2855e8;--studio-pink:#2855e8;--studio-muted:#586477;color:#14213b;background:#fff}
+.studio-page :is(h1,h2,h3),.studio-pricing :is(h1,h2,h3){font-family:'CQA Syne',Arial,sans-serif;color:#14213b;letter-spacing:-.045em;text-shadow:none}
+.studio-page :is(.studio-lead,.studio-hero-pre),.studio-pricing p{color:#586477}
+.studio-page :is(.studio-kicker,.studio-text-link),.studio-pricing .eyebrow{color:#2855e8}
+.studio-page :is(.studio-collection-hero,.studio-worker-hero){padding-block:96px 64px;gap:64px}
+.studio-page .studio-section{padding-block:88px}
+.studio-page :is(.studio-collection-card,.studio-collection-card:nth-child(2),.studio-worker,.studio-worker:nth-child(2),.studio-audience,.studio-plan,.studio-plan-featured,.studio-final){background:#f7f8fb;border:1px solid #e0e5ed;border-radius:24px;box-shadow:none}
+.studio-page .studio-collection-card{padding:40px;gap:56px}
+.studio-page .studio-final{padding:56px}
+.studio-page :is(.studio-worker-title,.studio-collection-cost b,.studio-price){color:#14213b}
+.studio-page :is(.studio-worker li,.studio-plan li,.studio-collection-copy li,.studio-collection-cost small,.studio-collection-cost>span,.studio-meta,.studio-meta strong,.studio-price small,.studio-plan .studio-plan-fee){color:#586477}
+.studio-page :is(.studio-collection-cost,.studio-meta,.studio-plan .studio-plan-fee,.studio-steps>article,.studio-faq details){border-color:#dce2eb}
+.studio-page .studio-dark-band{background:#f5f7fb;border-color:#e0e5ed}
+.studio-page .studio-steps>article>span{color:#2855e8}
+.studio-page :is(.studio-button,.studio-button-secondary){border-radius:999px;padding:15px 25px;min-height:50px;box-shadow:none}
+.studio-page .studio-button{color:#fff;background:#2855e8;border-color:#2855e8}
+.studio-page .studio-button:hover{background:#1c41bd;border-color:#1c41bd}
+.studio-page .studio-button-secondary{color:#14213b;background:#fff;border-color:#ccd5e3}
+.studio-page .studio-button-secondary:hover{background:#edf2ff;border-color:#2855e8}
+.studio-page .studio-notice{background:#f4f6fc;border-color:#d6deef;border-radius:18px}
+.studio-page .studio-notice>strong{color:#14213b}
+.studio-page .studio-worker-icon,.studio-page .studio-worker:nth-child(2) .studio-worker-icon{color:#2855e8;background:#edf2ff;border-color:#d5dff7;box-shadow:none}
+/* Dark demo islands: explicit foregrounds prevent inherited navy-on-dark text. */
+.studio-page .studio-example{color:#eef3f7;--studio-aqua:#83eeed;--studio-pink:#ff78b4;--studio-muted:#b5c5d2;box-shadow:0 18px 42px #15213b12}
+.studio-page .studio-example :is(h1,h2,h3){color:#f5f7fa}
+.studio-page .studio-example p{color:#b5c5d2}
+.studio-page .studio-example .studio-kicker{color:var(--example-accent)}
+.studio-page .studio-workflow{color:#eef3f7;--studio-aqua:#83eeed;--studio-muted:#b5c5d2;box-shadow:0 20px 50px #15213b15;border-radius:24px}
+.studio-page .studio-workflow .studio-kicker{color:#83eeed}
+.studio-page .studio-workflow p{color:#b5c5d2}
+.studio-page .studio-worker-sample{--studio-aqua:#83eeed;background:#0c1724;border-color:#293d54;border-left-color:#83eeed;border-radius:12px}
+.studio-page .studio-worker-sample .studio-kicker{color:#83eeed}
+.studio-page .studio-worker-sample p{color:#c5d2dc}
+/* Pricing has legacy !important declarations; override them locally, never globally. */
+.studio-pricing .pricing-neon-hero{background:#f6f8fc!important;border-color:#e0e5ed!important;border-radius:24px!important;padding:48px!important;gap:48px!important}
+.studio-pricing :is(.neon-plan,.glass-card,.faq-grid article){background:#fff!important;border-color:#dce2eb!important;border-radius:22px!important;box-shadow:none!important;color:#14213b}
+.studio-pricing .neon-plan-featured{background:#f3f6ff!important;border-color:#2855e8!important}
+.studio-pricing :is(.plan-display>span,.plan-display strong){color:#14213b!important;font-family:'CQA Syne',Arial,sans-serif}
+.studio-pricing :is(.plan-display small,.plan-intro,.plan-features>span,.studio-plan-cost-note,.pricing-reassurance,.small){color:#586477}
+.studio-pricing .studio-plan-cost-note{border-color:#dce2eb}
+.studio-pricing .plan-popular-badge{color:#2855e8!important}
+.studio-pricing :is(.neon-enter-button,.button.primary){background:#2855e8!important;color:#fff!important;border:1px solid #2855e8!important;border-radius:999px!important;box-shadow:none!important;min-height:48px}
+.studio-pricing :is(.neon-enter-button,.button.primary):hover{background:#1c41bd!important}
+.studio-pricing .button.ghost{color:#14213b;background:#fff;border:1px solid #ccd5e3;border-radius:999px}
+.studio-pricing .cqa-package-price,.studio-pricing .cqa-package-price strong{color:#14213b}
+.studio-pricing .cqa-package-price span{color:#586477}
+.studio-page :is(a,button,summary):focus-visible,.studio-pricing :is(a,button,summary):focus-visible{outline:3px solid #2855e8;outline-offset:5px}
+@media(max-width:760px){.studio-page :is(.studio-collection-hero,.studio-worker-hero){padding-block:48px 32px;gap:32px}.studio-page .studio-section{padding-block:56px}.studio-page .studio-collection-card{padding:22px;gap:28px}.studio-page .studio-final{padding:32px 24px}.studio-pricing .pricing-neon-hero{padding:24px!important;gap:28px!important}}
+/* Legacy neon rules use !important; keep their overrides within pricing. */
+.studio-pricing p,.studio-pricing .small { color:#586477!important; }
+.studio-pricing .eyebrow { color:#2855b8!important; }

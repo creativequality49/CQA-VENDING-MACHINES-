@@ -10,6 +10,13 @@ function harness(failOnce=false){
  return {notify,sent};
 }
 {
+ const h=harness();await h.notify({...base,buyerEmail:'verified-buyer@example.test'});
+ assert.deepEqual(h.sent[0].body.to,['verified-buyer@example.test']);
+ assert.match(h.sent[0].body.text,/\/account/);assert.match(h.sent[0].body.text,/submit your brief/);
+ assert.doesNotMatch(h.sent[0].body.text,/marketplace\/library/);
+ console.log('PASS service receipt uses durable buyer address and customer fulfilment workspace');
+}
+{
  const h=harness();await h.notify({...base,digital:true,buyerEmail:'verified-buyer@example.test'});
  assert.deepEqual(h.sent[0].body.to,['verified-buyer@example.test']);
  assert.equal(h.sent.some(email=>email.body.to.includes(base.customerEmail)),false);

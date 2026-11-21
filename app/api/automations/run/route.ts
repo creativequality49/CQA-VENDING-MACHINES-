@@ -4,7 +4,7 @@ import { getPublicSupabaseClient } from "@/lib/cqa-marketplace";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { startAutomationRun } from "@/lib/cqa-automation-engine";
 
-const schema = z.object({ automationId: z.string().uuid(), contactId: z.string().uuid().nullable().optional(), payload: z.record(z.unknown()).optional() });
+const schema = z.object({ automationId: z.string().uuid(), contactId: z.string().uuid().nullable().optional(), payload: z.record(z.string(), z.unknown()).optional() });
 
 export async function POST(req: Request) {
   try {

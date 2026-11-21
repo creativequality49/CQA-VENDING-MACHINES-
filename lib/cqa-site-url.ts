@@ -12,5 +12,12 @@ export function getCqaSiteUrl(request?: Request): string {
   if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) {
     throw new Error("Invalid site URL configuration.");
   }
+  const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+  const requestUrl = request ? new URL(request.url) : undefined;
+  const localRequest = requestUrl && ["localhost", "127.0.0.1", "[::1]"].includes(requestUrl.hostname);
+  // A hosted callback/receipt must never send customers to their own device.
+  if (local && ((requestUrl && !localRequest) || ["preview", "production"].includes(process.env.VERCEL_ENV || "")))
+    throw new Error("Hosted site URL cannot use localhost.");
+  if (!local && url.protocol !== "https:") throw new Error("Hosted site URL must use HTTPS.");
   return url.origin;
 }

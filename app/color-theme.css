@@ -1,0 +1,35 @@
+/* One persistent site theme. Artwork stays artwork; application surfaces share tokens. */
+:root,html[data-theme="light"]{color-scheme:light;--theme-page:#fff;--theme-surface:#fff;--theme-soft:#f4f6fa;--theme-text:#152440;--theme-muted:#53637c;--theme-border:#d8dfeb;--theme-accent:#2456dc;--theme-accent-soft:#edf2ff;--theme-positive:#286747;--bg:var(--theme-page);--panel:var(--theme-surface);--panel-2:var(--theme-soft);--text:var(--theme-text);--muted:var(--theme-muted);--border:var(--theme-border)}
+html[data-theme="dark"]{color-scheme:dark;--theme-page:#0c0e12;--theme-surface:#151922;--theme-soft:#1b2230;--theme-text:#eef2f9;--theme-muted:#b3c0d4;--theme-border:#354156;--theme-accent:#91b6ff;--theme-accent-soft:#233653;--theme-positive:#9ce1b8;--bg:var(--theme-page);--panel:var(--theme-surface);--panel-2:var(--theme-soft);--text:var(--theme-text);--muted:var(--theme-muted);--border:var(--theme-border)}
+html[data-theme] body,html[data-theme] main{background:var(--theme-page)!important;color:var(--theme-text)!important}
+html[data-theme] main :is(section,article,aside,form,fieldset,[role="dialog"],[class*="_page"],[class*="_panel"],[class*="_card"],[class*="_Card"],[class*="_editor"],[class*="_readiness"],[class*="_empty"],[class*="_group"],[class*="_formArea"],[class*="_visual"],[class*="_selection"],.glass-card,.studio-dark-band,.studio-final,.studio-plan,.studio-worker,.studio-collection-card,.neon-plan,.machine-detail-main,.machine-offer-slot,.machine-detail-screen,.machine-demo-banner,.owner-workspace-nav):not([data-theme-art],[data-theme-art] *){background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;box-shadow:none!important}
+html[data-theme] :is(.owner-workspace-shell,.owner-workspace-nav){background:var(--theme-page)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+html[data-theme] main :is(h1,h2,h3,h4,h5,h6,legend,dt,dd,th,td,label):not([data-theme-art] *){color:var(--theme-text)!important}
+html[data-theme] main :is(h1,h2,h3) :is(span,em,strong):not([data-theme-art] *){color:inherit!important;-webkit-text-fill-color:currentColor!important;background:none!important}
+html[data-theme] main :is(p,small,.small,[class*="_help"],[class*="_meta"],[class*="_lead"],[class*="_micro"]):not([data-theme-art] *){color:var(--theme-muted)!important}
+html[data-theme] main :is(p,small,label,li,dt,dd) :is(span,strong,b):not([data-theme-art] *){color:inherit!important}
+html[data-theme] main :is(.eyebrow,.studio-kicker,[class*="_kicker"],[class*="_eyebrow"],[class*="_category"],[class*="_sectionLabel"]):not([data-theme-art] *){color:var(--theme-positive)!important}
+html[data-theme] main :is(input:not([type="checkbox"]):not([type="radio"]),textarea,select):not([data-theme-art] *){background:var(--theme-surface)!important;color:var(--theme-text)!important;border:1px solid var(--theme-border)!important;color-scheme:inherit}
+html[data-theme] main :is(input,textarea)::placeholder{color:var(--theme-muted)!important;opacity:1}
+html[data-theme] main :is(button,.button,[class*="_secondary"],[class*="_outline"]):not([data-theme-art] *){background:var(--theme-soft)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important;box-shadow:none!important}
+html[data-theme] main :is(.button.primary,.studio-button,.neon-enter-button,[class*="_primary"],[class*="_action__"]):not([data-theme-art] *){background:#2456dc!important;color:#fff!important;border-color:#2456dc!important}
+html[data-theme] main :is([class*="_textLink"],[class*="_back"],.text-link,.studio-button-secondary):not([data-theme-art] *){color:var(--theme-accent)!important}
+html[data-theme] main button[aria-pressed="true"]:not([data-theme-art] *){background:var(--theme-accent-soft)!important;border-color:var(--theme-accent)!important;color:var(--theme-text)!important}
+html[data-theme] :is(button,a,input,select,textarea,summary):focus-visible{outline:3px solid var(--theme-accent)!important;outline-offset:3px}
+html[data-theme] .studio-footer.studio-footer{background:var(--theme-page)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+html[data-theme] .studio-footer.studio-footer :is(a,strong){color:var(--theme-text)!important}
+html[data-theme] .studio-footer.studio-footer p{color:var(--theme-muted)!important}
+html[data-theme] main :is([role="alert"],[class*="_error"]):not([data-theme-art] *){color:var(--theme-text)!important;background:var(--theme-soft)!important;border-color:#ba5670!important}
+html[data-theme] main :is(.machine-offer-slot .slot-price,.machine-detail-header h1,.machine-detail-screen strong,.studio-price,.studio-price small,.studio-collection-cost b,.studio-worker-title,.cqa-package-price,.cqa-package-price strong,.plan-display strong,.plan-display>span):not([data-theme-art] *){color:var(--theme-text)!important}
+html[data-theme] main :is(.studio-plan li,.studio-worker li,.studio-collection-copy li,.plan-features>span,.studio-plan-cost-note,.pricing-reassurance):not([data-theme-art] *){color:var(--theme-muted)!important}
+@media(prefers-reduced-motion:reduce){html[data-theme]{scroll-behavior:auto}}
+
+html[data-theme] .owner-workspace-nav :is(a,strong,small,span){color:var(--theme-text)!important}
+html[data-theme] .owner-workspace-brand>span{background:var(--theme-accent-soft)!important;border-color:var(--theme-border)!important}
+html[data-theme] main :is(.revenue-stack>div,.metric-grid>div,.machine-card,.stat-card,.form-panel,.detail-panel):not([data-theme-art],[data-theme-art] *){background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+html[data-theme] main :is(.revenue-stack strong,.revenue-stack small,.slot-price,.slot-type,.slot-number,[class*="_price"]):not([data-theme-art] *){color:var(--theme-text)!important}
+html[data-theme] :is([class*="_shell"],.fanx-shell):not([data-theme-art],[data-theme-art] *){background-color:var(--theme-page)!important;color:var(--theme-text)!important}
+html[data-theme] [class*="_shell"]>:is(header,aside,nav):not([data-theme-art],[data-theme-art] *){background-color:var(--theme-page)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+html[data-theme] main :is(.card,.panel,div[style*="background:"]):not([data-theme-art],[data-theme-art] *){background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+html[data-theme] :is([class*="_topbar"],[class*="_sidebar"]):not([data-theme-art],[data-theme-art] *){background:var(--theme-surface)!important;color:var(--theme-text)!important;border-color:var(--theme-border)!important}
+html[data-theme] :is([class*="_topbar"],[class*="_sidebar"]) :is(a,strong,span):not([data-theme-art] *){color:var(--theme-text)!important}

@@ -1,5 +1,8 @@
+import type Stripe from "stripe";
+import { reserveProductInventory, bindProductInventory, releaseUnboundProductInventory } from "@/lib/cqa-product-fulfillment";
+import { getCqaOfferCheckoutHold, physicalShippingConfig } from "@/lib/cqa-offer-readiness";
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
-import { isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
+import { isCqaPhysicalCheckoutAllowed, isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { verifyPrivateMarketplaceAsset } from "@/lib/storage";
 import { MAX_MARKETPLACE_ASSET_BYTES, MARKETPLACE_ASSET_EXTENSIONS } from "@/lib/cqa-marketplace-assets";
 import { NextResponse } from "next/server";
@@ -24,6 +27,9 @@ function getSiteUrl(req: Request) {
 }
 
 export async function POST(req: Request) {
+  let reservationId: string | null = null;
+  let stripeCreateAttempted = false;
+  let createdCheckout: { id: string; account: string } | null = null;
   try {
     const payload = schema.parse(await req.json());
     const publicClient = getPublicSupabaseClient();
@@ -42,10 +48,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "This offer is not available for checkout." }, { status: 404 });
     }
     const { data: offer, error: offerError } = await getCqaSupabaseAdmin().from("cqa_offers")
-      .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config")
+      .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config,shipping_required,inventory_tracking,inventory_quantity")
       .eq("id", context.offer_id).eq("business_id", context.business_id).eq("machine_id", context.machine_id).maybeSingle();
     if (offerError) throw offerError;
-    if (!offer) return NextResponse.json({ error: "This offer is no longer available." }, { status: 404 });
+    if (!offer || context.offer_id !== payload.offerId || context.machine_slug !== payload.machineSlug || offer.offer_type !== context.offer_type) return NextResponse.json({ error: "This offer is no longer available." }, { status: 404 });
+    const readinessHold = getCqaOfferCheckoutHold(offer) || getCqaOfferCheckoutHold({ ...offer, offer_type: context.offer_type });
+    if (readinessHold) return NextResponse.json({ error: readinessHold.message, code: readinessHold.code }, { status: 409 });
+    const physical = offer.offer_type === "physical_product";
+    const shipping = physical ? physicalShippingConfig(offer.fulfillment_config) : null;
+    if (physical && (!shipping || !isCqaPhysicalCheckoutAllowed()))
+      return NextResponse.json({ error: "Physical delivery is paused until inventory and merchant dispatch are verified.", code: "CQA_PHYSICAL_DELIVERY_PENDING" }, { status: 409 });
     const digital = context.offer_type === "digital_product" || offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
     if (digital && !isCqaDigitalCheckoutAllowed()) {
       return NextResponse.json({ error: "Protected digital delivery is paused while customer launch checks are completed.", code: "CQA_DIGITAL_DELIVERY_PENDING" }, { status: 409 });
@@ -58,7 +70,7 @@ export async function POST(req: Request) {
     const authorization = /^Bearer\s+(\S+)$/i.exec(req.headers.get("authorization") || "");
     let buyerUserId: string | null = null;
     let buyerEmail: string | undefined;
-    if (digital && !authorization) return NextResponse.json({ error: "Sign in to a verified buyer account before purchasing a download.", code: "CQA_BUYER_LOGIN_REQUIRED" }, { status: 401 });
+    if (!authorization) return NextResponse.json({ error: "Sign in to a verified buyer account before purchasing this offer.", code: "CQA_BUYER_LOGIN_REQUIRED" }, { status: 401 });
     if (authorization) {
       const { data: identity, error: identityError } = await publicClient.auth.getUser(authorization[1]);
       const buyer = identity?.user;
@@ -105,7 +117,7 @@ export async function POST(req: Request) {
     }
 
     const priceCents = Number(context.price_cents);
-    if (!Number.isFinite(priceCents) || priceCents <= 0) {
+    if (!Number.isSafeInteger(priceCents) || priceCents <= 0) {
       return NextResponse.json({ error: "This offer requires a quote rather than checkout." }, { status: 409 });
     }
 
@@ -129,12 +141,15 @@ export async function POST(req: Request) {
     const subscription = context.offer_type === "subscription";
     const origin = getSiteUrl(req);
 
+    if (physical || (digital && offer.inventory_tracking === true)) reservationId = await reserveProductInventory(context.offer_id, buyerUserId!, { title: context.offer_name, offerType: context.offer_type, fulfillmentType: offer.fulfillment_type, priceCents, currency: String(context.currency || "aud").toLowerCase(), terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(physical ? { shipping: offer.fulfillment_config.shipping } : {}) });
     const metadata = {
       cqaBusinessId: String(context.business_id),
       cqaMachineId: String(context.machine_id),
       cqaOfferId: String(context.offer_id),
       cqaPlan: plan,
       ...(digital ? { cqaDigitalDelivery: "1" } : {}),
+      ...(physical ? { cqaPhysicalDelivery: "1" } : {}),
+      ...(reservationId ? { cqaInventoryReservationId: reservationId } : {}),
       ...(buyerUserId ? { cqaBuyerUserId: buyerUserId } : {})
     };
 
@@ -153,12 +168,18 @@ export async function POST(req: Request) {
       quantity: 1
     };
 
+    stripeCreateAttempted = true;
     const checkout = await stripe.checkout.sessions.create(
       {
         mode: subscription ? "subscription" : "payment",
         line_items: [lineItem],
+        ...(physical && shipping ? {
+          expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+          shipping_address_collection: { allowed_countries: shipping.shippingCountries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] },
+          shipping_options: [{ shipping_rate_data: { type: "fixed_amount" as const, fixed_amount: { amount: shipping.shippingRateCents, currency: String(context.currency || "aud").toLowerCase() }, display_name: "Merchant delivery" } }]
+        } : {}),
         customer_email: buyerEmail || payload.customerEmail,
-        ...(digital && buyerUserId ? { client_reference_id: buyerUserId } : {}),
+        ...(buyerUserId ? { client_reference_id: buyerUserId } : {}),
         success_url: `${origin}/checkout/success?marketplace=1&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/machine/${context.machine_slug}`,
         metadata,
@@ -166,29 +187,41 @@ export async function POST(req: Request) {
           ? { subscription_data: { application_fee_percent: feePercent, metadata } }
           : { payment_intent_data: { application_fee_amount: feeCents, metadata } })
       },
-      { stripeAccount: context.connected_account_id }
+      { stripeAccount: context.connected_account_id, ...(reservationId ? { idempotencyKey: `cqa-product-${reservationId}`, maxNetworkRetries: 2 } : {}) }
     );
 
-    if (!checkout.url) {
-      return NextResponse.json({ error: "Stripe did not return a secure checkout URL." }, { status: 502 });
-    }
-    if (digital) {
-      const { error: bindingError } = await getCqaSupabaseAdmin().from("cqa_orders").insert({
+    createdCheckout = { id: checkout.id, account: context.connected_account_id };
+    if (!checkout.url) throw Object.assign(new Error("Stripe checkout URL unavailable."), { status: 502 });
+
+    if (digital || buyerUserId) {
+      const { data: pendingOrder, error: bindingError } = await getCqaSupabaseAdmin().from("cqa_orders").insert({
         business_id: context.business_id, machine_id: context.machine_id, offer_id: context.offer_id,
-        buyer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents,
+        buyer_user_id: buyerUserId, customer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents + (shipping?.shippingRateCents || 0),
+        purchase_snapshot: { title: String(context.offer_name).slice(0, 300), offerType: String(context.offer_type), fulfillmentType: String(offer.fulfillment_type || "none"), quantity: 1, unitPriceCents: priceCents, terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(shipping ? { shipping: { provider: "merchant", rateCents: shipping.shippingRateCents, countries: shipping.shippingCountries, dispatchTiming: offer.fulfillment_config.shipping.dispatchTiming, reservationId } } : {}) },
         currency: String(context.currency || "aud").toLowerCase(), stripe_checkout_session_id: checkout.id,
         status: "pending"
-      });
-      if (bindingError) {
-        await stripe.checkout.sessions.expire(checkout.id, {}, { stripeAccount: context.connected_account_id });
-        return NextResponse.json({ error: "Protected purchase could not be prepared. Please try again." }, { status: 503 });
+      }).select("id").single();
+      if (bindingError || !pendingOrder?.id) {
+        throw Object.assign(new Error("Purchase binding failed."), { status: 503 });
       }
+      if (reservationId) await bindProductInventory(reservationId, checkout.id, pendingOrder.id);
     }
 
     // The signed Connect webhook writes the paid order. This keeps anonymous
     // storefront visitors from gaining direct write access to order records.
     return NextResponse.json({ url: checkout.url });
   } catch (error) {
+    // Only release an unbound hold after Stripe confirms the session cannot be paid.
+    // If expiry fails, keep the hold for reconciliation; never oversell silently.
+    let safeToRelease = !createdCheckout && !stripeCreateAttempted;
+    if (createdCheckout) {
+      try { await getStripeClient().checkout.sessions.expire(createdCheckout.id, {}, { stripeAccount: createdCheckout.account }); safeToRelease = true; } catch { /* retain reservation */ }
+    }
+    if (reservationId && safeToRelease) { try { await releaseUnboundProductInventory(reservationId); } catch { /* durable hold needs reconciliation */ } }
+    if (error && typeof error === "object" && "status" in error && error.status === 409)
+      return NextResponse.json({ error: "This product is unavailable or out of stock." }, { status: 409 });
+    if (error && typeof error === "object" && "status" in error && [502, 503].includes(Number(error.status)))
+      return NextResponse.json({ error: "Secure checkout could not be prepared. Please try again." }, { status: Number(error.status) });
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid checkout request." }, { status: 400 });
     }

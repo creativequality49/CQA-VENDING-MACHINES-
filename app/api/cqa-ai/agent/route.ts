@@ -18,7 +18,7 @@ const schema = z.object({
     "builder"
   ]),
   task: z.string().min(2).max(8000),
-  additionalContext: z.record(z.unknown()).optional()
+  additionalContext: z.record(z.string(), z.unknown()).optional()
 });
 
 export async function POST(req: Request) {

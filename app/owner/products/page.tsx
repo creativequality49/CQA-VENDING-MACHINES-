@@ -1,0 +1,101 @@
+"use client";
+
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCustomerSession } from "@/components/customer/useCustomerSession";
+import styles from "./products.module.css";
+
+type Product = {
+  id: string; machine_id: string; name: string; description: string | null; price_cents: number | null; currency: string; offer_type: string; image_url: string | null; active: boolean; inventory_quantity: number; inventory_tracking: boolean; product_revision: number; reserved_quantity?: number; available_quantity?: number; assetReady: boolean;
+  fulfillment_config: { deliveryDescription?: string; deliveryTiming?: string; supportDetails?: string; refundTerms?: string; shipping?: { supportedRegions?: string[]; flatFeeCents?: number; dispatchTiming?: string } };
+};
+type Catalog = { business: { id: string; name: string }; machines: { id: string; name: string }[]; products: Product[]; hasMore?: boolean; page?: number };
+type Readiness = { merchantReady: boolean; checks: { code: string; message: string; offerId?: string; offerName?: string }[]; globalCheckoutHeld: boolean; digitalCheckoutHeld: boolean; physicalCheckoutHeld: boolean };
+type Form = { id: string; machineId: string; name: string; description: string; price: string; kind: "digital" | "physical"; imageUrl: string; active: boolean; stockDelta: string; regions: string; shippingFee: string; dispatchTiming: string; deliveryDescription: string; deliveryTiming: string; supportDetails: string; refundTerms: string; revision?: number };
+const empty: Form = { id: "", machineId: "", name: "", description: "", price: "", kind: "digital", imageUrl: "", active: false, stockDelta: "", regions: "AU", shippingFee: "0.00", dispatchTiming: "", deliveryDescription: "", deliveryTiming: "", supportDetails: "", refundTerms: "" };
+function asCatalog(value: unknown): Catalog {
+  const result = value as Catalog;
+  if (!result?.business?.id || !Array.isArray(result.products) || !Array.isArray(result.machines)) throw new Error("The product catalogue could not be confirmed.");
+  return result;
+}
+function aud(cents: number | null) { return cents === null ? "Price not set" : new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" }).format(cents / 100); }
+function cents(value: string, label: string) { if (!/^\d+(?:\.\d{1,2})?$/.test(value)) throw new Error(`${label} must be a positive AUD amount with at most two decimal places.`); const amount = Math.round(Number(value) * 100); if (!Number.isSafeInteger(amount)) throw new Error(`${label} is too large.`); return amount; }
+function CatalogWorkspace({ request, businessId }: { request: ReturnType<typeof useCustomerSession>["request"]; businessId: string }) {
+  const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [form, setForm] = useState<Form>(empty);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [filter, setFilter] = useState("all");
+  const [page, setPage] = useState(0);
+  const [readiness, setReadiness] = useState<Readiness | null>(null);
+  const [readinessError, setReadinessError] = useState("");
+  const epoch = useRef(0);
+  const saving = useRef(false);
+  const editor = useRef<HTMLHeadingElement>(null);
+  const path = `/api/owner/products?page=${page}${businessId ? `&businessId=${encodeURIComponent(businessId)}` : ""}`;
+  const load = useCallback(async (signal?: AbortSignal) => {
+    const version = ++epoch.current;
+    setLoading(true); setError("");
+    try {
+      const result = asCatalog(await request(path, { signal }));
+      if (version === epoch.current && !signal?.aborted) { setCatalog(result); setForm(current => current.machineId ? current : { ...current, machineId: result.machines[0]?.id || "" }); }
+      try {
+        const ready = await request<Readiness>(`/api/owner/readiness?businessId=${encodeURIComponent(result.business.id)}`, { signal });
+        if (!Array.isArray(ready?.checks) || typeof ready.merchantReady !== "boolean") throw new Error("Launch checks could not be confirmed.");
+        if (version === epoch.current && !signal?.aborted) { setReadiness(ready); setReadinessError(""); }
+      } catch { if (version === epoch.current && !signal?.aborted) { setReadiness(null); setReadinessError("Launch checks are unavailable. Refresh to check again before publishing."); } }
+    } catch (problem) { if (version === epoch.current && !signal?.aborted) setError(problem instanceof Error ? problem.message : "Products are unavailable."); }
+    finally { if (version === epoch.current && !signal?.aborted) setLoading(false); }
+  }, [path, request]);
+  useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => { controller.abort(); }; }, [load]);
+  function edit(product?: Product) {
+    const config = product?.fulfillment_config || {};
+    setError(""); setNotice("");
+    setForm(product ? { id: product.id, machineId: product.machine_id, name: product.name, description: product.description || "", price: product.price_cents === null ? "" : (product.price_cents / 100).toFixed(2), kind: product.offer_type === "physical_product" ? "physical" : "digital", imageUrl: product.image_url || "", active: product.active, stockDelta: "", regions: (config.shipping?.supportedRegions || ["AU"]).join(", "), shippingFee: ((config.shipping?.flatFeeCents || 0) / 100).toFixed(2), dispatchTiming: config.shipping?.dispatchTiming || "", deliveryDescription: config.deliveryDescription || "", deliveryTiming: config.deliveryTiming || "", supportDetails: config.supportDetails || "", refundTerms: config.refundTerms || "", revision: product.product_revision } : { ...empty, machineId: catalog?.machines[0]?.id || "" });
+    editor.current?.focus();
+  }
+  function field<K extends keyof Form>(name: K, value: Form[K]) { setForm(current => ({ ...current, [name]: value })); }
+  async function save(event: FormEvent) {
+    event.preventDefault(); if (!catalog || saving.current) return;
+    const version = epoch.current;
+    saving.current = true; setBusy(true); setError(""); setNotice("");
+    try {
+      const priceCents = cents(form.price, "Price");
+      const stock = form.stockDelta.trim() ? Number(form.stockDelta) : 0;
+      if (!Number.isSafeInteger(stock)) throw new Error("Stock adjustment must be a whole number.");
+      const regions = [...new Set(form.regions.split(",").map(value => value.trim().toUpperCase()).filter(Boolean))];
+      if (form.kind === "physical" && (!regions.length || regions.some(value => !/^[A-Z]{2}$/.test(value)))) throw new Error("Use two-letter shipping country codes, separated by commas.");
+      const saved = await request<{ product: Product }>(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ businessId: catalog.business.id, machineId: form.machineId, ...(form.id ? { id: form.id, expectedRevision: form.revision } : {}), name: form.name.trim(), description: form.description.trim(), priceCents, currency: "aud", kind: form.kind, imageUrl: form.imageUrl.trim() || null, active: form.active, ...(form.kind === "physical" ? { inventoryDelta: stock, shipping: { supportedRegions: regions, flatFeeCents: cents(form.shippingFee, "Shipping fee"), dispatchTiming: form.dispatchTiming.trim() } } : {}), deliveryDescription: form.deliveryDescription.trim(), deliveryTiming: form.deliveryTiming.trim(), supportDetails: form.supportDetails.trim(), refundTerms: form.refundTerms.trim() }) });
+      if (!saved?.product?.id || (form.id && saved.product.id !== form.id) || !Number.isSafeInteger(saved.product.product_revision) || (form.id && saved.product.product_revision !== (form.revision ?? -1) + 1)) throw new Error("The saved product could not be confirmed. Refresh before retrying.");
+      if (version !== epoch.current) return;
+      setForm({ ...empty, machineId: form.machineId });
+      setNotice("Product saved. Refreshing the catalogue to confirm its current stock and delivery settings.");
+      await load();
+    } catch (problem) { if (version === epoch.current) setError(problem instanceof Error ? problem.message : "No save was confirmed. Refresh before retrying."); }
+    finally { saving.current = false; setBusy(false); }
+  }
+  const products = (catalog?.products || []).filter(product => filter === "all" || (filter === "physical" ? product.offer_type === "physical_product" : product.offer_type === "digital_product"));
+  const selected = catalog?.products.find(product => product.id === form.id);
+  return <>
+    <header className={styles.header}><div><span className={styles.eyebrow}>Owner workspace / {catalog?.business.name || "Products"}</span><h1>Your products.<br />Ready for their next step.</h1><p>Manage what you sell, the stock you hold and how your customers receive it.</p></div><div className={styles.actions}><button type="button" className={styles.secondary} disabled={busy || loading} onClick={() => void load()}>Refresh catalogue & checks</button><Link href="/owner/orders" className={styles.secondary}>Orders & dispatch →</Link><Link href="/owner/setup" className={styles.secondary}>Upload product images ↗</Link></div></header>
+    {error && <div className={styles.error} role="alert">{error}<button type="button" disabled={busy} onClick={() => void load()}>Refresh catalogue</button></div>}
+    {notice && <p className={styles.notice} role="status">{notice}</p>}
+    {catalog && <section id="launch-checklist" className={styles.readiness} aria-label="Product launch checklist"><div><span className={styles.eyebrow}>Launch checklist</span><h2>{readiness?.merchantReady ? "Merchant configuration checks passed" : "Prepare your customer journey"}</h2><p>These checks inspect configuration and file presence. They do not prove a real payment or fulfilment transaction.</p></div>{readinessError ? <p role="status">{readinessError}</p> : readiness ? <><p className={styles.help}>{readiness.globalCheckoutHeld || readiness.digitalCheckoutHeld || readiness.physicalCheckoutHeld ? "A release hold still applies to one or more checkout paths. Passing merchant checks does not remove platform holds." : "Platform release holds are not reported by this check. Confirm your end-to-end release evidence before accepting customers."}</p>{readiness.checks.length ? <ul>{readiness.checks.map((check, index) => <li key={`${check.code}:${check.offerId || index}`}><strong>{check.offerName || "Your business"}</strong><span>{check.message}</span></li>)}</ul> : <p>No configuration issues were reported.</p>}<div className={styles.actions}><Link href="/owner/setup" className={styles.secondary}>Review machine setup →</Link><Link href="/owner/integrations" className={styles.secondary}>Review payment connection →</Link><Link href="/owner/marketplace-upload" className={styles.secondary}>Review private files →</Link></div></> : <p>Checking launch configuration…</p>}</section>}
+    {loading && !catalog ? <p role="status">Loading your product catalogue…</p> : !catalog ? <p>No catalogue is available. <Link href="/owner/setup">Set up your machine</Link> or refresh to try again.</p> : <div className={styles.layout}>
+      <section className={styles.list} aria-label="Product catalogue"><div className={styles.listHead}><h2>Catalogue</h2><button type="button" className={styles.secondary} disabled={busy} onClick={() => edit()}>+ New product</button></div><label className={styles.filter}>Show<select value={filter} onChange={event => setFilter(event.target.value)}><option value="all">All products</option><option value="digital">Digital products</option><option value="physical">Physical products</option></select></label>{!products.length && <div className={styles.empty}><h3>Make room for your first product.</h3><p>Add a digital download or physical product. Keep it inactive while you prepare its files, photos and delivery terms.</p></div>}{products.map(product => <article key={product.id} className={styles.product}><div className={styles.productTop}><span className={styles.badge}>{product.offer_type === "physical_product" ? "Physical" : "Digital"}</span><span className={styles.availability}>{product.active ? "Active offer" : "Inactive"}</span></div><h3>{product.name}</h3><p>{aud(product.price_cents)}</p>{product.offer_type === "physical_product" ? <dl className={styles.stock}><div><dt>On hand</dt><dd>{product.inventory_quantity ?? 0}</dd></div><div><dt>Reserved</dt><dd>{product.reserved_quantity ?? "—"}</dd></div><div><dt>Available</dt><dd>{product.available_quantity ?? "—"}</dd></div></dl> : <p className={product.assetReady ? styles.ready : styles.warning}>{product.assetReady ? "Private file attached" : "Private file needed before digital checkout"}</p>}<button type="button" className={styles.secondary} disabled={busy} onClick={() => edit(product)}>Edit {product.name}</button></article>)}<div className={styles.pagination}><button type="button" className={styles.secondary} disabled={page === 0 || loading || busy} onClick={() => setPage(value => value - 1)}>Previous page</button><span>Page {page + 1}</span><button type="button" className={styles.secondary} disabled={!catalog.hasMore || loading || busy} onClick={() => setPage(value => value + 1)}>Next page</button></div></section>
+      <section className={styles.editor}><h2 ref={editor} tabIndex={-1}>{form.id ? "Edit product" : "Create a product"}</h2><form onSubmit={save} className={styles.form}><fieldset disabled={busy}><label>Product name<input required maxLength={200} value={form.name} onChange={event => field("name", event.target.value)} /></label><label>Machine<select required disabled={Boolean(form.id)} value={form.machineId} onChange={event => field("machineId", event.target.value)}><option value="">Choose a machine</option>{catalog.machines.map(machine => <option key={machine.id} value={machine.id}>{machine.name || "Your machine"}</option>)}</select></label><div className={styles.two}><label>Product type<select aria-label="Product type" disabled={Boolean(form.id)} value={form.kind} onChange={event => field("kind", event.target.value as Form["kind"])}><option value="digital">Digital download</option><option value="physical">Physical product</option></select></label><label>Price · AUD<input required type="number" min="0.01" step="0.01" value={form.price} onChange={event => field("price", event.target.value)} /></label></div>{form.id && <p className={styles.help}>Product type and machine stay fixed for existing purchases. Create another product for a different type.</p>}<label>Description<textarea rows={3} maxLength={5000} value={form.description} onChange={event => field("description", event.target.value)} /></label><label>Product image URL <span>Optional · Use an image uploaded in Machine Builder</span><input type="url" value={form.imageUrl} onChange={event => field("imageUrl", event.target.value)} placeholder="https://…" maxLength={2000} /></label><Link className={styles.inline} href="/owner/setup">Upload and assign product photos in Machine Builder ↗</Link>
+      {form.kind === "physical" ? <div className={styles.group}><h3>Stock & shipping</h3>{selected && <p>Current on-hand stock: <strong>{selected.inventory_quantity ?? 0}</strong>. Adjustments are added to this total after the server confirms availability.</p>}<label>{form.id ? "Stock adjustment" : "Opening stock"}<input type="number" step="1" min={form.id ? undefined : "0"} value={form.stockDelta} onChange={event => field("stockDelta", event.target.value)} placeholder={form.id ? "e.g. 10 to add, -2 to remove" : "e.g. 25"} /><span>Whole units. Reserved stock cannot be removed. Leave blank to keep stock unchanged.</span></label><label>Countries you ship to<input required value={form.regions} onChange={event => field("regions", event.target.value)} placeholder="AU, NZ" maxLength={500} /><span>Two-letter country codes, separated by commas.</span></label><label>Flat shipping fee · AUD<input required type="number" min="0" step="0.01" value={form.shippingFee} onChange={event => field("shippingFee", event.target.value)} /></label><label>Dispatch timing<input maxLength={500} value={form.dispatchTiming} onChange={event => field("dispatchTiming", event.target.value)} placeholder="e.g. Ships within 2 business days" /></label><p className={styles.help}>You arrange shipping yourself. Saving these settings does not connect a supplier, create labels or book a carrier.</p></div> : <div className={styles.group}><h3>Private digital delivery</h3><p>Attach a private product file using the secure upload screen. Customer downloads remain protected by payment and entitlement checks.</p><Link className={styles.secondary} href="/owner/marketplace-upload">Manage private download files →</Link><p className={styles.help}>Save the product first, then choose it on the upload screen. Return here and refresh the catalogue after uploading before editing or activating it. Do not put paid download links in the description or image field.</p></div>}
+      <div className={styles.group}><h3>Customer delivery information</h3><label>What customers receive<textarea rows={2} maxLength={2000} value={form.deliveryDescription} onChange={event => field("deliveryDescription", event.target.value)} /></label><label>Delivery timing<input maxLength={500} value={form.deliveryTiming} onChange={event => field("deliveryTiming", event.target.value)} /></label><label>Support instructions<textarea rows={2} maxLength={1000} value={form.supportDetails} onChange={event => field("supportDetails", event.target.value)} /></label><label>Refund / cancellation terms<textarea rows={3} maxLength={2000} value={form.refundTerms} onChange={event => field("refundTerms", event.target.value)} /></label></div><label className={styles.check}><input type="checkbox" checked={form.active} onChange={event => field("active", event.target.checked)} /><span>Make this offer active. Checkout still requires all launch, payment and delivery checks to pass.</span></label><div className={styles.actions}><button type="submit" className={styles.primary}>{busy ? "Saving product…" : form.id ? "Save changes" : "Create product"}</button>{form.id && <button type="button" className={styles.secondary} onClick={() => edit()}>Cancel editing</button>}</div></fieldset></form></section>
+    </div>}
+  </>;
+}
+export default function OwnerProductsPage() {
+  const search = useSearchParams();
+  const businessId = search.get("businessId") || "";
+  const next = `/owner/products${businessId ? `?businessId=${encodeURIComponent(businessId)}` : ""}`;
+  const { request, ...identity } = useCustomerSession(next);
+  return <main className={styles.page}>{identity.status === "ready" ? <CatalogWorkspace key={identity.key + businessId} request={request} businessId={businessId} /> : <section className={styles.header}><div><h1>Your product workspace.</h1><p role={identity.error ? "alert" : "status"}>{identity.error || "Checking your owner account…"}</p><Link href={`/login?next=${encodeURIComponent(next)}`}>Sign in to your owner account →</Link></div></section>}</main>;
+}

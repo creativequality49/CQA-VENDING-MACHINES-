@@ -23,14 +23,14 @@ export default function HomePage() {
         <p className="studio-micro">Free design preview · No payment to explore</p>
         <Link href="#machine-build-demo" className="studio-text-link">Watch the example build →</Link>
       </div>
-      <VendingConsole label="CQA BUSINESS MACHINE" items={[
+      <div data-theme-art><VendingConsole label="CQA BUSINESS MACHINE" items={[
         { code: "A1", title: "Products", description: "Give every product its own display bay. Build a storefront around your brand.", image: "/images/slots/sneaker.svg", href: "/machines" },
         { code: "A2", title: "Services", description: "Present your services with a clear next step for enquiries and quotes.", image: "/images/slots/bag.svg", href: "/machines" },
         { code: "A3", title: "Bookings", description: "Let customers explore appointment and booking offers in one place.", image: "/images/slots/watch.svg", href: "/machines" },
         { code: "B1", title: "Digital goods", description: "Preview a branded machine for digital products and collections.", image: "/images/slots/tablet.svg", href: "/onboarding?plan=starter" },
         { code: "B2", title: "Memberships", description: "Design recurring offers and membership experiences for your audience.", image: "/images/slots/headphones.svg", href: "/pricing" },
         { code: "B3", title: "AI workers", description: "Explore AI draft workers for customer enquiries, sales and marketing.", image: "/images/slots/camera.svg", href: "/workers" }
-      ]}/>
+      ]}/></div>
     </section>
     <div className="studio-feature-strip"><div className="studio-wrap"><span>01 <b>Branded storefront</b></span><span>02 <b>Owner workspace</b></span><span>03 <b>AI draft workers</b></span><span>04 <b>Guided setup</b></span></div></div>
 

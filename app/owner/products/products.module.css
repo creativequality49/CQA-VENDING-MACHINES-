@@ -1,0 +1,65 @@
+.page { background: #fff; color: #14213b; padding: 44px max(24px, calc((100vw - 1280px)/2)) 80px; font-family: Inter, system-ui, sans-serif; font-size: 16px; line-height: 1.65; }
+.page h1,.page h2,.page h3 { font-family: 'CQA Syne', Arial, sans-serif; color: #14213b; letter-spacing: -.035em; font-weight: 600; }
+.header { display: flex; justify-content: space-between; gap: 30px; align-items: flex-end; margin-bottom: 40px; }
+.header h1 { font-size: clamp(36px, 4.2vw, 56px); line-height: 1.1; margin: 17px 0 20px; }
+.header p { max-width: 580px; color: #586477; margin: 0; }
+.eyebrow { color: #39765a; font-size: 14px; font-weight: 600; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.header .actions { flex-direction: column; align-items: stretch; }
+.primary,.secondary { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; padding: 11px 19px; box-sizing: border-box; border: 1px solid #c5cfe0; border-radius: 28px; background: #fff; color: #14213b; font: inherit; font-size: 14px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.primary { background: #2855e8; border-color: #2855e8; color: #fff; }
+.secondary:hover { background: #edf3ff; border-color: #8ea8e8; }
+.primary:hover { background: #1943c2; }
+.primary:disabled,.secondary:disabled { opacity: .55; cursor: not-allowed; }
+.layout { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.15fr); align-items: start; gap: 32px; }
+.list,.editor { min-width: 0; }
+.listHead { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 22px; }
+.listHead h2,.editor h2 { font-size: 28px; line-height: 1.3; margin: 0; }
+.filter { display: flex; gap: 15px; align-items: center; font-size: 14px; margin-bottom: 20px; }
+.filter select { min-height: 44px; padding: 9px 14px; border: 1px solid #c5cfe0; border-radius: 10px; background: #fff; color: #14213b; font: inherit; }
+.product { padding: 25px; border: 1px solid #dce3ef; border-radius: 18px; margin-bottom: 18px; background: #fafbfe; overflow-wrap: anywhere; }
+.productTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.badge { color: #2551bd; background: #eaf0ff; padding: 5px 12px; border-radius: 22px; font-size: 14px; }
+.availability { color: #637089; font-size: 14px; }
+.product h3 { font-size: 25px; margin: 19px 0 10px; line-height: 1.3; }
+.product p { margin: 9px 0 20px; color: #586477; }
+.stock { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; padding: 17px 0; border-block: 1px solid #dce3ef; margin: 20px 0; }
+.stock dt { font-size: 14px; color: #637089; }
+.stock dd { margin: 5px 0 0; font-size: 23px; font-weight: 600; }
+.product .ready { color: #2d7251; font-size: 14px; }
+.product .warning { color: #936029; font-size: 14px; }
+.editor { padding: 30px; border: 1px solid #dce3ef; border-radius: 22px; }
+.form { margin-top: 24px; }
+.form fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 22px; }
+.form label { display: grid; gap: 8px; font-size: 15px; font-weight: 500; }
+.form label > span { color: #637089; font-size: 14px; font-weight: 400; }
+.form :is(input:not([type=checkbox]),textarea,select) { width: 100%; box-sizing: border-box; min-height: 46px; border: 1px solid #bec9db; border-radius: 10px; background: #fff; padding: 11px 13px; color: #14213b; font: inherit; font-size: 16px; }
+.form textarea { resize: vertical; }
+.form :disabled { opacity: .6; cursor: not-allowed; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.inline { display: inline-flex; align-items: center; min-height: 44px; color: #2855e8; font-size: 14px; text-decoration: none; }
+.group { display: grid; gap: 18px; padding: 24px 0 0; border-top: 1px solid #dce3ef; }
+.group h3 { font-size: 23px; margin: 0; }
+.group p { color: #586477; margin: 0; font-size: 15px; }
+.help { color: #637089; font-size: 14px!important; margin: 0; }
+.form .check { display: flex; align-items: flex-start; gap: 12px; min-height: 44px; }
+.check input { width: 20px; height: 20px; margin-top: 4px; flex-shrink: 0; accent-color: #2855e8; }
+.empty { border: 1px dashed #c5cfe0; border-radius: 18px; padding: 28px; }
+.empty h3 { font-size: 25px; line-height: 1.3; margin-top: 0; }
+.empty p { color: #586477; }
+.error { padding: 18px 22px; background: #fff4f4; color: #a3283c; border: 1px solid #f0c5cc; border-radius: 12px; margin-bottom: 24px; }
+.error button { display: block; margin-top: 10px; min-height: 44px; padding: 8px 15px; border: 1px solid #c5cfe0; border-radius: 24px; color: #14213b; background: #fff; font: inherit; cursor: pointer; }
+.notice { padding: 18px 22px; border: 1px solid #bcdcc9; background: #f0f9f4; color: #276245; border-radius: 12px; margin-bottom: 24px; }
+.page :is(a,button,input,textarea,select):focus-visible { outline: 3px solid #70a5f5; outline-offset: 3px; }
+@media(max-width:1000px) { .header { align-items: flex-start; flex-direction: column; } .header .actions { flex-direction: row; } .layout { grid-template-columns: minmax(0,1fr); } .list { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; } .listHead,.filter,.empty { grid-column: 1/-1; } .product { margin-bottom: 0; } }
+@media(max-width:600px) { .page { padding: 30px 20px 50px; } .list { display: block; } .product { margin-bottom: 18px; padding: 22px; } .editor { padding: 23px; } .two { grid-template-columns: 1fr; gap: 22px; } .header h1 { font-size: 36px; } }
+.readiness { padding: 26px; border: 1px solid #dce3ef; border-radius: 20px; background: #f7f9fd; margin-bottom: 35px; }
+.readiness h2 { font-size: 27px; line-height: 1.3; margin: 10px 0; }
+.readiness p { color: #586477; font-size: 14px; }
+.readiness ul { display: grid; gap: 14px; padding-left: 20px; margin: 22px 0; }
+.readiness li strong,.readiness li span { display: block; font-size: 14px; }
+.readiness li span { color: #586477; }
+.pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; grid-column: 1/-1; margin-top: 22px; }
+.pagination > span { color: #637089; font-size: 14px; }
+
+.form input:not([type="checkbox"]),.form textarea,.form select,.filter select{background:#fff;color:#14213e;border:1px solid #bdc7d8}.form input::placeholder,.form textarea::placeholder{color:#64738d;opacity:1}

@@ -11,8 +11,14 @@ export async function POST(request:NextRequest){
   const details=String(form.get("details")||"").slice(0,8000);
   if(!email||!category||!details)return NextResponse.json({error:"Missing required report fields."},{status:400});
   const apiKey=process.env.RESEND_API_KEY;const to=process.env.SAFETY_REPORT_EMAIL;
-  if(!apiKey||!to)return NextResponse.json({error:"Safety-report delivery is not configured."},{status:503});
+  const from=process.env.CQA_EMAIL_FROM||process.env.CQA_AUTOMATION_FROM_EMAIL;
+  if(!apiKey||!to||!from)return NextResponse.json({error:"Safety-report delivery is not configured."},{status:503});
   const resend=new Resend(apiKey);
-  await resend.emails.send({from:"FanXFantasy Safety <onboarding@resend.dev>",to,reply_to:email,subject:`FanXFantasy safety report: ${category}`,text:`Reporter: ${email}\nCategory: ${category}\nContent reference: ${contentUrl||"Not supplied"}\n\nDetails:\n${details}\n\nSafety note: do not request or forward unlawful imagery by email.`});
+  try {
+  const result = await resend.emails.send({from,to,reply_to:email,subject:`FanXFantasy safety report: ${category}`,text:`Reporter: ${email}\nCategory: ${category}\nContent reference: ${contentUrl||"Not supplied"}\n\nDetails:\n${details}\n\nSafety note: do not request or forward unlawful imagery by email.`});
+  if (result.error) return NextResponse.json({error:"Report delivery failed. Please try again or use the alternative contact on the compliance page."},{status:502});
+  } catch {
+    return NextResponse.json({error:"Report delivery failed. Please try again or use the alternative contact on the compliance page."},{status:502});
+  }
   return NextResponse.redirect(new URL("/compliance?report=submitted",request.url),303);
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import NavMenu from "@/components/NavMenu";
+import { ThemeToggle } from "./ThemeToggle";
 import { isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
 
 export function NavBar() {
@@ -28,6 +29,7 @@ export function NavBar() {
             <Link href="/contact?service=support">Support</Link>
           </nav>
 
+          <ThemeToggle />
           <NavMenu>
             <summary className="cqa-menu-trigger" aria-label="Open navigation menu">
               <span className="cqa-hamburger" aria-hidden="true"><i /><i /><i /></span>
@@ -45,6 +47,7 @@ export function NavBar() {
               <Link href="/pricing">Pricing <span>04</span></Link>
               <Link href="/workers">AI Workers <span>05</span></Link>
               <Link href="/automations">Automations <span>06</span></Link>
+              <Link href="/owner/orders">Order fulfilment</Link>
               <Link href="/workspace">Business Workspace <span>07</span></Link>
               <Link href="/contact?service=support">Support <span>08</span></Link>
               <div className="menu-panel-actions">

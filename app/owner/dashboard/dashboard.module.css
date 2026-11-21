@@ -1,0 +1,11 @@
+.page { background: radial-gradient(ellipse at 50% 0,#33333340,transparent 45%),#101010; border-inline: 1px solid #ffffff0a; }
+.page :global(.glass-card) { background: linear-gradient(135deg,#252525ed,#161616f5)!important; border: 1px solid #ffffff24; box-shadow: inset 0 1px #ffffff08!important; }
+.page > section:first-child::after, .page > section:first-child::before { display: none; }
+.page :global(.glass-card):hover { transform: none; border-color: #a3d7e14d; }
+.page :global(.small) { font-size: 14px; line-height: 1.65; color: #bfc4cb; }
+.page input, .page textarea, .page select { font-size: 16px; }
+.page :global(.button) { min-height: 44px; font-size: 14px; }
+.page :global(.button.primary) { background: linear-gradient(110deg,#b4f1f8,#81d9ee); color: #07181e; border-color: #cef7ff; }
+.page :global(.eyebrow) { color: #b8e1e9; }
+@media(max-width:760px) { .page { padding-inline: 16px; } }
+@media(prefers-reduced-motion:reduce) { .page * { transition:none!important; } }
