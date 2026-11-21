@@ -4,7 +4,7 @@ import { NavigationMenu } from "./NavigationMenu";
 import styles from "./NavBar.module.css";
 
 const links: Array<[string,string]> = [
-  ["Home", "/"], ["Collection", "/machines"], ["Build your machine", "/onboarding"],
+  ["Home", "/"], ["Marketplace", "/marketplace"], ["Collection", "/machines"], ["Build your machine", "/onboarding"],
   ["Pricing", "/pricing"], ["My purchases", "/account"], ["Support", "/contact?service=support"],
 ];
 export function NavBar() {

@@ -13,6 +13,8 @@ export default function OwnerLayout({ children }: { children: React.ReactNode })
           <div className="owner-workspace-links">
             <Link href="/owner/dashboard">Dashboard</Link>
             <Link href="/owner/setup">Machine Builder</Link>
+            <Link href="/owner/products">Products & delivery</Link>
+            <Link href="/owner/orders">Orders & dispatch</Link>
             <Link href="/owner/integrations">Connections</Link>
             <Link href="/owner/automations">Automations</Link>
             <Link href="/marketplace">Marketplace</Link>

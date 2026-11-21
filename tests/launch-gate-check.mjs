@@ -65,7 +65,7 @@ const query = { select() { return query; }, eq() { return query; }, maybeSingle:
 const getCqaOfferCheckoutHold = new Function(compile('lib/cqa-offer-readiness.ts') + ';return getCqaOfferCheckoutHold;')();
 const marketplacePost = new Function('getCqaOfferCheckoutHold', 'NextResponse', 'z', 'isNewCqaCheckoutAllowed', 'CQA_PRELAUNCH_CHECKOUT_MESSAGE', 'getPublicSupabaseClient', 'getCqaSupabaseAdmin', 'getStripeClient', compile('app/api/marketplace/checkout/route.ts') + ';return POST;')(
   getCqaOfferCheckoutHold, { json: (body, options) => ({ body, status: options?.status || 200 }) }, z, () => false, 'Payments paused',
-  () => ({ rpc: async () => ({ data: { offer_type: 'service', business_id: 'business', offer_id: 'offer' }, error: null }) }),
+  () => ({ rpc: async () => ({ data: { offer_type: 'service', business_id: 'business', offer_id: '00000000-0000-4000-8000-000000000001', machine_slug: 'test' }, error: null }) }),
   () => ({ from: () => query }), () => { providerCalls++; throw Error('Stripe must not run'); }
 );
 const response = await marketplacePost(new Request('https://example.test/checkout', { method: 'POST', body: JSON.stringify({ machineSlug: 'test', offerId: '00000000-0000-4000-8000-000000000001' }) }));

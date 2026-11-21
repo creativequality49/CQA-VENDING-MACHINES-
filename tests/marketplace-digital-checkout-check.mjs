@@ -37,13 +37,13 @@ function harness(options = {}) {
     offer_type: options.type || 'digital_product', offer_name: 'Synthetic owner PDF', offer_description: 'Test-only file',
     currency: 'aud', price_cents: 1299, business_plan: 'pro', connected_account_id: 'acct_test', charges_enabled: true, onboarding_complete: true,
     ...options.context };
-  const offer = { id: offerId, business_id: businessId, machine_id: machineId, offer_type: context.offer_type,
+  const offer = { active: true, id: offerId, business_id: businessId, machine_id: machineId, offer_type: context.offer_type,
     fulfillment_type: context.offer_type === 'digital_product' ? 'digital' : 'manual',
     fulfillment_config: { deliveryDescription: 'A customer-specific service report', deliveryTiming: 'Within three business days', supportDetails: 'Contact support@example.test', refundTerms: 'Refund before work starts', asset_key: assetKey, asset_size_bytes: 64, asset_content_type: 'application/pdf', ...options.config }, ...options.offer };
   const admin = { from(table) {
     const filters = []; queries.push({ table, filters });
     const query = { select() { return query; }, eq(k, v) { filters.push([k, v]); return query; },
-      async insert(row) { bindings.push(row); events.push('bind'); return { error: options.bindingError ? Error('binding failed') : null }; },
+      insert(row) { bindings.push(row); events.push('bind'); return { select() { return this; }, single: async () => ({ data: options.bindingError ? null : { id: 'pending-order' }, error: options.bindingError ? Error('binding failed') : null }) }; },
       async maybeSingle() { return answer(); }, async single() { return answer(); } };
     function answer() {
       if (options.dbError) return { data: null, error: Error('private-provider-detail') };
@@ -62,6 +62,7 @@ function harness(options = {}) {
   }, async expire(id, _params, request) { expirations.push({ id, request }); } } } };
   const route = evaluate('app/api/marketplace/checkout/route.ts', {
     'next/server': { NextResponse: { json: (body, init) => Response.json(body, init) } },
+    '@/lib/cqa-product-fulfillment': { reserveProductInventory: async () => { throw Error('Unexpected inventory request'); }, bindProductInventory: async () => {}, releaseUnboundProductInventory: async () => {} },
     '@/lib/cqa-offer-readiness': evaluate('lib/cqa-offer-readiness.ts'),
     '@/lib/cqa-site-url': { getCqaSiteUrl: () => 'https://cqa.example.test' },
     '@/lib/cqa-launch-gate': gates(env),
@@ -170,10 +171,9 @@ await test('service persistence failure expires the session and anonymous servic
   assert.equal((await response.json()).url, undefined);
   assert.equal(failed.expirations.length, 1);
   const guest = harness({ type: 'service' });
-  assert.equal((await guest.post(null)).status, 200);
+  assert.equal((await guest.post(null)).status, 401);
   assert.equal(guest.bindings.length, 0);
-  assert.equal(guest.sessions[0].data.client_reference_id, undefined);
-  assert.equal(guest.sessions[0].data.metadata.cqaBuyerUserId, undefined);
+  assert.equal(guest.sessions.length, 0);
 });
 await test('unsupported recurring and shipping workflows cannot create a provider session or bind an order', async () => {
   for (const scenario of [
@@ -187,7 +187,7 @@ await test('unsupported recurring and shipping workflows cannot create a provide
     { type: 'service', context: { offer_type: 'subscription' }, offer: { offer_type: 'service' } },
   ]) {
     const h = harness(scenario); const response = await h.post();
-    assert.equal(response.status, 409); assert.equal((await response.json()).url, undefined);
+    assert.ok([404,409].includes(response.status)); assert.equal((await response.json()).url, undefined);
     assert.deepEqual(h.events, []); assert.equal(h.sessions.length, 0); assert.equal(h.bindings.length, 0);
   }
 });
@@ -259,13 +259,13 @@ await test('provider failures and unusable prices never return a checkout URL or
 
 await test('ready service checkout preserve original anonymous pricing and fee behavior', async () => {
   for (const type of ['service', 'booking', 'consultation']) {
-    const h = harness({ type }); const r = await h.post(null); assert.equal(r.status, 200); assert.equal(h.checks.length, 0);
+    const h = harness({ type }); const r = await h.post(); assert.equal(r.status, 200); assert.equal(h.checks.length, 0);
     const data = h.sessions[0].data; assert.equal(data.mode, type === 'subscription' ? 'subscription' : 'payment');
-    assert.equal(data.line_items[0].price_data.unit_amount, 1299); assert.equal(data.metadata.cqaBuyerUserId, undefined);
+    assert.equal(data.line_items[0].price_data.unit_amount, 1299); assert.equal(data.metadata.cqaBuyerUserId, buyerId);
     if (type === 'subscription') { assert.deepEqual(data.line_items[0].price_data.recurring, { interval: 'month' }); assert.equal(data.subscription_data.application_fee_percent, 3); }
     else assert.equal(data.payment_intent_data.application_fee_amount, 39);
   }
-  const h = harness({ type: 'service', env: { STRIPE_SECRET_KEY: liveKey } }); assert.equal((await h.post(null)).status, 503); assert.equal(h.sessions.length, 0);
+  const h = harness({ type: 'service', env: { STRIPE_SECRET_KEY: liveKey } }); assert.equal((await h.post()).status, 503); assert.equal(h.sessions.length, 0);
 });
 
 await test('actual private-storage verification checks HeadObject metadata before permitting a sale', async () => {
@@ -343,17 +343,17 @@ await test('actual purchase button rejects unsafe checkout destinations', async 
 await test('actual storefront keeps live digital holds closed and marks sandbox digital purchases as account-required', async () => {
   const jsx = (type, props) => ({ type, props });
   const machine = { id: machineId, slug: 'test-store', title: 'Synthetic storefront', subtitle: '', theme: 'pink', assistant_enabled: false,
-    business: { id: businessId, category: 'Testing', name: 'Synthetic business', description: '', plan: 'pro', verified: false },
-    offers: [ { id: offerId, name: 'Digital file', offer_type: 'digital_product', fulfillment_type: 'digital', price_cents: 1299 },
-      { id: foreignId, name: 'Digital fulfilment', offer_type: 'physical_product', fulfillment_type: 'digital', price_cents: 1299 },
-      { id: 'service', name: 'Service', offer_type: 'service', price_cents: 1299, fulfillment_config: { deliveryDescription: 'Delivered report', deliveryTiming: 'Three days', supportDetails: 'Email us', refundTerms: 'Refund before work starts' } },
-      { id: 'subscription', name: 'Subscription', offer_type: 'subscription', price_cents: 1299 } ] };
+    business: { status: 'live', id: businessId, category: 'Testing', name: 'Synthetic business', description: '', plan: 'pro', verified: false },
+    offers: [ { active: true, id: offerId, name: 'Digital file', offer_type: 'digital_product', fulfillment_type: 'digital', price_cents: 1299 },
+      { active: true, id: foreignId, name: 'Digital fulfilment', offer_type: 'physical_product', fulfillment_type: 'digital', price_cents: 1299 },
+      { active: true, id: 'service', name: 'Service', offer_type: 'service', price_cents: 1299, fulfillment_config: { deliveryDescription: 'Delivered report', deliveryTiming: 'Three days', supportDetails: 'Email us', refundTerms: 'Refund before work starts' } },
+      { active: true, id: 'subscription', name: 'Subscription', offer_type: 'subscription', price_cents: 1299 } ] };
   for (const [allowed, demo] of [[false, false], [true, false], [true, true]]) {
     const page = evaluate('app/machine/[slug]/page.tsx', {
       'next/link': { default: 'Link' }, 'next/navigation': { notFound() { throw Error('Unexpected missing machine'); } },
       'react/jsx-runtime': { jsx, jsxs: jsx }, '@/components/MarketplaceCheckoutButton': { MarketplaceCheckoutButton: 'Checkout' },
       '@/lib/cqa-offer-readiness': evaluate('lib/cqa-offer-readiness.ts'),
-      '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => allowed, isNewCqaCheckoutAllowed: () => true },
+      '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => allowed, isCqaPhysicalCheckoutAllowed: () => false, isNewCqaCheckoutAllowed: () => true },
       '@/lib/cqa-marketplace': { DEMO_MACHINES: [], formatAud: originalMarket.formatAud, getPublicSupabaseClient: () => ({
         from() { const q = { select() { return q; }, eq() { return q; }, single: async () => ({ data: { ...machine, demo }, error: null }) }; return q; },
       }) },

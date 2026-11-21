@@ -44,3 +44,8 @@ export function isCqaDigitalCheckoutAllowed() {
 }
 
 export const CQA_PRELAUNCH_CHECKOUT_MESSAGE = "Customer payments are paused while CQA completes launch verification. Join early access or contact CQA for assisted onboarding.";
+
+// Physical checkout is a separate rollout: deploy the inventory/shipment schema first.
+export function isCqaPhysicalCheckoutAllowed() {
+  return isNewCqaCheckoutAllowed() && process.env.CQA_PHYSICAL_DELIVERY_APPROVED === "true";
+}

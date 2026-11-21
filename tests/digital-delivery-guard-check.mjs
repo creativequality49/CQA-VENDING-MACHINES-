@@ -16,7 +16,7 @@ for (const variant of [
 ]) {
   let stripeCalls = 0;
   const tables = [];
-  const context = { offer_type: variant.offerType, business_id: 'business', offer_id: 'offer' };
+  const context = { offer_type: variant.offerType, business_id: 'business', offer_id: '00000000-0000-4000-8000-000000000001', machine_slug: 'test' };
   const post = new Function('getCqaOfferCheckoutHold', 'NextResponse', 'z', 'getPublicSupabaseClient', 'getCqaSupabaseAdmin', 'getStripeClient', 'isCqaDigitalCheckoutAllowed', compiled + ';return POST;')(
     readiness, { json: (body, options) => ({ body, status: options?.status || 200 }) }, z,
     () => ({ rpc: async () => ({ data: context, error: null }) }),

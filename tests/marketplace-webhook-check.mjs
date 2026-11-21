@@ -81,8 +81,8 @@ function harness(options = {}) {
     } },
     charges: { retrieve: async () => charge() }
   };
-  const post = new Function('NextResponse', 'getStripeClient', 'getCqaSupabaseAdmin', 'triggerBusinessAutomations', 'claimCqaWebhookEvent', 'finishCqaWebhookEvent', 'notifyCqaOrder', 'verifyMarketplaceDigitalCheckout', 'verifyMarketplaceBuyerBinding', compiled + ';return POST;')(
-    { json: (body, config) => ({ body, status: config?.status || 200 }) }, () => stripe, () => admin,
+  const post = new Function('verifyPhysicalProductCheckout', 'recordProductFulfillment', 'releaseCheckoutProductInventory', 'NextResponse', 'getStripeClient', 'getCqaSupabaseAdmin', 'triggerBusinessAutomations', 'claimCqaWebhookEvent', 'finishCqaWebhookEvent', 'notifyCqaOrder', 'verifyMarketplaceDigitalCheckout', 'verifyMarketplaceBuyerBinding', compiled + ';return POST;')(
+    async () => null, async () => {}, async () => {}, { json: (body, config) => ({ body, status: config?.status || 200 }) }, () => stripe, () => admin,
     async () => { state.automations++; },
     async () => ({ duplicate: !!state.duplicate, claimedAt: 'lease' }),
     async (id, _claim, error) => { state.finishes.push({ id, error }); },

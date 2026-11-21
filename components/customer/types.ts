@@ -6,6 +6,7 @@ export type CustomerOrder = {
   machineSlug: string | null;
   offerType: string | null;
   fulfillmentType: string | null;
+  purchaseTerms?: { deliveryDescription: string; deliveryTiming: string; supportDetails: string; refundTerms: string };
   paymentStatus: string;
   amountCents: number;
   currency: string;
@@ -78,6 +79,7 @@ export function orderState(order: CustomerOrder) {
       tone: "neutral",
     };
   }
+  if (order.offerType === "physical_product" || order.fulfillmentType === "shipping") return { label: "Physical delivery", tone: "progress" };
   if (isDigital(order)) return { label: "Digital purchase", tone: "ready" };
   if (order.workspace.state === "delivered")
     return { label: "Delivered", tone: "ready" };

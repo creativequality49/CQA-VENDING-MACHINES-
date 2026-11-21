@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 import { MAX_MARKETPLACE_ASSET_BYTES } from "@/lib/cqa-marketplace-assets";
 import styles from "./orders.module.css";
+import { ShipmentPanel } from "@/components/fulfillment/ShipmentPanel";
 
 type Workspace = {
   state: "awaiting_intake" | "queued" | "in_progress" | "delivered";
@@ -25,6 +26,8 @@ type Order = {
   customerEmail: string | null;
   offerName: string;
   digital: boolean;
+  offerType?: string | null;
+  fulfillmentType?: string | null;
   workspace: Workspace;
 };
 type OrderEvent = {
@@ -292,12 +295,14 @@ export default function OwnerOrdersPage() {
     [request],
   );
 
+  const physical = selected?.offerType === "physical_product" || selected?.fulfillmentType === "shipping";
+
   async function update(
     action: "start" | "deliver" | "upload",
     event?: FormEvent,
   ) {
     event?.preventDefault();
-    if (!selected || selected.digital || inFlight.current) return;
+    if (!selected || selected.digital || physical || inFlight.current) return;
     const current = selected;
     const epoch = detailEpoch.current;
     inFlight.current = true;
@@ -474,7 +479,7 @@ export default function OwnerOrdersPage() {
                       {order.status === "paid"
                         ? order.digital
                           ? "Protected digital delivery"
-                          : stateLabels[order.workspace.state] ||
+                          : order.offerType === "physical_product" || order.fulfillmentType === "shipping" ? "Physical delivery" : stateLabels[order.workspace.state] ||
                             order.workspace.state
                         : order.status}
                     </span>
@@ -532,7 +537,7 @@ export default function OwnerOrdersPage() {
                     {paid
                       ? selected.digital
                         ? "Protected digital delivery"
-                        : stateLabels[selected.workspace.state] ||
+                        : physical ? "Physical delivery" : stateLabels[selected.workspace.state] ||
                           selected.workspace.state
                       : selected.status}
                   </span>
@@ -554,6 +559,7 @@ export default function OwnerOrdersPage() {
                     file delivery.
                   </div>
                 )}
+                {physical && <ShipmentPanel key={selected.id} orderId={selected.id} paid={paid} owner request={request} />}
                 {selected.digital && (
                   <section className={styles.card}>
                     <p className={styles.eyebrow}>Protected digital delivery</p>
@@ -571,7 +577,7 @@ export default function OwnerOrdersPage() {
                     </Link>
                   </section>
                 )}
-                {!selected.digital && (
+                {!selected.digital && !physical && (
                   <section className={styles.card}>
                     <h3>Customer brief</h3>
                     {Object.keys(selected.workspace.intake).length ? (
@@ -595,7 +601,7 @@ export default function OwnerOrdersPage() {
                   </section>
                 )}
                 {paid &&
-                  !selected.digital &&
+                  !selected.digital && !physical &&
                   selected.workspace.state === "queued" && (
                     <div className={styles.callout}>
                       <div>
@@ -615,14 +621,14 @@ export default function OwnerOrdersPage() {
                     </div>
                   )}
                 {paid &&
-                  !selected.digital &&
+                  !selected.digital && !physical &&
                   selected.workspace.state === "awaiting_intake" && (
                     <p className={styles.muted}>
                       Work can begin once the customer submits their brief.
                     </p>
                   )}
                 {paid &&
-                  !selected.digital &&
+                  !selected.digital && !physical &&
                   selected.workspace.state === "in_progress" && (
                     <section className={styles.card}>
                       <h3>Prepare the handover</h3>
@@ -701,7 +707,7 @@ export default function OwnerOrdersPage() {
                       </p>
                     </section>
                   )}
-                {!selected.digital &&
+                {!selected.digital && !physical &&
                   selected.workspace.state === "delivered" && (
                     <section className={styles.card}>
                       <p className={styles.eyebrow}>Handover complete</p>

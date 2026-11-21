@@ -6,6 +6,8 @@ import { requireCqaOwner } from "@/lib/cqa-owner-auth";
 import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { isActiveBillingStatus } from "@/lib/cqa-billing";
 import { getStripeClient } from "@/lib/stripe";
+import { evaluateCqaMachineReadiness } from "@/lib/cqa-machine-readiness";
+import { verifyPrivateMarketplaceAsset } from "@/lib/storage";
 
 export async function POST(req: Request) {
   try {
@@ -16,7 +18,7 @@ export async function POST(req: Request) {
       admin.from("cqa_plan_subscriptions").select("status").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_connected_accounts").select("stripe_account_id").eq("business_id", business.id).maybeSingle(),
       admin.from("cqa_machines").select("id,slug,title,customization").eq("business_id", business.id).single(),
-      admin.from("cqa_offers").select("id").eq("business_id", business.id).eq("active", true).limit(1)
+      admin.from("cqa_offers").select("id,machine_id,name,active,price_cents,offer_type,fulfillment_type,fulfillment_config,shipping_required,inventory_tracking,inventory_quantity").eq("business_id", business.id).eq("active", true)
     ]);
     const failed = [billing, connection, machine, offers].find((result) => result.error);
     if (failed?.error) throw failed.error;
@@ -27,6 +29,11 @@ export async function POST(req: Request) {
     if (account.deleted || account.metadata?.cqaBusinessId !== business.id || !account.charges_enabled || !account.details_submitted) {
       return NextResponse.json({ error: "Complete Stripe payment onboarding before publishing." }, { status: 409 });
     }
+    let siteUrl: string | undefined;
+    try { siteUrl = getCqaSiteUrl(req); } catch { /* readiness reports the configuration issue */ }
+    const readiness = await evaluateCqaMachineReadiness({ businessId: business.id, machineId: machine.data.id, title: machine.data.title,
+      offers: offers.data || [], siteUrl, environment: process.env, verifyAsset: verifyPrivateMarketplaceAsset });
+    if (!readiness.merchantReady) return NextResponse.json({ error: "Complete your storefront launch checklist before publishing.", ...readiness }, { status: 409 });
     const updatedAt = new Date().toISOString();
     const { error: businessError } = await admin.from("cqa_businesses").update({ status: "live", updated_at: updatedAt }).eq("id", business.id);
     if (businessError) throw businessError;

@@ -16,7 +16,11 @@ function purchaseSnapshot(value: unknown) {
   if (typeof snapshot.title !== "string" || !snapshot.title.trim() || snapshot.title.length > 300 ||
       typeof snapshot.offerType !== "string" || !offerTypes.includes(snapshot.offerType) ||
       !(snapshot.fulfillmentType === null || (typeof snapshot.fulfillmentType === "string" && fulfillmentTypes.includes(snapshot.fulfillmentType)))) return null;
-  return { title: snapshot.title.trim(), offerType: snapshot.offerType, fulfillmentType: snapshot.fulfillmentType as string | null };
+  return { title: snapshot.title.trim(), offerType: snapshot.offerType, fulfillmentType: snapshot.fulfillmentType as string | null,
+    terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].flatMap(key => {
+      const terms = snapshot.terms && typeof snapshot.terms === "object" && !Array.isArray(snapshot.terms) ? snapshot.terms as Record<string, unknown> : {};
+      const value = terms[key]; return typeof value === "string" && value.length <= 5000 ? [[key, value]] : [];
+    })) };
 }
 
 export function orderFailure(status: number, message: string): never {
@@ -76,7 +80,7 @@ export async function presentOwnerOrders(context: OwnerContext, orders: Record<s
       id: order.id, status: order.status, amountCents: order.amount_cents, currency: order.currency,
       createdAt: order.created_at, customerEmail: order.customer_email,
       offerName: snapshot?.title || (offer && machine ? offer.name : "Offer unavailable"),
-      digital, offerType, fulfillmentType,
+      digital, offerType, fulfillmentType, purchaseTerms: snapshot?.terms || {},
       workspace: {
         state: workspace?.state || "awaiting_intake", revision: workspace?.revision ?? 0,
         intake: workspace?.intake && typeof workspace.intake === "object" && !Array.isArray(workspace.intake) ? workspace.intake : {},

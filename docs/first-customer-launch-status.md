@@ -1,6 +1,6 @@
 # First paid customer: verified status and remaining work
 
-Reviewed 19 November 2026 (Australia/Adelaide). This report distinguishes a
+Updated 21 November 2026 (Australia/Adelaide). This report distinguishes a
 published interface from a verified commercial transaction.
 
 ## Completed
@@ -18,7 +18,15 @@ published interface from a verified commercial transaction.
   instructions. It is not published, approved for sale or uploaded to fulfilment
   storage. Proposed catalogue pricing remains subject to owner review.
 
-## Fresh remote evidence
+## Merchant fulfilment extension
+
+The new candidate adds owner product management, revisioned stock adjustments, stock reservations, paid-product fulfilment jobs, private shipment records, merchant dispatch/tracking and buyer tracking. Marketplace discovery now lists published merchant machines instead of redirecting to AI workers. A shared launch checklist validates each offer before publication.
+
+The PostgreSQL migration and local browser/provider-fixture tests are separate from real Stripe, storage and email proof. The merchant-product migration was applied to the isolated CQA Launch Test database. A transaction-scoped test against its actual schema passed stock, shipping-fee, idempotency, refund and RLS checks; all fixtures were rolled back. Production has not been migrated or released. Physical shipping is merchant-managed; automated carrier labels, warehouse dispatch and autonomous AI stock control are not implemented. See `merchant-product-fulfillment.md`.
+
+The owner selected the Stripe account with matching existing prices. Read-only comparison identified CQA Isolated Launch Test: A$97/A$297/A$997 monthly. No prices or live account were changed.
+
+## Last remote audit evidence
 
 At the audit, production still ran main `a8b7613`; the new customer journey and
 styling were on the PR #50 Preview branch. Production customer-fulfilment tables
@@ -44,7 +52,7 @@ before directing paying customers to it.
    callback allowlist, then verify a fresh real signup/sign-in email and password
    recovery. The confirmed hosted-preview-to-localhost fallback remains unresolved;
    dashboard sign-in was declined. See `email-login-redirect-fix.md`.
-2. **Configure the isolated payment path.** Select the Stripe sandbox account and
+2. **Configure the isolated payment path.** Use the selected CQA Isolated Launch Test account and
    configure valid test credentials, Connect webhook secret and transactional
    email sender. Verify the correct merchant/account ownership. Do not reuse live
    provider credentials as isolated test fixtures.

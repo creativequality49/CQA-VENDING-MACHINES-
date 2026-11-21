@@ -1,3 +1,4 @@
+import { verifyPhysicalProductCheckout, recordProductFulfillment, releaseCheckoutProductInventory } from "@/lib/cqa-product-fulfillment";
 import { notifyCqaOrder } from "@/lib/cqa-transactional-email";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
@@ -44,6 +45,12 @@ export async function POST(req: Request) {
 
     if (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") {
       let session = event.data.object as Stripe.Checkout.Session;
+      const physicalBinding = await verifyPhysicalProductCheckout(event, session);
+      if (physicalBinding?.terminal) {
+        if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt);
+        return NextResponse.json({ received: true });
+      }
+      if (physicalBinding) session = physicalBinding.session;
       const digitalBinding = await verifyMarketplaceDigitalCheckout(event, session);
       if (digitalBinding?.terminal) {
         if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt);
@@ -139,6 +146,8 @@ export async function POST(req: Request) {
           return NextResponse.json({ received: true });
         }
 
+        if (physicalBinding || digitalBinding) await recordProductFulfillment(order.id, session.id, physicalBinding?.address || {});
+
         let contactId: string | null = null;
         if (email) {
           const { data: existingContact, error: existingContactError } = await admin.from("cqa_contacts")
@@ -159,7 +168,7 @@ export async function POST(req: Request) {
           contactId = contact?.id || null;
         }
 
-        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency, digital: Boolean(digitalBinding), buyerEmail: digitalBinding?.buyerEmail || buyerBinding?.buyerEmail });
+        await notifyCqaOrder({ businessId, orderId: order.id, checkoutId: session.id, customerEmail: email, offerId: order.offer_id, amountCents: order.amount_cents, currency: order.currency, digital: Boolean(digitalBinding), ...(physicalBinding ? { physical: true } : {}), buyerEmail: digitalBinding?.buyerEmail || buyerBinding?.buyerEmail });
 
         await triggerBusinessAutomations(businessId, "purchase", {
           orderId: order?.id || null,
@@ -208,10 +217,12 @@ export async function POST(req: Request) {
       }
     }
 
-    if (event.type === "checkout.session.expired") {
+    if (event.type === "checkout.session.expired" || event.type === "checkout.session.async_payment_failed") {
       const session = event.data.object as Stripe.Checkout.Session;
+      await releaseCheckoutProductInventory(session.id, event.account);
       const { error: expiredError } = await admin.from("cqa_orders").update({ status: "cancelled", updated_at: new Date().toISOString() }).eq("stripe_checkout_session_id", session.id).eq("status", "pending");
       if (expiredError) throw expiredError;
+
     }
 
     if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt);

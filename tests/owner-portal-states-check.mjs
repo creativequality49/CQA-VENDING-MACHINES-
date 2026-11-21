@@ -9,6 +9,9 @@ const require = createRequire(import.meta.url);
 const compiled = ts.transpileModule(fs.readFileSync("app/owner/orders/page.tsx", "utf8"), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true }
 }).outputText;
+const shipmentExports = {};
+const shipmentCompiled = ts.transpileModule(fs.readFileSync("components/fulfillment/ShipmentPanel.tsx", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
+new Function("require", "exports", shipmentCompiled)(name => name.endsWith(".module.css") ? {} : require(name), shipmentExports);
 const sessionA = { access_token: "owner-a-token", user: { id: "owner-a" } };
 const order = { id: "order-a", status: "paid", amountCents: 4900, currency: "aud", createdAt: "2026-01-02",
   customerEmail: "buyer@example.test", offerName: "Digital operations kit", digital: true,
@@ -33,6 +36,7 @@ function harness(selected = order) {
   const exports = {};
   const mocks = {
     react: hooks,
+    "@/components/fulfillment/ShipmentPanel": shipmentExports,
     "next/link": ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children),
     "next/navigation": { useRouter() { return router; } },
     "@/lib/cqa-marketplace": { getBrowserSupabaseClient() { throw Error("Render must not contact authentication"); } },
@@ -52,6 +56,9 @@ const digital = harness();
 assert.match(digital.html, /Protected digital delivery|PROTECTED DIGITAL DELIVERY/);
 assert.match(digital.html, /Managed through the customer library/);
 assert.doesNotMatch(digital.html, /Awaiting customer details|Customer brief|Start work|Mark delivered|Prepare the handover/);
+const physical = harness({ ...order, digital: false, offerType: "physical_product", fulfillmentType: "shipping", workspace: { ...order.workspace, state: "queued" } });
+assert.match(physical.html, /Shipping &amp; dispatch|Shipping &amp;amp; dispatch/);
+assert.doesNotMatch(physical.html, /Customer brief|Start work|Mark delivered|Prepare the handover|Awaiting customer details/);
 const unpaid = harness({ ...order, status: "refunded" });
 assert.match(unpaid.html, /Payment is not active/);
 assert.doesNotMatch(unpaid.html, /Start work|Mark delivered|Your customer can view the handover/);

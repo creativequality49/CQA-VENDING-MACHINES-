@@ -14,6 +14,7 @@ function evaluate(path, mocks = {}, suffix = "") {
   new Function("require", "exports", code + suffix)(name => Object.hasOwn(mocks, name) ? mocks[name] : require(name), exports);
   return exports;
 }
+const shipmentExports = evaluate("components/fulfillment/ShipmentPanel.tsx", { "./ShipmentPanel.module.css": {} });
 const types = evaluate("components/customer/types.ts");
 const order = {
   id: "33333333-3333-4333-8333-333333333333", title: "Website delivery", businessName: "Test business",
@@ -30,6 +31,7 @@ for (const [status, expected] of [["pending", "Payment pending"], ["refunded", "
 
 const simple = ({ children }) => React.createElement("div", null, children);
 const { OrderWorkspace } = evaluate("app/account/orders/[orderId]/page.tsx", {
+  "@/components/fulfillment/ShipmentPanel": shipmentExports,
   "next/link": ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children),
   "next/navigation": { useParams() { return {}; } },
   "@/components/customer/useCustomerSession": { CustomerRequestError: class extends Error {}, useCustomerSession() { throw Error("Unexpected session hook"); } },
@@ -44,6 +46,10 @@ function render(paymentStatus) {
     request() { throw Error("Rendering must not perform a provider request"); }, reload() {}
   }));
 }
+const physical = renderToStaticMarkup(React.createElement(OrderWorkspace, { result: { order: { ...order, offerType: "physical_product", fulfillmentType: "shipping" }, events: [] }, request() { throw Error("Render must not request"); }, reload() {} }));
+assert.match(physical, /Delivery tracking/);
+assert.match(physical, /Physical product/);
+assert.doesNotMatch(physical, /Send project brief|Your project brief|Service delivery|Private handover content/);
 const paid = render("paid");
 assert.match(paid, /Your delivery is here/);
 assert.match(paid, /Private handover content/);

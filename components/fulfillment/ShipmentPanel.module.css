@@ -1,0 +1,25 @@
+.panel { padding: 28px; border: 1px solid #dce3ef; border-radius: 20px; background: #fff; color: #14213b; font-size: 16px; line-height: 1.65; overflow-wrap: anywhere; }
+.panel h2 { margin: 10px 0 20px; font-family: 'CQA Syne', Arial, sans-serif; font-size: 28px; letter-spacing: -.035em; color: #14213b; }
+.panel p { color: #586477; }
+.eyebrow { color: #39765a; font-size: 14px; font-weight: 600; }
+.status { display: inline-block; padding: 7px 13px; border-radius: 24px; background: #edf3ff; color: #234dbb!important; font-size: 14px; }
+.panel strong, .panel address { display: block; }
+.panel address { margin-top: 8px; color: #586477; font-style: normal; }
+.form { display: grid; gap: 18px; margin-top: 24px; border-top: 1px solid #e0e5ed; padding-top: 18px; }
+.form label { display: grid; gap: 7px; font-size: 15px; font-weight: 500; }
+.form label span { font-size: 14px; color: #637089; font-weight: 400; }
+.form input:not([type=checkbox]) { min-height: 46px; width: 100%; box-sizing: border-box; padding: 11px 13px; border: 1px solid #bec9db; border-radius: 9px; background: #fff; color: #14213b; font: inherit; }
+.form .confirm { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; min-height: 44px; }
+.confirm input { margin-top: 5px; width: 20px; height: 20px; flex-shrink: 0; accent-color: #2855e8; }
+.primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 20px; box-sizing: border-box; border: 1px solid #2855e8; border-radius: 30px; background: #2855e8; color: #fff; text-decoration: none; font: inherit; font-weight: 600; cursor: pointer; }
+.primary:disabled { opacity: .55; cursor: not-allowed; }
+.error { padding: 16px; border: 1px solid #f1c2c7; border-radius: 10px; color: #a3283a; background: #fff5f5; }
+.error button { display: block; margin-top: 12px; min-height: 44px; padding: 8px 14px; border: 1px solid #b7c4dc; border-radius: 22px; color: #14213b; background: #fff; font: inherit; cursor: pointer; }
+.success { padding: 14px; background: #edf8f1; border-radius: 10px; color: #266243!important; }
+.tracking { margin-top: 20px; }
+.tracking dl { display: grid; gap: 14px; }
+.tracking dt { color: #637089; font-size: 14px; }
+.tracking dd { margin: 3px 0 0; }
+.tracking p { font-size: 14px; }
+.panel :is(a,button,input):focus-visible { outline: 3px solid #70a5f5; outline-offset: 3px; }
+@media(max-width:600px) { .panel { padding: 21px; } .panel h2 { font-size: 25px; } }

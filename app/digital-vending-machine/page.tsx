@@ -6,6 +6,7 @@ import Link from "next/link";
 import styles from "./machine.module.css";
 
 const destinations = [
+  { id: "marketplace", label: "Merchant marketplace", href: "/marketplace", description: "Browse published business machines and their products. Delivery terms and checkout availability are checked per offer.", symbol: "▦" },
   { id: "kits", label: "Digital kits", href: "/digital-products", description: "Explore the digital product collection and its current availability.", symbol: "◇" },
   { id: "services", label: "Services", href: "/machines", description: "Browse service and business storefront concepts in the CQA collection.", symbol: "✦" },
   { id: "build", label: "Build your machine", href: "/onboarding", description: "Start a free design preview with your own business details.", symbol: "→" },

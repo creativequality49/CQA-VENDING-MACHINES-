@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { MarketplaceCheckoutButton } from "@/components/MarketplaceCheckoutButton";
-import { isCqaDigitalCheckoutAllowed, isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
-import { getCqaOfferCheckoutHold } from "@/lib/cqa-offer-readiness";
+import { isCqaDigitalCheckoutAllowed, isCqaPhysicalCheckoutAllowed, isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
+import { getCqaOfferCheckoutHold, physicalShippingConfig } from "@/lib/cqa-offer-readiness";
 import { DEMO_MACHINES, formatAud, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
 
 async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> {
@@ -11,12 +11,15 @@ async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> 
     const supabase = getPublicSupabaseClient();
     const { data, error } = await supabase
       .from("cqa_machines")
-      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,fulfillment_config,shipping_required,external_url)")
+      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,fulfillment_config,shipping_required,external_url,active)")
       .eq("slug", slug)
       .eq("status", "live")
+      .eq("business.status", "live")
       .single();
     if (error || !data) return null;
-    return data as unknown as MarketplaceMachine;
+    const machine = data as unknown as MarketplaceMachine;
+    machine.offers = machine.offers.filter(offer => (offer as MarketplaceOfferWithActive).active === true);
+    return machine;
   } catch {
     return null;
   }
@@ -28,6 +31,8 @@ function themeClass(theme?: string | null) {
   if (theme === "rose") return "pink";
   return ["pink", "cyan", "gold", "violet"].includes(theme || "") ? theme : "cyan";
 }
+
+type MarketplaceOfferWithActive = { active?: boolean };
 
 export default async function MachinePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -85,7 +90,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
             <div className="machine-screen-stats">
               <div><b>{machine.offers.length}</b><span>OFFERS</span></div>
               <div><b>{machine.business.plan.toUpperCase()}</b><span>PLAN</span></div>
-              <div><b>{machine.assistant_enabled ? "ON" : "OFF"}</b><span>AI HELP</span></div>
+              <div><b>{machine.assistant_enabled ? "ASK" : "—"}</b><span>BUSINESS HELP</span></div>
             </div>
           </section>
 
@@ -93,13 +98,16 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
             <div className="machine-demo-banner">DEMO MODE · No payment is taken for demonstration offers.</div>
           ) : null}
 
-          <section className="machine-offer-bay">
+          <section className="machine-offer-bay" aria-label="Products and offers in this machine">
+            {!machine.offers.length ? <p className="glass-card" style={{ padding: "1rem", gridColumn: "1 / -1" }}>This business is preparing its products. No active offers are available yet.</p> : null}
             {machine.offers.map((offer, index) => {
               const bookingLike = ["service", "booking", "quote", "consultation"].includes(offer.offer_type);
               const purchasable = typeof offer.price_cents === "number" && Number.isFinite(offer.price_cents) && offer.price_cents > 0;
               const deliveryPending = offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
               const payableService = purchasable && !deliveryPending && ["service", "booking", "consultation"].includes(offer.offer_type);
               const details = offer.fulfillment_config || {};
+              const physical = offer.offer_type === "physical_product" && offer.fulfillment_type === "shipping";
+              const shipping = physical ? physicalShippingConfig(details) : null;
               const checkoutHold = getCqaOfferCheckoutHold(offer);
               return (
                 <article key={offer.id} className="machine-offer-slot">
@@ -122,6 +130,12 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                       </Link>
                     ) : checkoutHold ? (
                       <div><Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>ENQUIRE ABOUT THIS OFFER →</Link><p className="small">{checkoutHold.message}</p></div>
+                    ) : physical && purchasable && shipping ? (
+                      <div style={{ display: "grid", gap: ".75rem" }}>
+                        <p className="small">Merchant dispatch · Ships to {shipping.shippingCountries.join(", ")} · Shipping {formatAud(shipping.shippingRateCents)}</p>
+                        {isCqaPhysicalCheckoutAllowed() ? <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="BUY THIS PRODUCT" requiresBuyerAccount /> : <><button className="neon-enter-button" type="button" disabled>SHIPPING CHECKOUT PAUSED</button><p className="small">Physical purchases are held until stock and delivery verification is complete.</p></>}
+                        <p className="small">One item per checkout. Enter your delivery address at Stripe checkout. This business dispatches your order and adds tracking to your account.</p>
+                      </div>
                     ) : deliveryPending && purchasable ? (
                       isCqaDigitalCheckoutAllowed() ? <div style={{ display: "grid", gap: ".75rem" }}>
                         <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="BUY DIGITAL PRODUCT" requiresBuyerAccount />

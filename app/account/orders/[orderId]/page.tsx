@@ -22,6 +22,7 @@ import {
   type OrderResult,
 } from "@/components/customer/types";
 import styles from "../../account.module.css";
+import { ShipmentPanel } from "@/components/fulfillment/ShipmentPanel";
 
 function OrderWorkspace({
   result,
@@ -54,10 +55,11 @@ function OrderWorkspace({
   );
   const digital = isDigital(order);
   const paid = isPaid(order);
+  const physical = order.offerType === "physical_product" || order.fulfillmentType === "shipping";
   const hasIntake = Boolean(
     order.workspace.intake?.businessName || order.workspace.intake?.goals,
   );
-  const delivered = paid && !digital && order.workspace.state === "delivered";
+  const delivered = paid && !digital && !physical && order.workspace.state === "delivered";
   const path = `/api/customer/orders/${encodeURIComponent(order.id)}`;
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -173,7 +175,9 @@ function OrderWorkspace({
       if (!controller.signal.aborted) setBillingBusy(false);
     }
   }
-  const progress = digital
+  const progress = physical
+    ? [{ title: "Purchase", done: paid }]
+    : digital
     ? [
         { title: "Purchase", done: paid },
         { title: "Download access", done: paid },
@@ -249,7 +253,7 @@ function OrderWorkspace({
       )}
       <div className={styles.detailGrid}>
         <div className={styles.mainColumn}>
-          {digital ? (
+          {physical ? <ShipmentPanel orderId={order.id} paid={paid} request={request} /> : digital ? (
             <section className={styles.panel}>
               <span className={styles.eyebrow}>YOUR DIGITAL PURCHASE</span>
               <h2>{paid ? "Download your purchase" : "Your digital purchase"}</h2>
@@ -404,6 +408,7 @@ function OrderWorkspace({
               </form>
             </section>
           )}
+          {order.purchaseTerms && Object.values(order.purchaseTerms).some(Boolean) && <section className={styles.panel}><span className={styles.eyebrow}>AT THE TIME OF PURCHASE</span><h2>Purchased delivery terms</h2>{Object.entries({ "What you receive": order.purchaseTerms.deliveryDescription, "Delivery timing": order.purchaseTerms.deliveryTiming, "Support": order.purchaseTerms.supportDetails, "Refund / cancellation terms": order.purchaseTerms.refundTerms }).filter(([, value]) => Boolean(value)).map(([label, value]) => <div key={label}><h3 className={styles.smallHeading}>{label}</h3><p className={styles.deliveryMessage}>{value}</p></div>)}</section>}
           {delivered && order.workspace.intake && (
             <section className={styles.panel}>
               <span className={styles.eyebrow}>YOUR PROJECT DETAILS</span>
@@ -468,7 +473,7 @@ function OrderWorkspace({
               </div>
               <div>
                 <dt>Purchase type</dt>
-                <dd>{digital ? "Digital download" : "Service delivery"}</dd>
+                <dd>{physical ? "Physical product" : digital ? "Digital download" : "Service delivery"}</dd>
               </div>
               <div>
                 <dt>Payment</dt>

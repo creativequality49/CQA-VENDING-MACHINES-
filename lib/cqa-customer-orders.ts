@@ -30,7 +30,11 @@ function purchaseSnapshot(value: unknown) {
   if (typeof snapshot.title !== "string" || !snapshot.title.trim() || snapshot.title.length > 300 ||
       typeof snapshot.offerType !== "string" || !offerTypes.includes(snapshot.offerType) ||
       !(snapshot.fulfillmentType === null || (typeof snapshot.fulfillmentType === "string" && fulfillmentTypes.includes(snapshot.fulfillmentType)))) return null;
-  return { title: snapshot.title.trim(), offerType: snapshot.offerType, fulfillmentType: snapshot.fulfillmentType as string | null };
+  return { title: snapshot.title.trim(), offerType: snapshot.offerType, fulfillmentType: snapshot.fulfillmentType as string | null,
+    terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].flatMap(key => {
+      const terms = snapshot.terms && typeof snapshot.terms === "object" && !Array.isArray(snapshot.terms) ? snapshot.terms as Record<string, unknown> : {};
+      const value = terms[key]; return typeof value === "string" && value.length <= 5000 ? [[key, value]] : [];
+    })) };
 }
 
 /** Verify the bearer with Supabase; never infer ownership from a checkout reference or email. */
@@ -105,7 +109,7 @@ async function enrichOrders(admin: Admin, orders: Row[]) {
     return {
       id: orderId, title: snapshot?.title || validOffer?.name || "Order", businessName: businesses.get(order.business_id)?.name || "Business",
       businessId, machineSlug: validMachine?.slug || null, offerType,
-      fulfillmentType, paymentStatus: text(order.status),
+      fulfillmentType, purchaseTerms: snapshot?.terms || {}, paymentStatus: text(order.status),
       amountCents: typeof order.amount_cents === "number" ? order.amount_cents : 0,
       currency: text(order.currency) || "aud", createdAt: text(order.created_at),
       workspace: {

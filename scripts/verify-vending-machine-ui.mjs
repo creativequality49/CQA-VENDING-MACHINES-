@@ -13,7 +13,7 @@ try{
  await page.getByRole('heading',{name:'CQA Digital Vending Machine.',exact:true}).waitFor();
  assert(await page.getByRole('img',{name:/CQA branded digital vending machine/}).evaluate(el=>el.complete&&el.naturalWidth>0),'machine image loaded');
  const options=page.getByRole('group',{name:'Choose a destination'});
- for(const [label,href] of [['Digital kits','/digital-products'],['Services','/machines'],['Build your machine','/onboarding'],['My workspace','/login']]){
+ for(const [label,href] of [['Merchant marketplace','/marketplace'],['Digital kits','/digital-products'],['Services','/machines'],['Build your machine','/onboarding'],['My workspace','/login']]){
   await options.getByRole('button',{name:label,exact:true}).click();
   assert.equal(await options.getByRole('button',{name:label,exact:true}).getAttribute('aria-pressed'),'true');
   assert.equal(await page.getByRole('link',{name:'Enter '+label,exact:true}).getAttribute('href'),href);
@@ -33,5 +33,5 @@ try{
  assert(await page.getByRole('link',{name:/Explore the interactive machine/}).count(),'homepage links to experience');
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile homepage overflow');
  await page.setViewportSize({width:1440,height:1000});await page.screenshot({path:output+'/homepage-machine-desktop.png',fullPage:false});
- assert.deepEqual(errors,[]);console.log('PASS vending experience: full artwork, four selection destinations, ENTER navigation, light toggle, desktop/mobile layout and 44px mobile target; no page errors. No payments or real delivery are exercised.');
+ assert.deepEqual(errors,[]);console.log('PASS vending experience: full artwork, five selection destinations, ENTER navigation, light toggle, desktop/mobile layout and 44px mobile target; no page errors. No payments or real delivery are exercised.');
 }finally{await browser.close();}
