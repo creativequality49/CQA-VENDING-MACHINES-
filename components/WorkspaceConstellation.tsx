@@ -61,10 +61,10 @@ function NetworkDrawing() {
 export function WorkspaceConstellation({ variant = "navigation", nodes = destinations }: Props) {
   const titleId = useId();
   const [zoom, setZoom] = useState(1);
-  if (variant === "ambient") return <div className={`${styles.frame} ${styles.ambient}`} aria-hidden="true"><div className={styles.stage}><NetworkDrawing /></div></div>;
+  if (variant === "ambient") return <div data-theme-art className={`${styles.frame} ${styles.ambient}`} aria-hidden="true"><div className={styles.stage}><NetworkDrawing /></div></div>;
   const links = nodes.filter(node => node.label.trim() && node.href.startsWith("/") && !node.href.startsWith("//") && !/[\\\u0000-\u0020]/.test(node.href));
   const graphLinks = links.slice(0, anchors.length);
-  return <section className={styles.frame} aria-labelledby={titleId}>
+  return <section data-theme-art className={styles.frame} aria-labelledby={titleId}>
     <div className={styles.header}><div><span className={styles.kicker}>Connected workspace</span><h2 id={titleId}>Find your next move.</h2><p>Open a destination on the map, or use the list below.</p></div>
       <div className={styles.controls} role="group" aria-label="Map view controls">
         <button type="button" aria-label="Zoom map out" disabled={zoom <= 0.8} onClick={() => setZoom(value => Math.max(0.8, Number((value - 0.2).toFixed(1))))}>−</button>

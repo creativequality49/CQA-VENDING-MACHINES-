@@ -24,7 +24,7 @@ export default function DigitalVendingMachinePage() {
       <p>A digital vending machine with a CQA point of view. Choose a destination, then press ENTER to explore.</p>
     </header>
     <section className={styles.experience} aria-label="Interactive CQA digital vending machine">
-      <div className={`${styles.stage} ${lights ? styles.lightsOn : styles.lightsOff}`}>
+      <div data-theme-art className={`${styles.stage} ${lights ? styles.lightsOn : styles.lightsOff}`}>
         <div className={styles.stageBar}><span>CQA / DIGITAL VENDING MACHINE</span><button type="button" aria-pressed={lights} onClick={() => setLights(value => !value)}>Accent lights: {lights ? "on" : "off"}</button></div>
         <div className={styles.art}>
           <Image src="/images/cqa-digital-vending-machine.png" alt="CQA branded digital vending machine with a robotic arm, glass cabinet, luminous digital icons and an ENTER control" width={1086} height={1448} priority sizes="(max-width: 800px) calc(100vw - 40px), 55vw" />

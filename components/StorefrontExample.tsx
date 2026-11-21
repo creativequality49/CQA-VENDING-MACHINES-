@@ -9,7 +9,7 @@ const examples = {
 
 export default function StorefrontExample({ kind = "beauty" }: { kind?: keyof typeof examples }) {
   const example = examples[kind];
-  return <div className={`studio-example studio-example-${example.tone}`}>
+  return <div data-theme-art className={`studio-example studio-example-${example.tone}`}>
     <div className="studio-example-bar"><span aria-hidden="true">● ● ●</span><span>ILLUSTRATIVE STOREFRONT</span></div>
     <div className="studio-example-brand"><b>{example.letter}</b><span>{example.name}<small>Powered by CQA</small></span><span aria-hidden="true">→</span></div>
     <div className="studio-example-intro"><span className="studio-kicker">{example.category}</span><h3>{example.headline}</h3><p>{example.description}</p></div>

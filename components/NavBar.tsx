@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
+import { ThemeToggle } from "./ThemeToggle";
 import { NavigationMenu } from "./NavigationMenu";
 import styles from "./NavBar.module.css";
 
@@ -14,6 +15,7 @@ export function NavBar() {
       <Link href="/" className={styles.brand} aria-label="Creative Quality Australia home"><span className={styles.brandMark}>CQ<span>A</span></span><small>CREATIVE QUALITY<br />AUSTRALIA</small></Link>
       <nav className={styles.desktop} aria-label="Primary navigation">{links.map(([label,href])=><Link key={href} href={href}>{label}</Link>)}</nav>
       <Link href="/login?next=/owner/dashboard" className={styles.workspace}>Your workspace →</Link>
+      <ThemeToggle />
       <NavigationMenu links={links} />
     </div></header>
   </>;

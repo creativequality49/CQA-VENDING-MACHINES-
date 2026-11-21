@@ -1,27 +1,27 @@
 .announcement { background: #111d3c; color: #e3e9f6; font-size: 12px; line-height: 1.5; text-align: center; padding: 9px 20px; }
 .announcement a { color: inherit; text-decoration: none; }
-.header { position: sticky; top: 0; z-index: 50; background: #fff; color: #142140; border-bottom: 1px solid #e7eaf1; }
+.header { position: sticky; top: 0; z-index: 50; background: var(--theme-page,#fff); color: var(--theme-text,#142140); border-bottom: 1px solid #e7eaf1; }
 .shell { width: min(1280px,calc(100% - 48px)); min-height: 92px; margin: auto; display: flex; gap: 28px; align-items: center; justify-content: space-between; }
-.brand { display: flex; align-items: center; gap: 12px; color: #142140; text-decoration: none; flex-shrink: 0; }
+.brand { display: flex; align-items: center; gap: 12px; color: var(--theme-text,#142140); text-decoration: none; flex-shrink: 0; }
 .brandMark { font-family: 'CQA Syne',system-ui,sans-serif; font-size: 36px; font-weight: 800; letter-spacing: -.08em; line-height: 1; }
 .brandMark span { color: #2b63b5; }
 .brand small { display: block; font-size: 10px; font-weight: 700; letter-spacing: .09em; line-height: 1.5; max-width: 112px; }
 .desktop { display: flex; align-items: center; gap: clamp(16px,2vw,28px); }
-.desktop a { display: inline-flex; align-items: center; min-height: 44px; color: #23314c; font-size: 14px; font-weight: 650; text-decoration: none; white-space: nowrap; }
+.desktop a { display: inline-flex; align-items: center; min-height: 44px; color: var(--theme-text,#23314c); font-size: 14px; font-weight: 650; text-decoration: none; white-space: nowrap; }
 .desktop a:hover { color: #2854a6; }
 .workspace { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 99px; padding: 12px 23px; font-size: 14px; font-weight: 700; color: #fff; background: #234b98; border: 1px solid #234b98; box-shadow: 0 0 0 4px #234b980b; text-decoration: none; white-space: nowrap; }
 .workspace:hover { background: #173a7b; }
 .menu { position: relative; }
-.menu summary { min-height: 44px; padding: 10px 13px; border: 1px solid #dce2ed; border-radius: 8px; color: #152441; font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
+.menu summary { min-height: 44px; padding: 10px 13px; border: 1px solid #dce2ed; border-radius: 8px; color: var(--theme-text,#152441); font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; }
 .menu summary::-webkit-details-marker { display: none; }
 .menu summary span { margin-left: 10px; }
-.panel { position: absolute; right: 0; top: calc(100% + 14px); width: 290px; max-width: calc(100vw - 36px); background: #fff; color: #152441; border: 1px solid #dce2ed; border-radius: 14px; box-shadow: 0 24px 60px #15244126; padding: 12px; display: grid; max-height: calc(100vh - 140px); max-height: min(650px,calc(100dvh - 140px)); overflow-y: auto; overscroll-behavior: contain; }
-.panel a { min-height: 44px; padding: 12px; color: #23314c; border-radius: 8px; text-decoration: none; font-size: 14px; }
-.panel a:hover { background: #eef3fb; }
+.panel { position: absolute; right: 0; top: calc(100% + 14px); width: 290px; max-width: calc(100vw - 36px); background: var(--theme-page,#fff); color: var(--theme-text,#152441); border: 1px solid #dce2ed; border-radius: 14px; box-shadow: 0 24px 60px #15244126; padding: 12px; display: grid; max-height: calc(100vh - 140px); max-height: min(650px,calc(100dvh - 140px)); overflow-y: auto; overscroll-behavior: contain; }
+.panel a { min-height: 44px; padding: 12px; color: var(--theme-text,#23314c); border-radius: 8px; text-decoration: none; font-size: 14px; }
+.panel a:hover { background: var(--theme-soft,#eef3fb); }
 .panel .workspace { color: #fff; margin-top: 8px; }
 .header :is(a,summary):focus-visible, .announcement a:focus-visible { outline: 2px solid #3064b9; outline-offset: 4px; }
-@media(min-width:1101px) { .menu { display: none; } }
-@media(max-width:1100px) { .desktop { display:none; } .shell { min-height: 80px; gap: 16px; } .workspace { margin-left: auto; } }
+@media(min-width:1281px) { .menu { display: none; } }
+@media(max-width:1280px) { .desktop { display:none; } .shell { min-height: 80px; gap: 16px; } .workspace { margin-left: auto; } }
 @media(max-width:600px) { .shell { width: calc(100% - 36px); min-height: 74px; gap: 10px; } .shell > .workspace { display:none; } .brandMark { font-size:32px; } .brand small { font-size:9px; max-width:100px; } .announcement { font-size:11px; } }
 @media(prefers-reduced-motion:reduce) { .header * { transition:none!important; } }
 

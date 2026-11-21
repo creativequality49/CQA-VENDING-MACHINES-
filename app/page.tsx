@@ -24,7 +24,7 @@ export default function HomePage() {
         <p className={styles.micro}>Free design preview. No payment to explore.</p>
         <Link href="#machine-build-demo" className={styles.textLink}>Watch the example build <span aria-hidden="true">→</span></Link>
       </div>
-      <figure className={styles.heroVisual}>
+      <figure data-theme-art className={styles.heroVisual}>
         <div className={styles.heroImage}><Image src="/images/cqa-digital-vending-machine.png" alt="CQA Digital Vending Machine concept with a robotic arm behind glass, digital product tiles and an illuminated ENTER control" width={1086} height={1448} sizes="(max-width: 760px) calc(100vw - 40px), 46vw" priority /></div>
         <span className={styles.imageLabel}>CQA Digital Vending Machine</span>
         <figcaption><span>Your digital world.<br /><strong>Step inside.</strong></span><Link href="/digital-vending-machine" aria-label="Explore the interactive CQA Digital Vending Machine">→</Link></figcaption>

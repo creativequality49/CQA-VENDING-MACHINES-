@@ -9,6 +9,7 @@ import "./vending-reference.css";
 import "./studio.css";
 import "./creative-theme.css";
 import "./public-catalog-theme.css";
+import "./color-theme.css";
 import { NavBar } from "@/components/NavBar";
 
 // Keep the public fallback aligned with the domain attached to the production
@@ -54,7 +55,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-AU">
+    <html lang="en-AU" data-theme="light" suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: `(function(){var t="light";try{if(localStorage.getItem("cqa-theme")==="dark")t="dark"}catch(e){}document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t})()` }} /></head>
       <body>
         <NavBar />
         {children}

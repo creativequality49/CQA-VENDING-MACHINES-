@@ -208,6 +208,7 @@ export default function OwnerDashboardPage() {
       </section>
 
       <div style={{ marginBottom: "1rem" }}>
+      <Link className="button primary" href="/owner/operations">Open sales, stock & delivery overview →</Link>
       <WorkspaceConstellation nodes={[
         { id: "store", label: "Storefront", href: machine ? `/machine/${machine.slug}` : "/owner/setup", description: "Open your business storefront" },
         { id: "orders", label: "Orders", href: "/owner/orders", description: "Customer briefs and fulfilment" },

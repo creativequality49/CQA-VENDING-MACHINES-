@@ -39,3 +39,9 @@ The owner authorized the existing account with matching prices. Read-only catalo
 ## Isolated database evidence
 
 Migration `20261121040553_merchant_product_fulfillment.sql` is applied to CQA Launch Test only. Its filename matches the Supabase migration history. `tests/fixtures/merchant-fulfillment-remote-rollback.sql` passed against the actual existing schema: nonzero shipping totals, stock reservation floor, exactly-one debit/job, late payment denial after release, shipment revisions, refund history and owner/outsider isolation. All fixture data was rolled back. This is not proof of a genuine provider checkout or physical dispatch.
+
+## Merchant operations overview and appearance
+
+`/owner/operations` brings machine status, current paid-order totals by currency, an all-time fulfilment attention list and active physical-product stock alerts together. Its restock CSV suggests only the units needed to reach six available units; it never places a supplier order. Figures refresh on request and show their timestamp. Sales cover 30 UTC calendar days by order creation date, include shipping, exclude fully refunded/cancelled orders and do not deduct fees or partial refunds. They are not profit or payout balances. Owner-scoped paginated reads reject incomplete totals rather than treating failures as zero.
+
+The global navigation has a Light/Dark control. Light is the default and uses white page backgrounds. A browser-local `cqa-theme` preference is applied before paint, persists across pages/reloads and synchronizes across tabs. `app/color-theme.css` owns the shared theme tokens and legacy surface overrides. Self-contained illustrative artwork uses `data-theme-art` so its image/diagram contrast is preserved independently of the surrounding page theme. Browser checks cover 19 public pages plus the authenticated operations screen using explicitly labelled local fixtures.

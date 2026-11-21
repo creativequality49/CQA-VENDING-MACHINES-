@@ -43,7 +43,7 @@ export default function WorkerShowcase({ compact = false, dashboardReady = false
               <h3>{name}</h3>
               <strong className="studio-worker-title">{details.title}</strong>
               <p>{details.description}</p>
-              <div className="studio-worker-sample">
+              <div data-theme-art className="studio-worker-sample">
                 <span className="studio-kicker">EXAMPLE DRAFT</span>
                 <p>“{details.sample}”</p>
               </div>

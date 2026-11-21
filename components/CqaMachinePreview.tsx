@@ -14,7 +14,7 @@ export default function CqaMachinePreview({ name, category, description, locatio
   const businessName = name.trim() || "Your business name";
   const visibleOffers = offers.filter((offer) => offer.name.trim());
   const examples = visibleOffers.length ? visibleOffers : [{ name: "Your first service or product", price: "" }, { name: "Another way to work with you", price: "" }];
-  return <section className={styles.preview} style={{ "--preview-accent": colour } as CSSProperties} aria-label="Your personalised machine template preview">
+  return <section data-theme-art className={styles.preview} style={{ "--preview-accent": colour } as CSSProperties} aria-label="Your personalised machine template preview">
     <div className={styles.browser}><span>● ● ●</span><strong>CQA · DEMO PREVIEW</strong><span>↗</span></div>
     <div className={styles.body}>
       <header className={styles.header}><div className={styles.logo}>{businessName.slice(0, 1).toUpperCase()}</div><strong>{businessName}</strong><span className={styles.category}>{category}</span></header>
