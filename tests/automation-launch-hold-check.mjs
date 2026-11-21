@@ -16,7 +16,7 @@ function page(env) {
  const gates=load('lib/cqa-launch-gate.ts',{}, {process:{env}});
  const component=load('app/automations/page.tsx',{
   'next/link':{__esModule:true,default:props=>React.createElement('a',props,props.children)},
-  '@/lib/cqa-automation-catalog':catalog,'@/lib/cqa-launch-gate':gates
+  '@/components/VendingConsole':{__esModule:true,default:()=>null},'@/lib/cqa-automation-catalog':catalog,'@/lib/cqa-launch-gate':gates
  });
  return {html:renderToStaticMarkup(React.createElement(component.default)),gates};
 }
@@ -52,7 +52,7 @@ for(const prefix of ['sk_live_','rk_live_','rkcs_live_']) {
 }
 console.log('PASS explicit live approval preserves original catalogue checkout links across three credential types');
 assert.doesNotMatch(load('app/automations/page.tsx',{
- 'next/link':{__esModule:true,default:()=>null},'@/lib/cqa-automation-catalog':catalog,
+ 'next/link':{__esModule:true,default:()=>null},'@/components/VendingConsole':{__esModule:true,default:()=>null},'@/lib/cqa-automation-catalog':catalog,
  '@/lib/cqa-launch-gate':{isCqaLiveCatalogCheckoutAllowed:()=>false}
 }).metadata.description,/live Stripe checkout/i);
 console.log('PASS page metadata makes no unverified live checkout claim');

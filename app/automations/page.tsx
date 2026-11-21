@@ -1,4 +1,5 @@
 import Link from "next/link";
+import VendingConsole from "@/components/VendingConsole";
 import { CQA_AUTOMATION_OFFERS, firstPaymentAud } from "@/lib/cqa-automation-catalog";
 import { isCqaLiveCatalogCheckoutAllowed } from "@/lib/cqa-launch-gate";
 
@@ -20,59 +21,68 @@ export default function AutomationsPage() {
   const renderOffer = (offer: (typeof CQA_AUTOMATION_OFFERS)[number], featured = false) => {
     const first = firstPaymentAud(offer);
     return (
-      <article className="glass-card" key={offer.id} style={{ padding: "1.35rem", display: "flex", flexDirection: "column", borderColor: featured ? "rgba(32,217,255,.5)" : undefined }}>
+      <article className={`automation-offer${featured ? " automation-offer-featured" : ""}`} key={offer.id} id={offer.id}>
         <span className="eyebrow">{offer.category === "package" ? "AUTOMATION PACKAGE" : offer.category === "industry" ? "INDUSTRY AUTOMATION" : "AI AUTOMATION WORKER"}</span>
-        <h2 style={{ marginBottom: ".45rem" }}>{offer.name}</h2>
-        <p className="small" style={{ minHeight: 58 }}>{offer.description}</p>
-        <div style={{ margin: ".8rem 0 1rem" }}>
-          <strong style={{ fontSize: "1.55rem" }}><Money value={offer.setupAud!} /> setup</strong>
+        <h3>{offer.name}</h3>
+        <p className="automation-description">{offer.description}</p>
+        <div className="automation-price">
+          <strong><Money value={offer.setupAud!} /> setup</strong>
           <div className="small">+ <Money value={offer.monthlyAud!} /> / month</div>
-          <div className="small" style={{ marginTop: ".35rem" }}>{launchApproved ? "First checkout:" : "Proposed first payment:"} <strong><Money value={first!} /></strong> AUD, then <Money value={offer.monthlyAud!} /> monthly{launchApproved ? "." : " after launch approval."}</div>
+          <div className="automation-first-payment">{launchApproved ? "First checkout:" : "Proposed first payment:"} <strong><Money value={first!} /></strong> AUD, then <Money value={offer.monthlyAud!} /> monthly{launchApproved ? "." : " after launch approval."}</div>
         </div>
-        <div className="revenue-stack" style={{ marginBottom: "1rem" }}>
-          {offer.features.map((feature) => <div key={feature}><span>✓</span><strong>{feature}</strong></div>)}
-        </div>
-        {launchApproved ? <a href={offer.paymentUrl!} className="button primary" style={{ marginTop: "auto", textAlign: "center" }}>Buy securely with Stripe</a> : <Link href="/founding-customers" className="button primary" style={{ marginTop: "auto", textAlign: "center" }}>Register early interest</Link>}
+        <ul className="automation-features">
+          {offer.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}
+        </ul>
+        {launchApproved ? <a href={offer.paymentUrl!} className="button primary automation-offer-action">Buy securely with Stripe</a> : <Link href="/founding-customers" className="button primary automation-offer-action">Register early interest</Link>}
       </article>
     );
   };
 
   return (
-    <main className="container" style={{ paddingTop: "2.5rem", paddingBottom: "5rem" }}>
-      <section className="marketplace-neon-hero" style={{ marginBottom: "1.35rem" }}>
+    <main className="container cqa-automation-page">
+      <section className="automation-hero">
         <div>
           <span className="eyebrow">CQA AUTOMATION MARKETPLACE</span>
-          <h1>{launchApproved ? "Buy the business outcome. CQA builds the automation behind it." : "Explore the business outcome. Register for assisted early access."}</h1>
+          <span className="automation-availability">{launchApproved ? "LIVE CHECKOUT" : "PRELAUNCH · PAYMENTS PAUSED"}</span>
+          <h1>{launchApproved ? "Select your next business automation." : "Your next automation. One selection away."}</h1>
           <p>{launchApproved ? "Agree your workflow scope, tool compatibility and delivery timing with CQA, review the setup and monthly costs, then complete your implementation brief after confirmed payment." : "Customer launch is not yet approved. Automation purchases are paused while we verify delivery, payments and customer access. These are proposed offers; register your interest without paying or committing to a subscription."}</p>
-          <div style={{ display: "flex", gap: ".75rem", flexWrap: "wrap" }}>
+          <div className="automation-actions">
             <a href="#packages" className="button primary">View Automation Packages</a>
             <Link href="/contact" className="button ghost">Request a Custom Build</Link>
           </div>
         </div>
-        <div className="marketplace-live-panel"><span>{launchApproved ? "LIVE CHECKOUT" : "PRELAUNCH · PAYMENTS PAUSED"}</span><strong>10</strong><small>{launchApproved ? "automation offers" : "proposed automation offers"}</small></div>
+        <VendingConsole label="CQA AUTOMATION MACHINE" items={[...packages, ...specialist].slice(0, 6).map((offer, index) => ({
+          code: `${index < 3 ? "A" : "B"}${index % 3 + 1}`,
+          title: offer.name,
+          image: `/images/slots/${["tablet", "headphones", "camera", "bag", "watch", "sneaker"][index]}.svg`,
+          description: offer.description,
+          price: `$${offer.setupAud?.toLocaleString("en-AU")} setup + $${offer.monthlyAud}/mo AUD`,
+          href: `#${offer.id}`
+        }))}/>
+
       </section>
 
-      <section className="grid grid-3" style={{ marginBottom: "1.35rem" }}>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">01 · CHOOSE</span><h3>Pick the job to automate</h3><p className="small">Select a packaged system or specialist AI automation worker.</p></article>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">{launchApproved ? "02 · PAY" : "02 · REGISTER INTEREST"}</span><h3>{launchApproved ? "Secure Stripe checkout" : "No payment during prelaunch"}</h3><p className="small">{launchApproved ? "The first payment includes setup plus month one. Future invoices contain the monthly subscription only." : "Join the early-access list. We will confirm availability, scope and pricing before inviting you to purchase."}</p></article>
-        <article className="glass-card" style={{ padding: "1rem" }}><span className="eyebrow">03 · IMPLEMENT</span><h3>CQA configures the workflow</h3><p className="small">We connect the agreed tools, configure the workflow and prepare it for your business.</p></article>
+      <section className="automation-process" aria-label="How it works">
+        <article><span className="eyebrow">01 · CHOOSE</span><h3>Pick the job to automate</h3><p className="small">Select a packaged system or specialist AI automation worker.</p></article>
+        <article><span className="eyebrow">{launchApproved ? "02 · PAY" : "02 · REGISTER INTEREST"}</span><h3>{launchApproved ? "Secure Stripe checkout" : "No payment during prelaunch"}</h3><p className="small">{launchApproved ? "The first payment includes setup plus month one. Future invoices contain the monthly subscription only." : "Join the early-access list. We will confirm availability, scope and pricing before inviting you to purchase."}</p></article>
+        <article><span className="eyebrow">03 · IMPLEMENT</span><h3>CQA configures the workflow</h3><p className="small">We connect the agreed tools, configure the workflow and prepare it for your business.</p></article>
       </section>
 
-      <section id="packages" style={{ paddingTop: "1rem" }}>
+      <section id="packages" className="automation-section">
         <span className="eyebrow">CORE PACKAGES</span>
         <h2>Scale from one automation to an AI operations layer.</h2>
         <p className="small">Starter covers one agreed workflow. Pro connects up to three automations. Specialist workers below have a defined job, such as lead qualification or follow-up. Confirm scope, tool compatibility and delivery timing with CQA.</p>
-        <div className="grid grid-3" style={{ marginTop: "1rem" }}>{packages.map((offer, index) => renderOffer(offer, index === 1))}</div>
+        <div className="automation-offers automation-packages">{packages.map((offer, index) => renderOffer(offer, index === 1))}</div>
       </section>
 
-      <section style={{ paddingTop: "3.5rem" }}>
+      <section className="automation-section">
         <span className="eyebrow">SPECIALIST AUTOMATIONS</span>
         <h2>Add only the operational capacity your business needs.</h2>
-        <div className="grid grid-2" style={{ marginTop: "1rem" }}>{specialist.map((offer) => renderOffer(offer))}</div>
+        <div className="automation-offers automation-specialists">{specialist.map((offer) => renderOffer(offer))}</div>
       </section>
 
       {custom ? (
-        <section className="final-panel" style={{ marginTop: "2rem" }}>
+        <section className="automation-custom">
           <div>
             <span className="eyebrow">CUSTOM AUTOMATION SYSTEM</span>
             <h2>{custom.name}</h2>
@@ -106,7 +116,7 @@ export default function AutomationsPage() {
         <p className="small"><Link href="/terms">Service terms</Link> · <Link href="/refund-policy">Refunds and cancellation</Link> · <Link href="/privacy">Privacy</Link> · <Link href="/contact?service=automation-implementation">Discuss your implementation</Link></p>
       </section>
 
-      <section className="glass-card" style={{ padding: "1.25rem", marginTop: "1.25rem" }}>
+      <section className="automation-responsibility">
         <span className="eyebrow">DATA & PLATFORM RESPONSIBILITY</span>
         <p className="small">Automations that collect third-party data are configured only for sources and access methods the customer is permitted to use. CQA does not position bypassing access controls or prohibited scraping as a product feature.</p>
       </section>

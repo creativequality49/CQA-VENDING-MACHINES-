@@ -1,0 +1,55 @@
+/* Automation catalogue: quieter hierarchy, consistent pricing and readable cards. */
+.cqa-premium-dark .cqa-automation-page { padding-block: 56px 80px; }
+.cqa-automation-page .automation-hero { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); align-items: center; gap: 40px; padding-block: 24px 56px; }
+.cqa-automation-page .automation-hero h1 { max-width: 780px; margin: 20px 0 24px; font-size: clamp(36px, 3.8vw, 54px); line-height: 1.08; letter-spacing: -.045em; font-weight: 600; text-wrap: balance; }
+.cqa-automation-page .automation-hero p { max-width: 650px; color: var(--muted); line-height: 1.8; font-size: 15px; }
+.cqa-automation-page .automation-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.cqa-automation-page .automation-summary { border-left: 1px solid var(--border); padding: 12px 0 12px 32px; }
+.cqa-automation-page .automation-availability { display: block; font-size: 10px; letter-spacing: .12em; color: var(--muted); line-height: 1.6; }
+.cqa-automation-page .automation-summary > strong { display: block; margin-top: 22px; font-size: 76px; line-height: 1; font-weight: 400; letter-spacing: -.065em; }
+.cqa-automation-page .automation-summary small { display: block; margin-top: 10px; color: var(--text); }
+.cqa-automation-page .automation-summary p { font-size: 12px; margin: 22px 0 0; }
+.cqa-automation-page .automation-process { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 32px; border-block: 1px solid var(--border); padding-block: 28px; }
+.cqa-automation-page .automation-process h3 { font-size: 16px; font-weight: 550; margin: 12px 0 8px; }
+.cqa-automation-page .automation-process p { font-size: 13px; margin: 0; }
+.cqa-automation-page .automation-section { padding-top: 64px; scroll-margin-top: 110px; }
+.cqa-automation-page .automation-section > h2 { font-size: clamp(25px, 3vw, 36px); font-weight: 550; line-height: 1.25; letter-spacing: -.03em; max-width: 720px; margin: 14px 0 28px; }
+.cqa-automation-page .automation-offers { display: grid; gap: 16px; }
+.cqa-automation-page .automation-packages { grid-template-columns: repeat(3, minmax(0,1fr)); }
+.cqa-automation-page .automation-specialists { grid-template-columns: repeat(2, minmax(0,1fr)); }
+.cqa-automation-page .automation-offer { min-width: 0; display: flex; flex-direction: column; padding: 28px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); scroll-margin-top: 110px; }
+.cqa-automation-page .automation-offer-featured { border-color: #719bb2; background: #17232e; }
+.cqa-automation-page .automation-offer h3 { font-size: 23px; font-weight: 550; line-height: 1.25; letter-spacing: -.025em; margin: 18px 0 12px; }
+.cqa-automation-page .automation-description { color: var(--muted); font-size: 14px; line-height: 1.75; margin: 0; min-height: 98px; }
+.cqa-automation-page .automation-price { border-block: 1px solid var(--border); padding-block: 22px; margin-block: 22px; }
+.cqa-automation-page .automation-price > strong { display: block; font-size: 27px; font-weight: 550; letter-spacing: -.03em; margin-bottom: 7px; }
+.cqa-automation-page .automation-first-payment { font-size: 12px; line-height: 1.7; color: var(--muted); margin-top: 12px; }
+.cqa-automation-page .automation-features { display: grid; gap: 13px; list-style: none; margin: 0 0 28px; padding: 0; font-size: 13px; line-height: 1.6; }
+.cqa-automation-page .automation-features li { display: flex; gap: 12px; }
+.cqa-automation-page .automation-features span { color: #b4c8b9; }
+.cqa-automation-page .automation-offer-action { margin-top: auto; width: 100%; text-align: center; }
+.cqa-automation-page .automation-custom { display: flex; justify-content: space-between; align-items: center; gap: 36px; padding: 36px; margin-top: 48px; border: 1px solid var(--border); border-radius: 14px; background: var(--panel); }
+.cqa-automation-page .automation-custom > div { max-width: 700px; }
+.cqa-automation-page .automation-custom h2 { font-size: 28px; letter-spacing: -.03em; font-weight: 550; }
+.cqa-automation-page .automation-custom p { color: var(--muted); line-height: 1.75; font-size: 14px; }
+.cqa-automation-page .automation-custom > a { flex-shrink: 0; }
+.cqa-automation-page .automation-responsibility { border-top: 1px solid var(--border); padding-top: 26px; margin-top: 40px; }
+.cqa-automation-page .automation-responsibility p { max-width: 850px; font-size: 12px; }
+@media (max-width: 1000px) {
+  .cqa-automation-page .automation-hero { grid-template-columns: 1fr; gap: 36px; }
+  .cqa-automation-page .automation-packages { grid-template-columns: 1fr; }
+  .cqa-automation-page .automation-description { min-height: 0; }
+}
+@media (max-width: 640px) {
+  .cqa-premium-dark .cqa-automation-page { padding-block: 28px 48px; }
+  .cqa-automation-page .automation-hero { grid-template-columns: 1fr; gap: 32px; padding-block: 12px 36px; }
+  .cqa-automation-page .automation-summary { padding: 20px; border: 1px solid var(--border); border-radius: 12px; }
+  .cqa-automation-page .automation-summary > strong { font-size: 48px; margin-top: 14px; }
+  .cqa-automation-page .automation-summary p { margin-top: 14px; }
+  .cqa-automation-page .automation-process, .cqa-automation-page .automation-specialists { grid-template-columns: 1fr; }
+  .cqa-automation-page .automation-process { gap: 24px; }
+  .cqa-automation-page .automation-section { padding-top: 40px; }
+  .cqa-automation-page .automation-offer { padding: 24px; }
+  .cqa-automation-page .automation-custom { padding: 24px; align-items: flex-start; flex-direction: column; }
+  .cqa-automation-page .automation-actions > a, .cqa-automation-page .automation-custom > a { width: 100%; }
+}

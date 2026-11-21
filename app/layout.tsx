@@ -7,6 +7,9 @@ import "./cqa-reference.css";
 import "./inner-pages-premium.css";
 import "./vending-reference.css";
 import "./studio.css";
+import "./premium-dark.css";
+import "./automations/automations.css";
+import "./vending-console.css";
 import { NavBar } from "@/components/NavBar";
 
 // Keep the public fallback aligned with the domain attached to the production
@@ -53,7 +56,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en-AU">
-      <body>
+      <body className="cqa-premium-dark">
         <NavBar />
         {children}
         <footer className="studio-footer"><div><Link href="/" className="studio-footer-brand">CQA<span style={{color:"#ff58a7"}}> / </span>AUSTRALIA</Link><p>Branded digital storefronts and AI draft workers for your next stage of business.</p><p>Creative Quality Australia<br/>ABN 50 752 160 542</p></div><div><strong>EXPLORE</strong><Link href="/machines">Machine collection</Link><Link href="/workers">AI draft workers</Link><Link href="/pricing">Plans & inclusions</Link><Link href="/login?next=/owner/dashboard">Owner workspace</Link></div><div><strong>HERE TO HELP</strong><Link href="/contact?service=support">Contact & support</Link><Link href="/terms">Terms of service</Link><Link href="/privacy">Privacy policy</Link><Link href="/refund-policy">Refund policy</Link></div></footer>

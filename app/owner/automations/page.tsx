@@ -38,13 +38,18 @@ export default function OwnerAutomationsPage() {
 
   async function load() {
     setLoading(true); setError("");
-    const accessToken = await token();
-    if (!accessToken) { setLoading(false); setError("Log in to manage CQA automations."); return; }
-    const response = await fetch("/api/automations", { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
-    const payload = await response.json() as Payload;
-    if (!response.ok) setError(payload.error || "Unable to load automations.");
-    else setData(payload);
-    setLoading(false);
+    try {
+      const accessToken = await token();
+      if (!accessToken) { setData(emptyPayload); setError("Log in to manage CQA automations."); return; }
+      const response = await fetch("/api/automations", { headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" });
+      const payload = await response.json() as Payload;
+      if (!response.ok) setError(payload.error || "Unable to load automations.");
+      else setData(payload);
+    } catch {
+      setError("The automation workspace could not be loaded. Check your connection and reload the workspace.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => { void load(); }, []);
@@ -53,44 +58,69 @@ export default function OwnerAutomationsPage() {
     const business = data.businesses[0];
     if (!business) return setError("Create a business machine before adding automations.");
     setBusy(templateKey); setError(""); setMessage("");
-    const accessToken = await token();
-    const response = await fetch("/api/automations", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ businessId: business.id, templateKey }) });
-    const result = await response.json();
-    if (!response.ok) setError(result.error || "Unable to create automation.");
-    else { setMessage("Automation activated. New matching events can now enter this workflow."); await load(); }
-    setBusy("");
+    try {
+      const accessToken = await token();
+      if (!accessToken) { setData(emptyPayload); setError("Log in to manage CQA automations."); return; }
+      const response = await fetch("/api/automations", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ businessId: business.id, templateKey }) });
+      const result = await response.json();
+      if (!response.ok) setError(result.error || "Unable to create automation.");
+      else { setMessage("Automation activated. New matching events can now enter this workflow."); await load(); }
+    } catch {
+      setError("The request could not be confirmed. Reload the workspace to check whether the automation was created before trying again.");
+    } finally {
+      setBusy("");
+    }
   }
 
   async function updateStatus(automationId: string, status: "active" | "paused") {
-    setBusy(automationId); setError("");
-    const accessToken = await token();
-    const response = await fetch("/api/automations", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ automationId, status }) });
-    const result = await response.json();
-    if (!response.ok) setError(result.error || "Unable to update automation.");
-    else { setMessage(status === "active" ? "Automation resumed." : "Automation paused."); await load(); }
-    setBusy("");
+    setBusy(automationId); setError(""); setMessage("");
+    try {
+      const accessToken = await token();
+      if (!accessToken) { setData(emptyPayload); setError("Log in to manage CQA automations."); return; }
+      const response = await fetch("/api/automations", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ automationId, status }) });
+      const result = await response.json();
+      if (!response.ok) setError(result.error || "Unable to update automation.");
+      else { setMessage(status === "active" ? "Automation resumed." : "Automation paused."); await load(); }
+    } catch {
+      setError("The status change could not be confirmed. Reload the workspace to check the current status before trying again.");
+    } finally {
+      setBusy("");
+    }
   }
 
   async function runAutomation(automation: Automation) {
     setBusy(`run-${automation.id}`); setError(""); setMessage("");
-    const accessToken = await token();
-    const contact = data.contacts.find((item) => item.business_id === automation.business_id && item.status === "subscribed");
-    const response = await fetch("/api/automations/run", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ automationId: automation.id, contactId: contact?.id || null, payload: { source: "owner_dashboard_test", note: "Manual owner test" } }) });
-    const result = await response.json();
-    if (!response.ok) setError(result.error || "Unable to run automation.");
-    else { setMessage(`Run started with status: ${result.run?.status || "queued"}.`); await load(); }
-    setBusy("");
+    try {
+      const accessToken = await token();
+      if (!accessToken) { setData(emptyPayload); setError("Log in to manage CQA automations."); return; }
+      const contact = data.contacts.find((item) => item.business_id === automation.business_id && item.status === "subscribed");
+      const response = await fetch("/api/automations/run", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` }, body: JSON.stringify({ automationId: automation.id, contactId: contact?.id || null, payload: { source: "owner_dashboard_test", note: "Manual owner test" } }) });
+      const result = await response.json();
+      if (!response.ok) setError(result.error || "Unable to run automation.");
+      else { setMessage(`Run started with status: ${result.run?.status || "queued"}.`); await load(); }
+    } catch {
+      setError("The run request could not be confirmed. Reload the workspace and check run history before starting another run.");
+    } finally {
+      setBusy("");
+    }
   }
 
   async function addContext(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const business = data.businesses[0];
     if (!business || !contextTitle.trim() || !contextContent.trim()) return;
-    setBusy("context"); setError("");
-    const { error: insertError } = await supabase.from("cqa_context_items").insert({ business_id: business.id, kind: "instruction", title: contextTitle.trim(), content: contextContent.trim(), active: true });
-    if (insertError) setError(insertError.message);
-    else { setContextTitle(""); setContextContent(""); setMessage("Shared business context added. Agent tasks can use it on future runs."); await load(); }
-    setBusy("");
+    setBusy("context"); setError(""); setMessage("");
+    try {
+      if (!(await token())) { setData(emptyPayload); setError("Log in to manage CQA automations."); return; }
+      const { error: insertError, status } = await supabase.from("cqa_context_items").insert({ business_id: business.id, kind: "instruction", title: contextTitle.trim(), content: contextContent.trim(), active: true });
+      if (insertError && status === 0) throw new Error("Shared context response was not received.");
+      if (insertError) setError(insertError.message);
+      else { setContextTitle(""); setContextContent(""); setMessage("Shared business context added. Agent tasks can use it on future runs."); await load(); }
+    } catch {
+      setError("Saving shared context could not be confirmed. Reload the workspace to check whether it was saved before trying again.");
+    } finally {
+      setBusy("");
+    }
   }
 
   const activeCount = data.automations.filter((item) => item.status === "active").length;
@@ -101,7 +131,10 @@ export default function OwnerAutomationsPage() {
       <section className="glass-card" style={{ padding: "1.5rem", marginBottom: "1rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", flexWrap: "wrap" }}>
           <div><span className="eyebrow">CQA AUTOMATIONS</span><h1 style={{ marginBottom: ".35rem" }}>Automate what does not need you.</h1><p className="small" style={{ maxWidth: 760 }}>Build once, then let CQA respond to leads, nurture subscribers, prepare follow-ups and run repeatable business tasks using shared context.</p></div>
-          <Link href="/owner/dashboard" className="button ghost">Back to dashboard</Link>
+          <div style={{ display: "flex", gap: ".55rem", flexWrap: "wrap" }}>
+            <button type="button" className="button ghost" disabled={loading || Boolean(busy)} onClick={() => load()}>Reload workspace</button>
+            <Link href="/owner/dashboard" className="button ghost">Back to dashboard</Link>
+          </div>
         </div>
         {message ? <div role="status" style={{ marginTop: "1rem", padding: ".8rem", border: "1px solid rgba(80,255,180,.35)", borderRadius: 10 }}>{message}</div> : null}
         {error ? <div role="alert" style={{ marginTop: "1rem", padding: ".8rem", border: "1px solid rgba(255,70,100,.4)", borderRadius: 10 }}>{error}</div> : null}
@@ -120,7 +153,7 @@ export default function OwnerAutomationsPage() {
             <div style={{ display: "flex", justifyContent: "space-between", gap: ".7rem" }}><div><h3>{template.name}</h3><p className="small">Trigger: {template.trigger_type.replaceAll("_", " ")}</p></div><span className="eyebrow">{template.steps.length} STEPS</span></div>
             <p className="small">{template.description}</p>
             <div className="revenue-stack" style={{ marginBottom: ".8rem" }}>{template.steps.map((step, index) => <div key={`${template.key}-${index}`}><span>{index + 1}</span><strong>{step.name}</strong><small>{step.step_type.replaceAll("_", " ")}</small></div>)}</div>
-            <button type="button" className="button primary" disabled={busy === template.key || loading} onClick={() => createAutomation(template.key)}>{busy === template.key ? "Adding…" : "Activate Template"}</button>
+            <button type="button" className="button primary" disabled={loading || Boolean(busy)} onClick={() => createAutomation(template.key)}>{busy === template.key ? "Adding…" : "Activate Template"}</button>
           </article>)}
         </div>
       </section>
@@ -131,12 +164,23 @@ export default function OwnerAutomationsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", gap: ".5rem", flexWrap: "wrap" }}><h3>{automation.name}</h3><span style={{ padding: ".25rem .5rem", borderRadius: 999, background: statusTone(automation.status), fontSize: ".78rem" }}>{automation.status.toUpperCase()}</span></div>
           <p className="small">{automation.description}</p>
           <p className="small"><strong>Trigger:</strong> {automation.trigger_type.replaceAll("_", " ")} · <strong>Steps:</strong> {automation.cqa_automation_steps?.length || 0}</p>
-          <div style={{ display: "flex", gap: ".55rem", flexWrap: "wrap" }}><button type="button" className="button primary" disabled={busy === `run-${automation.id}` || automation.status !== "active"} onClick={() => runAutomation(automation)}>Run Test</button><button type="button" className="button ghost" disabled={busy === automation.id} onClick={() => updateStatus(automation.id, automation.status === "active" ? "paused" : "active")}>{automation.status === "active" ? "Pause" : "Resume"}</button></div>
+          <div style={{ display: "flex", gap: ".55rem", flexWrap: "wrap" }}><button type="button" className="button primary" disabled={loading || Boolean(busy) || automation.status !== "active"} onClick={() => runAutomation(automation)}>Run Test</button><button type="button" className="button ghost" disabled={loading || Boolean(busy)} onClick={() => updateStatus(automation.id, automation.status === "active" ? "paused" : "active")}>{automation.status === "active" ? "Pause" : "Resume"}</button></div>
         </article>)}</div> : <p className="small">No workflows yet. Activate a template above.</p>}
       </section>
 
       <section className="grid grid-2" style={{ marginBottom: "1rem" }}>
-        <form onSubmit={addContext} className="glass-card" style={{ padding: "1.25rem", display: "grid", gap: ".75rem" }}><span className="eyebrow">SHARED CONTEXT</span><h2>Teach CQA how this business works</h2><p className="small">Store approved business instructions, policies, FAQs and operating context once so agent tasks can reuse them.</p><input required placeholder="Context title" value={contextTitle} onChange={(e) => setContextTitle(e.target.value)} /><textarea required rows={6} placeholder="Example: Quotes over $1,500 require owner approval. Never promise same-day service unless the owner confirms availability." value={contextContent} onChange={(e) => setContextContent(e.target.value)} /><button className="button primary" type="submit" disabled={busy === "context"}>{busy === "context" ? "Saving…" : "Add Shared Context"}</button></form>
+        <form onSubmit={addContext} className="glass-card" style={{ padding: "1.25rem", display: "grid", gap: ".75rem" }}><span className="eyebrow">SHARED CONTEXT</span><h2>Teach CQA how this business works</h2><p className="small">Store approved business instructions, policies, FAQs and operating context once so agent tasks can reuse them.</p><input required placeholder="Context title" value={contextTitle} onChange={(e) => setContextTitle(e.target.value)} /><textarea required rows={6} placeholder="Example: Quotes over $1,500 require owner approval. Never promise same-day service unless the owner confirms availability." value={contextContent} onChange={(e) => setContextContent(e.target.value)} /><button className="button primary" type="submit" disabled={loading || Boolean(busy)}>{busy === "context" ? "Saving…" : "Add Shared Context"}</button>
+          <section aria-label="Saved shared context">
+            <h3>Saved shared context</h3>
+            {loading ? <p className="small">Loading saved context…</p> : data.context.length ? data.context.map((item) => (
+              <article key={item.id} style={{ borderTop: "1px solid rgba(255,255,255,.12)", paddingTop: ".75rem", marginTop: ".75rem" }}>
+                <h4 style={{ marginBottom: ".25rem" }}>{item.title}</h4>
+                <span className="eyebrow">{item.active ? "Active" : "Inactive"}</span>
+                <p className="small" style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{item.content}</p>
+              </article>
+            )) : <p className="small">No shared context saved yet.</p>}
+          </section>
+        </form>
         <article className="glass-card" style={{ padding: "1.25rem" }}><span className="eyebrow">CONNECTIONS</span><h2>Business tools</h2><p className="small">Connections are shared at the business level. Secret values stay in deployment/provider vaults, not in browser-readable tables.</p>{data.connections.length ? <div className="revenue-stack">{data.connections.map((connection) => <div key={connection.id}><span>{connection.status.toUpperCase()}</span><strong>{connection.label}</strong><small>{connection.provider} · {connection.capabilities.join(", ") || "configured capabilities"}</small></div>)}</div> : <div className="revenue-stack"><div><span>CORE</span><strong>Stripe + CQA Database</strong><small>Existing machine payments and business data</small></div><div><span>OPTIONAL</span><strong>Email + AI provider</strong><small>Activated from secure deployment environment settings</small></div><div><span>CONTROLLED</span><strong>Webhooks / APIs</strong><small>Only approved allowlisted destinations execute automatically</small></div></div>}</article>
       </section>
 

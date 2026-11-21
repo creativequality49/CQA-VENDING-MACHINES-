@@ -1,0 +1,76 @@
+/* Interactive machine cabinet. Styles stay inside cqvm, including its controls. */
+.cqvm { --vm-light: #c3e1e9; --vm-edge: #4b5a66; --vm-muted: #a3b1bc; width: 100%; max-width: 780px; margin: 0 auto; color: #eef5f8; font-family: inherit; text-align: left; }
+.cqvm, .cqvm * { box-sizing: border-box; min-width: 0; }
+.cqvm-topline { display: flex; justify-content: space-between; gap: 12px; padding: 0 8px 12px; font-size: 8px; letter-spacing: .12em; color: #a5b5c1; }
+.cqvm-topline > span:last-child { color: var(--vm-light); }
+.cqvm-cabinet { position: relative; padding: 24px; background: linear-gradient(110deg, #414b55 0%, #232c35 4%, #141c24 43%, #28333e 96%, #53616c 100%); border: 1px solid #67727b; border-radius: 20px 20px 12px 12px; box-shadow: inset 0 1px #d4e0e566, inset 0 -5px #080e1480, 0 24px 44px #0005; }
+.cqvm-header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 3px 6px 22px; border-bottom: 1px solid #4c5a653f; margin-bottom: 18px; }
+.cqvm-header strong { display: block; font-size: clamp(18px, 2vw, 27px); letter-spacing: .06em; line-height: 1.2; font-weight: 650; color: #f4f7fa; }
+.cqvm-header div > span { display: block; color: var(--vm-muted); font-size: 10px; letter-spacing: .015em; margin-top: 7px; }
+.cqvm-status { display: flex; align-items: center; gap: 6px; color: var(--vm-light); font-size: 8px; letter-spacing: .08em; }
+.cqvm-status i { display: inline-block; width: 5px; height: 5px; background: #bfdbcd; border-radius: 50%; }
+.cqvm-main { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 18px; }
+.cqvm-glass { position: relative; border: 7px solid #0b1219; border-radius: 10px; outline: 1px solid #53616b; background: linear-gradient(125deg, #162b3855, transparent 42%), #071019; box-shadow: inset 2px 0 #b8dfed88, inset -2px 0 #b8dfed88, inset 0 1px #c4dfe3; overflow: hidden; }
+.cqvm-glass-label { display: flex; justify-content: space-between; gap: 12px; font-size: 7px; letter-spacing: .12em; color: #a1bdc9; padding: 15px 15px 10px; }
+.cqvm-bays { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0 12px; gap: 6px 8px; }
+.cqvm-bay { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #29404e; background: linear-gradient(180deg, #172a3540, #10202c80); border-radius: 5px; color: #c3d1d9; padding: 18px 5px 15px; min-height: 143px; cursor: pointer; font: inherit; transition: border-color .18s, background .18s; }
+.cqvm-bay:hover { border-color: #92aeba; background: #1b303e; }
+.cqvm-bay-selected { border-color: #b7dce6; background: linear-gradient(180deg, #28445380, #162a36); }
+.cqvm-bay-code { position: absolute; left: 7px; top: 6px; font-size: 8px; font-weight: 600; color: #37cfff; letter-spacing: .05em; }
+.cqvm-bay-selected .cqvm-bay-code { color: #ebf7fc; }
+.cqvm-product { display: flex; align-items: center; justify-content: center; height: 76px; width: 100%; margin: 3px 0 8px; }
+.cqvm-product img { display: block; width: min(78px, 90%); height: 76px; object-fit: contain; filter: saturate(.2); }
+.cqvm-bay-name { font-size: 9px; line-height: 1.4; text-align: center; font-weight: 550; max-width: 100%; }
+.cqvm-shelf { position: absolute; bottom: 0; left: -1px; right: -1px; height: 5px; background: linear-gradient(#92adbb, #2c4352 50%, #101c25); border-radius: 0 0 3px 3px; }
+.cqvm-glass-bottom { display: flex; justify-content: space-between; align-items: center; padding: 15px; color: #7993a2; font-size: 6px; letter-spacing: .12em; gap: 8px; }
+.cqvm-glass-bottom > span:last-child { font-size: 12px; font-weight: 650; color: #b0c3ce; }
+.cqvm-control { display: flex; flex-direction: column; padding: 12px; background: #131c24; border: 1px solid #46545f; border-radius: 7px; }
+.cqvm-control-label { font-size: 7px; letter-spacing: .1em; color: #93a7b5; margin: 0 0 10px; }
+.cqvm-display { min-height: 153px; padding: 13px 10px; background: #070e14; border: 1px solid #344b59; border-radius: 4px; box-shadow: inset 0 2px 8px #0007; }
+.cqvm-display-code { display: flex; align-items: center; justify-content: space-between; color: #d6edf3; font-size: 24px; line-height: 1; letter-spacing: -.03em; margin-bottom: 14px; }
+.cqvm-display-code small { font-size: 6px; letter-spacing: .12em; color: #829eac; }
+.cqvm-display > strong { display: block; font-size: 11px; line-height: 1.4; color: #eef4f7; font-weight: 600; }
+.cqvm .cqvm-display p { margin: 8px 0 0; font-size: 9px; line-height: 1.6; color: #a7b9c4; }
+.cqvm-price { display: block; margin-top: 10px; font-size: 10px; line-height: 1.5; color: #d6edf3; }
+.cqvm-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin: 12px 0; }
+.cqvm-keypad button { min-height: 37px; padding: 4px; font: inherit; font-size: 10px; color: #7be0ff; border: 1px solid #37cfff; border-radius: 4px; background: linear-gradient(#193c50, #102635); box-shadow: inset 0 1px #b1c5d52a, 0 2px 0 #060d13; cursor: pointer; }
+.cqvm-keypad button:hover { background: #205169; }
+.cqvm-keypad button[aria-pressed="true"] { background: #37cfff; border-color: #7be0ff; color: #061521; }
+.cqvm .cqvm-action { display: flex; align-items: center; justify-content: space-between; gap: 5px; border: 1px solid #37cfff; background: #37cfff; color: #061521; min-height: 44px; border-radius: 4px; padding: 10px 9px; font-size: 9px; line-height: 1.4; font-weight: 650; text-decoration: none; }
+.cqvm .cqvm-action:hover { background: #7be0ff; }
+.cqvm-reader { display: flex; align-items: center; gap: 7px; border-top: 1px solid #3d4c57; margin-top: 14px; padding-top: 12px; color: #8a9fac; }
+.cqvm-reader span { font-size: 6px; line-height: 1.7; letter-spacing: .06em; }
+.cqvm-reader b { color: #aabcc7; font-size: 7px; font-weight: 450; letter-spacing: 0; }
+.cqvm-collection { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 20px; min-height: 77px; padding: 16px 20px; background: linear-gradient(#080e14 4%, #15212b 9%, #0a131c 80%, #293640); border: 1px solid #47545f; border-radius: 5px 5px 10px 10px; box-shadow: inset 0 7px 12px #0008; }
+.cqvm-collection div > span { display: block; color: #708997; font-size: 7px; letter-spacing: .16em; }
+.cqvm-collection strong { display: block; color: #a9bdc9; font-size: 10px; font-weight: 450; margin-top: 7px; line-height: 1.5; }
+.cqvm-tray-handle { width: 60px; height: 6px; border-radius: 5px; border-top: 1px solid #61717d; background: #03080d; flex-shrink: 0; }
+.cqvm-base { display: flex; justify-content: space-between; gap: 16px; color: #8797a3; font-size: 6px; letter-spacing: .09em; margin: 18px 5px 0; }
+.cqvm-bolt { position: absolute; width: 5px; height: 5px; border-radius: 50%; border: 1px solid #7f8c96; background: #222b33; }
+.cqvm-bolt-tl { top: 10px; left: 10px; }.cqvm-bolt-tr { top: 10px; right: 10px; }.cqvm-bolt-bl { bottom: 9px; left: 10px; }.cqvm-bolt-br { bottom: 9px; right: 10px; }
+.cqvm-feet { display: flex; justify-content: space-between; padding-inline: 38px; height: 9px; }.cqvm-feet i { width: 38px; background: #080d12; border: 1px solid #48535b; border-top: 0; border-radius: 0 0 4px 4px; }
+.cqvm :is(button, a):focus-visible { outline: 2px solid #e3f6fc; outline-offset: 3px; }
+@media (max-width: 640px) {
+  .cqvm-topline { font-size: 6px; padding-inline: 2px; }
+  .cqvm-cabinet { padding: 17px; border-radius: 15px 15px 10px 10px; }
+  .cqvm-header { padding-bottom: 17px; margin-bottom: 15px; gap: 10px; }
+  .cqvm-header strong { font-size: 19px; }
+  .cqvm-header div > span { font-size: 9px; }
+  .cqvm-status { font-size: 6px; }
+  .cqvm-main { grid-template-columns: 1fr; gap: 14px; }
+  .cqvm-bays { padding-inline: 9px; gap: 7px; }
+  .cqvm-bay { min-height: 130px; }
+  .cqvm-product { height: 60px; }.cqvm-product img { height: 60px; width: 60px; }
+  .cqvm-bay-name { font-size: 9px; }
+  .cqvm-control { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px; padding: 14px; }
+  .cqvm-control-label { grid-column: 1 / -1; margin-bottom: 0; }
+  .cqvm-display { grid-column: 1; grid-row: 2 / 5; min-height: 150px; }
+  .cqvm-keypad { margin: 0; grid-template-columns: repeat(2,1fr); gap: 6px; }
+  .cqvm-keypad button { min-height: 44px; }
+  .cqvm .cqvm-action { font-size: 9px; }
+  .cqvm-reader { margin-top: 0; padding-top: 8px; }
+  .cqvm-collection { min-height: 73px; padding: 14px; margin-top: 16px; }.cqvm-collection strong { font-size: 9px; }
+  .cqvm-tray-handle { width: 34px; }
+  .cqvm-base { font-size: 5px; gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .cqvm-bay { transition: none; } }
