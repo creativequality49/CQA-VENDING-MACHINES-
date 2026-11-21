@@ -1,0 +1,269 @@
+/* Main CQA shell. Customer machine themes retain their own surfaces and accents. */
+body.cqa-premium-dark {
+  --premium-bg: #0c1016;
+  --premium-panel: #141b24;
+  --premium-raised: #1c2632;
+  --premium-border: #303d4c;
+  --premium-text: #edf2f7;
+  --premium-muted: #a7b4c4;
+  --premium-accent: #b8d7e4;
+  --premium-action: #37cfff;
+  --premium-action-hover: #7be0ff;
+  --premium-action-ink: #061521;
+  --bg: var(--premium-bg);
+  --panel: var(--premium-panel);
+  --panel-2: var(--premium-raised);
+  --text: var(--premium-text);
+  --muted: var(--premium-muted);
+  --border: var(--premium-border);
+  --ref-bg: var(--premium-bg);
+  --ref-text: var(--premium-text);
+  --ref-muted: var(--premium-muted);
+  --ref-line: var(--premium-border);
+  --ref-cyan: var(--premium-accent);
+  --cqa-muted: var(--premium-muted);
+  --cqa-line: var(--premium-border);
+  --cqa-edge: var(--premium-border);
+  --cqa-aqua: var(--premium-accent);
+  background: var(--premium-bg) !important;
+  color: var(--premium-text) !important;
+  padding-bottom: 0;
+  line-height: 1.6;
+  color-scheme: dark;
+}
+
+/* These grouped !important declarations retire earlier legacy theme effects. */
+.cqa-premium-dark::before,
+.cqa-premium-dark .studio-hero::before,
+.cqa-premium-dark main:not(.machine-detail-page) :is(.glass-card, .neon-plan, .marketplace-neon-hero, .marketplace-live-panel, .worker-card, .machine-card-home, .flow-card)::before,
+.cqa-premium-dark main:not(.machine-detail-page) :is(.glass-card, .neon-plan, .marketplace-neon-hero, .marketplace-live-panel, .worker-card, .machine-card-home, .flow-card)::after,
+.cqa-premium-dark main:not(.machine-detail-page) .button.primary::after {
+  content: none !important;
+}
+
+.cqa-premium-dark :is(.site-header, .cqa-topbar) {
+  background: rgba(18, 20, 19, .97) !important;
+  border-bottom: 1px solid var(--premium-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(12px) !important;
+}
+.cqa-premium-dark .cqa-announcement {
+  background: #1a1e1b !important;
+  color: var(--premium-muted);
+  font-size: 11px !important;
+  letter-spacing: .025em !important;
+  padding: 9px 20px !important;
+  font-weight: 500;
+}
+.cqa-premium-dark .cqa-nav-shell { min-height: 76px !important; }
+.cqa-premium-dark .cqa-desktop-links { gap: 3px !important; }
+.cqa-premium-dark .cqa-desktop-links a {
+  color: #c6cdc5;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  padding: 10px 9px;
+}
+.cqa-premium-dark .cqa-desktop-links a:hover { background: #272c27; }
+.cqa-premium-dark .cqa-dashboard-link { color: var(--premium-action) !important; border-color: var(--premium-action) !important; }
+.cqa-premium-dark :is(.cqa-menu-trigger, .cqa-menu[open] .cqa-menu-trigger) {
+  background: var(--premium-action) !important;
+  border-color: var(--premium-action) !important;
+  color: var(--premium-action-ink);
+  box-shadow: none !important;
+  border-radius: 8px !important;
+}
+.cqa-premium-dark .cqa-menu-panel {
+  background: #1a1e1b !important;
+  border-color: var(--premium-border) !important;
+  box-shadow: 0 18px 45px #0005 !important;
+}
+.cqa-premium-dark .cqa-menu-panel > a:not(.button):hover {
+  background: #292f29 !important;
+}
+.cqa-premium-dark .cqa-hamburger i {
+  background: var(--premium-action-ink);
+  box-shadow: none;
+}
+.cqa-premium-dark .mobile-dock {
+  background: var(--premium-panel) !important;
+  border-color: var(--premium-border) !important;
+  box-shadow: none;
+  backdrop-filter: none !important;
+  border-radius: 10px;
+}
+.cqa-premium-dark .mobile-dock a { color: var(--premium-muted); font-weight: 500; }
+.cqa-premium-dark .mobile-dock a:is(:hover, :focus-visible) { background: var(--premium-raised); }
+
+.cqa-premium-dark main:not(.machine-detail-page) :is(.glass-card, .marketplace-neon-hero, .marketplace-live-panel, .worker-card, .worker-hero-panel, .neon-plan, .flow-card, .machine-card-home, .final-panel, .revenue-stack > div) {
+  background: var(--premium-panel) !important;
+  border: 1px solid var(--premium-border) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none !important;
+  border-radius: 12px !important;
+}
+.cqa-premium-dark main:not(.machine-detail-page) :is(.button, .nav-cta, .neon-enter-button) {
+  min-height: 46px;
+  border-radius: 8px !important;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+  text-shadow: none;
+  transform: none;
+}
+.cqa-premium-dark main:not(.machine-detail-page) :is(.button.primary, .neon-enter-button),
+.cqa-premium-dark .cqa-menu-panel .button.primary {
+  background: var(--premium-action) !important;
+  color: var(--premium-action-ink) !important;
+  border: 1px solid var(--premium-action) !important;
+  box-shadow: none !important;
+}
+.cqa-premium-dark main:not(.machine-detail-page) .button.ghost,
+.cqa-premium-dark .cqa-menu-panel .button.ghost {
+  background: transparent !important;
+  color: var(--premium-action);
+  border-color: var(--premium-action) !important;
+}
+.cqa-premium-dark main:not(.machine-detail-page) .button.primary:hover { background: var(--premium-action-hover) !important; }
+.cqa-premium-dark main:not(.machine-detail-page) .button.ghost:hover { background: #142e3c !important; }
+.cqa-premium-dark button:disabled { opacity: .55; cursor: wait; }
+.cqa-premium-dark main:not(.machine-detail-page) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), textarea, select) {
+  background: #151916 !important;
+  color: var(--premium-text) !important;
+  border-color: #485249 !important;
+  border-radius: 8px !important;
+  box-shadow: none;
+}
+.cqa-premium-dark main:not(.machine-detail-page) :is(input, textarea)::placeholder { color: #959f95; }
+.cqa-premium-dark :is(a, button, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--premium-action) !important;
+  outline-offset: 4px !important;
+  box-shadow: none;
+}
+.cqa-premium-dark main:not(.machine-detail-page) :is(.eyebrow, .cqa-kicker, .neon-kicker, .worker-index, .screen-title) {
+  color: var(--premium-accent) !important;
+  letter-spacing: .12em;
+  font-weight: 600;
+}
+.cqa-premium-dark main:not(.machine-detail-page) :is(.hero-copy h1 span, .marketplace-neon-hero h1, .plan-display strong) {
+  background: none !important;
+  color: var(--premium-text) !important;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: none !important;
+}
+
+/* Public storefront pages use the same quieter surface and type system. */
+.cqa-premium-dark .studio-page {
+  --studio-aqua: var(--premium-accent);
+  --studio-pink: var(--premium-accent);
+  --studio-muted: var(--premium-muted);
+  background: var(--premium-bg);
+  color: var(--premium-text);
+}
+.cqa-premium-dark .studio-page h1 { font-size: clamp(42px, 5vw, 70px); line-height: 1.08; font-weight: 600; }
+.cqa-premium-dark .studio-activewear-hero h1 { color: var(--premium-text) !important; }
+.cqa-premium-dark .studio-page h2 { font-weight: 550; letter-spacing: -.035em; }
+.cqa-premium-dark .studio-page h3 { font-weight: 550; }
+.cqa-premium-dark .studio-page p { line-height: 1.75; }
+.cqa-premium-dark .studio-section { padding-block: 78px; }
+.cqa-premium-dark .studio-page :is(.studio-audience, .studio-worker, .studio-plan, .studio-final, .studio-collection-card, .studio-workflow, #machine-build-demo) {
+  background: var(--premium-panel);
+  border-color: var(--premium-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.cqa-premium-dark .studio-page :is(.studio-plan-featured, .studio-worker:nth-child(2), .studio-collection-card:nth-child(2)) {
+  background: var(--premium-panel);
+  border-color: #647461;
+  box-shadow: none;
+}
+.cqa-premium-dark .studio-page :is(.studio-button, .studio-button-secondary) { font-weight: 600; border-radius: 8px; box-shadow: none; }
+.cqa-premium-dark .studio-page .studio-button { background: var(--premium-action); border-color: var(--premium-action); color: var(--premium-action-ink); }
+.cqa-premium-dark .studio-page .studio-button:hover { background: var(--premium-action-hover); border-color: var(--premium-action-hover); }
+.cqa-premium-dark .studio-page .studio-button-secondary { background: transparent; border-color: var(--premium-action); color: var(--premium-action); }
+.cqa-premium-dark .studio-page .studio-button-secondary:hover { background: #142e3c; }
+.cqa-premium-dark .studio-feature-strip,
+.cqa-premium-dark .studio-dark-band { background: #171a17; border-color: var(--premium-border); }
+.cqa-premium-dark .studio-feature-strip span,
+.cqa-premium-dark .studio-faq details { border-color: var(--premium-border); }
+.cqa-premium-dark .studio-page :is(.studio-worker-icon, .studio-worker:nth-child(2) .studio-worker-icon, .studio-workflow-source, .studio-workflow-roles > span, .studio-workflow-review) {
+  background: #252d25;
+  border-color: #495749;
+  color: var(--premium-accent);
+  box-shadow: none;
+}
+.cqa-premium-dark .studio-page :is(.studio-worker-sample, .studio-example-intro) { background: #141914; border-color: #394339; }
+.cqa-premium-dark .studio-page :is(.studio-worker-icon, .studio-visual-top > span:last-child, .studio-steps > article > span, .studio-workflow-roles > span:nth-child(2), .studio-workflow-review > span) { color: var(--premium-accent); }
+.cqa-premium-dark .studio-activewear-art { border-color: var(--premium-border); border-radius: 12px; }
+.cqa-premium-dark .studio-activewear-art img,
+.cqa-premium-dark .studio-pricing .pricing-neon-hero .marketplace-live-panel img {
+  filter: saturate(.15);
+}
+.cqa-premium-dark .studio-pricing :is(.plan-features span, .faq-grid article) {
+  background: var(--premium-panel) !important;
+  border-color: var(--premium-border) !important;
+  box-shadow: none !important;
+}
+.cqa-premium-dark .studio-pricing .plan-features span {
+  border-width: 0 0 1px !important;
+  border-radius: 0;
+  padding: 11px 0;
+}
+.cqa-premium-dark .studio-pricing :is(.plan-kicker, .plan-popular-badge) { color: var(--premium-accent) !important; }
+
+/* Guided builder chrome is neutral; its customer's chosen preview stays branded. */
+.cqa-premium-dark .cqa-premium-builder :is(.cqa-launch-form, .cqa-launch-stepper, .cqa-wizard-panel, .cqa-step-example, .cqa-brand-picker, .cqa-plan-summary) {
+  background: var(--premium-panel);
+  border-color: var(--premium-border);
+  box-shadow: none;
+}
+.cqa-premium-dark .cqa-premium-builder .cqa-launch-intro h1 em { color: var(--premium-accent); }
+.cqa-premium-dark .cqa-premium-builder :is(.cqa-launch-intro > a, .cqa-step-count) { color: var(--premium-accent); }
+.cqa-premium-dark .cqa-premium-builder .cqa-launch-stepper button {
+  background: var(--premium-raised);
+  border-color: var(--premium-border);
+  color: var(--premium-muted);
+  box-shadow: none;
+}
+.cqa-premium-dark .cqa-premium-builder .cqa-launch-stepper button:is(.is-current, .is-complete) {
+  background: #2b352b;
+  border-color: #879b85;
+  color: var(--premium-text);
+  box-shadow: none;
+}
+.cqa-premium-dark .cqa-premium-builder .cqa-launch-stepper button i {
+  color: var(--premium-accent);
+  border-color: #647461;
+}
+.cqa-premium-dark .cqa-premium-builder .cqa-launch-fields label { display: block; }
+.cqa-premium-dark .cqa-premium-builder #category-help { display: block; margin: 8px 0 20px; }
+.cqa-premium-dark .cqa-premium-builder :is(input[type="radio"], input[type="checkbox"]) { accent-color: var(--premium-accent); }
+.cqa-premium-dark .studio-footer { background: #101310; border-color: var(--premium-border); padding-bottom: 60px; }
+.cqa-premium-dark .studio-footer :is(p, a) { color: var(--premium-muted); }
+.cqa-premium-dark .studio-footer .studio-footer-brand { color: var(--premium-text); }
+.cqa-premium-dark .studio-footer-brand span { color: var(--premium-accent) !important; }
+.cqa-premium-dark .studio-footer a:hover { color: var(--premium-text); }
+
+@media (max-width: 980px) {
+  .cqa-premium-dark .cqa-nav-shell { min-height: 68px !important; }
+}
+@media (max-width: 760px) {
+  .cqa-premium-dark .studio-section { padding-block: 48px; }
+  .cqa-premium-dark .studio-page h1 { font-size: clamp(38px, 9vw, 54px); }
+  .cqa-premium-dark .studio-page h2 { font-size: 30px; }
+  .cqa-premium-dark .studio-footer { padding-bottom: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(> body.cqa-premium-dark) { scroll-behavior: auto !important; }
+  .cqa-premium-dark :is(.button, .studio-button, .studio-button-secondary, .cqa-menu-trigger) { transition: none; }
+}
+
+/* Cabinet-led hero, shared by the homepage and automation catalogue. */
+.cqa-premium-dark .cqa-machine-hero { grid-template-columns: minmax(0,.7fr) minmax(0,1.3fr); gap: 44px; padding-block: 56px 64px; min-height: 720px; }
+.cqa-premium-dark .cqa-machine-hero h1 { font-size: clamp(42px,4.2vw,66px); letter-spacing: -.05em; }
+.cqa-premium-dark .cqa-machine-hero .studio-lead { font-size: 16px; }
+.cqa-premium-dark .cqa-machine-hero .studio-actions { gap: 10px; }
+.cqa-premium-dark .cqa-machine-hero .studio-button, .cqa-premium-dark .cqa-machine-hero .studio-button-secondary { padding-inline: 17px; }
+@media (max-width: 1000px) { .cqa-premium-dark .cqa-machine-hero { grid-template-columns: 1fr; gap: 32px; padding-block: 36px 48px; } .cqa-premium-dark .cqa-machine-hero .studio-hero-copy { max-width: 620px; } }
