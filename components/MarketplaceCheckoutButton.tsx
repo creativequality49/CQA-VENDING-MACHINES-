@@ -9,7 +9,8 @@ export function MarketplaceCheckoutButton({ machineSlug, offerId, label = "Buy s
   const [error, setError] = useState("");
   const [needsLogin, setNeedsLogin] = useState(false);
   const inFlight = useRef(false);
-  const loginUrl = `/login?next=${encodeURIComponent(`/machine/${encodeURIComponent(machineSlug)}`)}`;
+  const checkoutAnchor = `checkout-${offerId}`;
+  const loginUrl = `/login?next=${encodeURIComponent(`/machine/${encodeURIComponent(machineSlug)}#${encodeURIComponent(checkoutAnchor)}`)}`;
 
   async function startCheckout() {
     if (inFlight.current) return;
@@ -49,8 +50,8 @@ export function MarketplaceCheckoutButton({ machineSlug, offerId, label = "Buy s
   }
 
   return (
-    <div style={{ display: "grid", gap: ".5rem" }}>
-      <button className="button primary" type="button" onClick={startCheckout} disabled={loading} style={{ justifyContent: "center" }}>
+    <div id={checkoutAnchor} style={{ display: "grid", gap: ".5rem", scrollMarginTop: "6rem" }}>
+      <button className="button primary" type="button" onClick={startCheckout} disabled={loading} aria-busy={loading} style={{ justifyContent: "center" }}>
         {loading ? "Opening secure checkout…" : label}
       </button>
       {error ? <span className="small" role="alert" style={{ color: "#ffb6df" }}>{error}</span> : null}

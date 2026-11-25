@@ -325,7 +325,8 @@ await test('actual purchase button recovers from errors and gives a local sign-i
   const ui = buttonHarness({ noSession: true, response: async () => Response.json({ error: 'Verified buyer required', code: 'CQA_BUYER_LOGIN_REQUIRED' }, { status: 401 }) });
   await find(ui.render(), node => node.type === 'button').props.onClick();
   assert.equal(ui.destinations.length, 0); const link = find(ui.render(), node => node.type === 'Link'); assert.ok(link);
-  const target = new URL(link.props.href, 'https://cqa.example.test'); assert.equal(target.origin, 'https://cqa.example.test'); assert.equal(target.pathname, '/login'); assert.equal(target.searchParams.get('next'), '/machine/test-store');
+  const target = new URL(link.props.href, 'https://cqa.example.test'); assert.equal(target.origin, 'https://cqa.example.test'); assert.equal(target.pathname, '/login'); assert.equal(ui.render().props.id, `checkout-${offerId}`);
+  assert.equal(target.searchParams.get('next'), `/machine/test-store#${ui.render().props.id}`);
   for (const response of [async () => new Response('not-json'), async () => Response.json({ error: 'Unavailable' }, { status: 503 }), async () => { throw Error('Network unavailable'); }]) {
     const failed = buttonHarness({ response }); await find(failed.render(), node => node.type === 'button').props.onClick();
     assert.equal(failed.destinations.length, 0); assert.ok(find(failed.render(), node => node.props.role === 'alert')); assert.equal(find(failed.render(), node => node.type === 'button').props.disabled, false);

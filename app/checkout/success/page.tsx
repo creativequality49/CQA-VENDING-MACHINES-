@@ -8,10 +8,10 @@ export default async function CheckoutSuccessPage({ searchParams }: { searchPara
       <section className="glass-card" style={{ padding: "1rem" }}>
         <h1>Checkout submitted</h1>
         <p className="small">{marketplace
-          ? "Stripe payment confirmation is pending. Opening this page does not verify a payment. Purchased digital files appear in the buyer account used at checkout after the verified payment is processed. For services or physical products, follow the business’s delivery instructions."
+          ? "Once Stripe confirms payment, your digital pack appears in the purchase library for the account you used at checkout. Open your library and select Secure download beside the pack. If it hasn’t appeared yet, select Refresh."
           : "Stripe is confirming your payment. Your access will appear in your vault after confirmation."}</p>
         <Link className="button primary" href={marketplace ? "/marketplace/library" : "/vault"}>{marketplace ? "Open your purchase library" : "Open vault"}</Link>
-        {marketplace ? <><p><Link className="button ghost" href="/account">Track your order in your customer workspace</Link></p><p><Link href="/marketplace">Return to marketplace</Link></p></> : null}
+        {marketplace ? <><p><Link className="button ghost" href="/account">Track a physical order or service in your customer workspace</Link></p><p><Link href="/marketplace">Return to marketplace</Link></p></> : null}
       </section>
     </main>
   );
