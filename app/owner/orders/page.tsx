@@ -7,6 +7,7 @@ import { getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 import { MAX_MARKETPLACE_ASSET_BYTES } from "@/lib/cqa-marketplace-assets";
 import styles from "./orders.module.css";
 import { ShipmentPanel } from "@/components/fulfillment/ShipmentPanel";
+import { OrderSupportPanel } from "@/components/fulfillment/OrderSupportPanel";
 
 type Workspace = {
   state: "awaiting_intake" | "queued" | "in_progress" | "delivered";
@@ -89,16 +90,26 @@ export default function OwnerOrdersPage() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [supportThreads, setSupportThreads] = useState<{ orderId: string; title: string; updatedAt: string; revision: number }[]>([]);
+  const [supportPage, setSupportPage] = useState(0);
+  const [supportHasMore, setSupportHasMore] = useState(false);
+  const [supportLoading, setSupportLoading] = useState(true);
+  const [supportError, setSupportError] = useState("");
+  const [supportRefresh, setSupportRefresh] = useState(0);
   const fileInput = useRef<HTMLInputElement>(null);
   const listEpoch = useRef(0);
   const detailEpoch = useRef(0);
   const account = useRef<string | null>(null);
   const activeSession = useRef<Session>(null);
   const inFlight = useRef(false);
+  const supportEpoch = useRef(0);
+  const requestedSupportOrder = useRef<string | null>(null);
+  const refreshSupport = useCallback(() => setSupportRefresh(value => value + 1), []);
 
   const invalidateRequests = useCallback(() => {
     listEpoch.current++;
     detailEpoch.current++;
+    supportEpoch.current++;
   }, []);
   const clearPrivateState = useCallback(() => {
     invalidateRequests();
@@ -113,6 +124,12 @@ export default function OwnerOrdersPage() {
     setBusy("");
     setHasMore(false);
     setPage(0);
+    setSupportThreads([]);
+    setSupportPage(0);
+    setSupportHasMore(false);
+    setSupportError("");
+    setSupportLoading(true);
+    requestedSupportOrder.current = null;
     if (fileInput.current) fileInput.current.value = "";
   }, [invalidateRequests]);
 
@@ -210,14 +227,34 @@ export default function OwnerOrdersPage() {
         );
       }
       if (!response.ok || !result || typeof result !== "object")
-        throw new Error(
+        throw Object.assign(new Error(
           result?.error ||
             "The response could not be confirmed. Refresh before trying again.",
-        );
+        ), { status: response.status });
       return result;
     },
     [session, requestedBusiness, clearPrivateState, router],
   );
+
+  useEffect(() => {
+    if (!session) return;
+    const version = ++supportEpoch.current;
+    const controller = new AbortController();
+    setSupportLoading(true); setSupportError(""); setSupportThreads([]); setSupportHasMore(false);
+    const businessQuery = business?.id ? `&businessId=${encodeURIComponent(business.id)}` : "";
+    void request(`/api/owner/order-support?page=${supportPage}${businessQuery}`, { signal: controller.signal }).then(result => {
+      if (!Array.isArray(result.threads) || typeof result.hasMore !== "boolean" || result.page !== supportPage || result.threads.some((thread: { orderId?: unknown; title?: unknown; updatedAt?: unknown; revision?: unknown }) =>
+        !thread || typeof thread.orderId !== "string" || typeof thread.title !== "string" || typeof thread.updatedAt !== "string" || !Number.isFinite(Date.parse(thread.updatedAt)) || !Number.isSafeInteger(thread.revision)))
+        throw new Error("The support inbox could not be confirmed.");
+      if (version === supportEpoch.current && !controller.signal.aborted) { setSupportThreads(result.threads); setSupportHasMore(result.hasMore); }
+    }).catch(failure => {
+      if (version === supportEpoch.current && !controller.signal.aborted && failure?.name !== "AbortError")
+        setSupportError(failure instanceof Error ? failure.message : "The support inbox is unavailable.");
+    }).finally(() => {
+      if (version === supportEpoch.current && !controller.signal.aborted) setSupportLoading(false);
+    });
+    return () => { controller.abort(); supportEpoch.current = version + 1; };
+  }, [session, request, business?.id, supportPage, supportRefresh]);
 
   const loadList = useCallback(async () => {
     if (!session) return;
@@ -296,6 +333,17 @@ export default function OwnerOrdersPage() {
   );
 
   const physical = selected?.offerType === "physical_product" || selected?.fulfillmentType === "shipping";
+
+  useEffect(() => {
+    if (detailLoading || !selected || requestedSupportOrder.current !== selected.id) return;
+    const frame = requestAnimationFrame(() => {
+      const panel = document.getElementById("order-support");
+      panel?.focus({ preventScroll: true });
+      panel?.scrollIntoView({ block: "start" });
+      requestedSupportOrder.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [selected, detailLoading]);
 
   async function update(
     action: "start" | "deliver" | "upload",
@@ -409,6 +457,7 @@ export default function OwnerOrdersPage() {
           disabled={loading || Boolean(busy) || !session}
           onClick={() => {
             void loadList();
+            refreshSupport();
             if (selected) void loadDetail(selected.id);
           }}
         >
@@ -438,6 +487,12 @@ export default function OwnerOrdersPage() {
           </Link>
         </div>
       ) : (
+        <>
+        <section className={styles.card} aria-labelledby="support-inbox-heading">
+          <div className={styles.row}><div><p className={styles.eyebrow}>Customer follow-up</p><h2 id="support-inbox-heading">Support awaiting your reply</h2></div><button type="button" className={styles.secondary} disabled={supportLoading} onClick={refreshSupport}>Refresh inbox</button></div>
+          {supportLoading ? <p role="status" className={styles.muted}>Loading support requests…</p> : supportError ? <p role="alert" className={styles.error}>{supportError} Your orders remain available below.</p> : supportThreads.length ? <ul className={styles.supportInbox}>{supportThreads.map(thread => <li key={thread.orderId}><button type="button" className={styles.secondary} disabled={Boolean(busy)} onClick={() => { requestedSupportOrder.current = thread.orderId; void loadDetail(thread.orderId); }}><span><strong>{thread.title}</strong><small>Order #{thread.orderId.slice(0, 8).toUpperCase()} · Updated {date(thread.updatedAt)}</small></span><span>Open support →</span></button></li>)}</ul> : <p className={styles.muted}>{supportPage ? "No more support requests on this page." : "No support requests are waiting for your reply."}</p>}
+          <nav className={styles.pagination} aria-label="Support inbox pages"><button type="button" className={styles.secondary} disabled={!supportPage || supportLoading} onClick={() => setSupportPage(value => value - 1)}>← Previous</button><span>Page {supportPage + 1}</span><button type="button" className={styles.secondary} disabled={!supportHasMore || supportLoading} onClick={() => setSupportPage(value => value + 1)}>Next →</button></nav>
+        </section>
         <div className={styles.layout}>
           <section className={styles.orders} aria-label="Customer orders">
             <div className={styles.sectionTitle}>
@@ -724,6 +779,7 @@ export default function OwnerOrdersPage() {
                       )}
                     </section>
                   )}
+                <OrderSupportPanel key={`${session.user.id}:${business?.id || requestedBusiness}:${selected.id}`} orderId={selected.id} audience="owner" request={request} businessId={business?.id || requestedBusiness || undefined} onUpdated={refreshSupport} />
                 <section className={styles.card}>
                   <h3>Order activity</h3>
                   {!events.length ? (
@@ -755,6 +811,7 @@ export default function OwnerOrdersPage() {
             )}
           </section>
         </div>
+        </>
       )}
     </main>
   );

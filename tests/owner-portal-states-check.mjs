@@ -12,6 +12,9 @@ const compiled = ts.transpileModule(fs.readFileSync("app/owner/orders/page.tsx",
 const shipmentExports = {};
 const shipmentCompiled = ts.transpileModule(fs.readFileSync("components/fulfillment/ShipmentPanel.tsx", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
 new Function("require", "exports", shipmentCompiled)(name => name.endsWith(".module.css") ? {} : require(name), shipmentExports);
+const supportExports = {};
+const supportCompiled = ts.transpileModule(fs.readFileSync("components/fulfillment/OrderSupportPanel.tsx", "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
+new Function("require", "exports", supportCompiled)(name => name.endsWith(".module.css") ? {} : require(name), supportExports);
 const sessionA = { access_token: "owner-a-token", user: { id: "owner-a" } };
 const order = { id: "order-a", status: "paid", amountCents: 4900, currency: "aud", createdAt: "2026-01-02",
   customerEmail: "buyer@example.test", offerName: "Digital operations kit", digital: true,
@@ -19,7 +22,7 @@ const order = { id: "order-a", status: "paid", amountCents: 4900, currency: "aud
 
 function harness(selected = order) {
   const state = [sessionA, false, "", { id: "business-a", name: "Test business" }, [selected], 0, false, false,
-    selected, [], false, "", "", "", "", null];
+    selected, [], false, "", "", "", "", null, [], 0, false, false, "", 0];
   let stateIndex = 0, refIndex = 0, finishFetch;
   const callbacks = [], refs = [], redirects = [], writes = [];
   const router = { replace(path) { redirects.push(path); } };
@@ -37,6 +40,7 @@ function harness(selected = order) {
   const mocks = {
     react: hooks,
     "@/components/fulfillment/ShipmentPanel": shipmentExports,
+    "@/components/fulfillment/OrderSupportPanel": supportExports,
     "next/link": ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children),
     "next/navigation": { useRouter() { return router; } },
     "@/lib/cqa-marketplace": { getBrowserSupabaseClient() { throw Error("Render must not contact authentication"); } },
@@ -49,7 +53,7 @@ function harness(selected = order) {
     () => new Promise(resolve => { finishFetch = resolve; })
   );
   const html = renderToStaticMarkup(exports.default());
-  return { html, request: callbacks[2], activeSession: refs[4], redirects, writes, respond: value => finishFetch(value) };
+  return { html, request: callbacks[3], activeSession: refs[4], redirects, writes, respond: value => finishFetch(value) };
 }
 
 const digital = harness();
@@ -61,6 +65,7 @@ assert.match(physical.html, /Shipping &amp; dispatch|Shipping &amp;amp; dispatch
 assert.doesNotMatch(physical.html, /Customer brief|Start work|Mark delivered|Prepare the handover|Awaiting customer details/);
 const unpaid = harness({ ...order, status: "refunded" });
 assert.match(unpaid.html, /Payment is not active/);
+assert.match(unpaid.html, /Order support/);
 assert.doesNotMatch(unpaid.html, /Start work|Mark delivered|Your customer can view the handover/);
 
 for (const next of [{ access_token: "owner-b-token", user: { id: "owner-b" } }, { ...sessionA, access_token: "owner-a-refreshed-token" }]) {

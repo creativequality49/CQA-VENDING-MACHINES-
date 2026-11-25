@@ -565,3 +565,9 @@
     padding: 36px 20px;
   }
 }
+.supportInbox { display: grid; gap: 10px; list-style: none; margin: 20px 0; padding: 0; }
+.supportInbox li { min-width: 0; }
+.supportInbox button { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; width: 100%; gap: 12px; text-align: left; }
+.supportInbox button > span:first-child { display: grid; min-width: 0; gap: 5px; }
+.supportInbox strong, .supportInbox small { overflow-wrap: anywhere; }
+.supportInbox small { font-size: 12px; font-weight: 400; color: #a8bbce; }
