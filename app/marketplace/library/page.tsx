@@ -103,9 +103,9 @@ export default function MarketplaceLibraryPage() {
       <section className="glass-card" style={{ padding: "1rem" }}>
         {!products.length && <p>No eligible digital purchases found.</p>}
         {products.map(p => <div key={p.orderId} style={{ display: "flex", justifyContent: "space-between", gap: "1rem", padding: "0.7rem 0" }}>
-          <span>{p.title}</span><button className="cta secondary" disabled={!p.downloadable} onClick={() => void download(p.orderId)}>
-            {p.downloadable ? "Secure download" : "Delivery being prepared"}
-          </button>
+          <span>{p.title}</span>
+          {p.downloadable ? <button className="cta secondary" onClick={() => void download(p.orderId)}>Secure download</button> :
+            <Link href={`/account/orders/${encodeURIComponent(p.orderId)}`}>File version needs confirmation. View order details</Link>}
         </div>)}
         <button className="cta secondary" onClick={() => void load()}>Refresh</button>
       </section>}

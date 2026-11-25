@@ -55,3 +55,28 @@ export async function readMarketplaceUploadForm(req: Request): Promise<FormData>
   try { return await new Response(body, { headers: { "content-type": contentType } }).formData(); }
   catch { throw new MarketplaceUploadError(400, "The upload could not be read. Choose the file again."); }
 }
+
+export type PurchasedDigitalAsset = { key: string; sizeBytes: number; contentType: string };
+
+function validMarketplaceAssetKey(key: unknown, businessId: string, offerId: string): key is string {
+  const prefix = `marketplace/${businessId}/${offerId}/`;
+  return typeof key === "string" && key.startsWith(prefix) && key.length > prefix.length &&
+    !key.includes("..") && !/[\\?#]/.test(key);
+}
+
+// Undefined identifies a legacy purchase for display. Only a valid binding authorises signing.
+export function resolvePurchasedDigitalAsset(order: {
+  business_id: string; offer_id: string; purchase_snapshot?: Record<string, unknown> | null;
+}): PurchasedDigitalAsset | null | undefined {
+  const snapshot = order.purchase_snapshot;
+  if (!snapshot || !Object.hasOwn(snapshot, "digitalAsset")) return undefined;
+  const asset = snapshot.digitalAsset;
+  if ((snapshot.offerType !== "digital_product" && snapshot.fulfillmentType !== "digital") ||
+      !asset || typeof asset !== "object" || Array.isArray(asset)) return null;
+  const { key, sizeBytes, contentType } = asset as Record<string, unknown>;
+  if (!validMarketplaceAssetKey(key, order.business_id, order.offer_id) ||
+      typeof sizeBytes !== "number" || !Number.isSafeInteger(sizeBytes) || sizeBytes < 1 ||
+      sizeBytes > MAX_MARKETPLACE_ASSET_BYTES || typeof contentType !== "string" ||
+      !Object.hasOwn(MARKETPLACE_ASSET_EXTENSIONS, contentType)) return null;
+  return { key, sizeBytes, contentType };
+}

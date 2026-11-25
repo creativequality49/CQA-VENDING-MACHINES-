@@ -133,6 +133,7 @@ await test('real digital checkout binds verified buyer, original price, fee, acc
   assert.equal(data.payment_intent_data.application_fee_amount, Math.round(1299 * .03));
   assert.deepEqual(data.metadata, { cqaBusinessId: businessId, cqaMachineId: machineId, cqaOfferId: offerId, cqaPlan: 'pro', cqaBuyerUserId: buyerId, cqaDigitalDelivery: '1' });
   assert.equal(data.client_reference_id, buyerId); assert.equal(h.bindings.length, 1);
+  assert.deepEqual(h.bindings[0].purchase_snapshot.digitalAsset, { key: assetKey, sizeBytes: 64, contentType: 'application/pdf' });
   assert.equal(h.bindings[0].status, 'pending'); assert.equal(h.bindings[0].buyer_user_id, buyerId);
   assert.equal(h.bindings[0].stripe_checkout_session_id, 'cs_test_synthetic'); assert.equal(h.bindings[0].amount_cents,1299);
   assert.deepEqual(data.payment_intent_data.metadata, data.metadata); assert.deepEqual(request, { stripeAccount: 'acct_test' });

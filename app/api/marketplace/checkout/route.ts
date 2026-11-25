@@ -4,7 +4,7 @@ import { getCqaOfferCheckoutHold, physicalShippingConfig } from "@/lib/cqa-offer
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
 import { isCqaPhysicalCheckoutAllowed, isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { verifyPrivateMarketplaceAsset } from "@/lib/storage";
-import { MAX_MARKETPLACE_ASSET_BYTES, MARKETPLACE_ASSET_EXTENSIONS } from "@/lib/cqa-marketplace-assets";
+import { MAX_MARKETPLACE_ASSET_BYTES, MARKETPLACE_ASSET_EXTENSIONS, type PurchasedDigitalAsset } from "@/lib/cqa-marketplace-assets";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getStripeClient } from "@/lib/stripe";
@@ -81,6 +81,7 @@ export async function POST(req: Request) {
       buyerUserId = buyer.id;
       buyerEmail = buyer.email.trim().toLowerCase();
     }
+    let digitalAsset: PurchasedDigitalAsset | undefined;
     if (digital) {
       const config = offer.fulfillment_config;
       const key = config && typeof config === "object" && !Array.isArray(config) ? config.asset_key : null;
@@ -98,6 +99,7 @@ export async function POST(req: Request) {
       try {
         if (!await verifyPrivateMarketplaceAsset(key, size, contentType))
           return NextResponse.json({ error: "This product is not ready for protected delivery." }, { status: 409 });
+        digitalAsset = { key, sizeBytes: size, contentType };
       } catch {
         return NextResponse.json({ error: "The private product file could not be verified. Please try again later.", code: "CQA_DIGITAL_ASSET_UNAVAILABLE" }, { status: 503 });
       }
@@ -197,7 +199,7 @@ export async function POST(req: Request) {
       const { data: pendingOrder, error: bindingError } = await getCqaSupabaseAdmin().from("cqa_orders").insert({
         business_id: context.business_id, machine_id: context.machine_id, offer_id: context.offer_id,
         buyer_user_id: buyerUserId, customer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents + (shipping?.shippingRateCents || 0),
-        purchase_snapshot: { title: String(context.offer_name).slice(0, 300), offerType: String(context.offer_type), fulfillmentType: String(offer.fulfillment_type || "none"), quantity: 1, unitPriceCents: priceCents, terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(shipping ? { shipping: { provider: "merchant", rateCents: shipping.shippingRateCents, countries: shipping.shippingCountries, dispatchTiming: offer.fulfillment_config.shipping.dispatchTiming, reservationId } } : {}) },
+        purchase_snapshot: { ...(digitalAsset ? { digitalAsset } : {}), title: String(context.offer_name).slice(0, 300), offerType: String(context.offer_type), fulfillmentType: String(offer.fulfillment_type || "none"), quantity: 1, unitPriceCents: priceCents, terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(shipping ? { shipping: { provider: "merchant", rateCents: shipping.shippingRateCents, countries: shipping.shippingCountries, dispatchTiming: offer.fulfillment_config.shipping.dispatchTiming, reservationId } } : {}) },
         currency: String(context.currency || "aud").toLowerCase(), stripe_checkout_session_id: checkout.id,
         status: "pending"
       }).select("id").single();
