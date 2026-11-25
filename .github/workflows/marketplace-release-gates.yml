@@ -8,6 +8,8 @@ on:
       - "app/api/owner/orders/**"
       - "app/api/owner/order-support/**"
       - "components/fulfillment/OrderSupportPanel*"
+      - "app/account/orders/**"
+      - "app/owner/orders/**"
       - "lib/cqa-order-support.ts"
       - "supabase/migrations/*order_support.sql"
       - "app/marketplace/library/**"
@@ -19,6 +21,8 @@ on:
       - "package-lock.json"
       - ".github/workflows/marketplace-release-gates.yml"
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   verify:
     runs-on: ubuntu-latest

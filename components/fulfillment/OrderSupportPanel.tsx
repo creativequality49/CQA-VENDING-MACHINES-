@@ -138,9 +138,10 @@ export function OrderSupportPanel({ orderId, audience, request, businessId, onUp
       if (version !== generation.current || controller.signal.aborted || (problem instanceof DOMException && problem.name === "AbortError")) return;
       if (typeof problem === "object" && problem !== null && "status" in problem && problem.status === 409) {
         try {
-          const latest = readSupport(await request(historyPath(path, messagePage), { signal: controller.signal }));
+          const latest = readSupport(await request(historyPath(path, 0), { signal: controller.signal }));
           if (version !== generation.current || controller.signal.aborted) return;
           setResult({ path, data: latest });
+          setMessagePage(latest.support.messagePage);
           setError("This conversation changed. The latest messages are shown and your draft is kept. Review them, then try again.");
         } catch {
           if (version === generation.current && !controller.signal.aborted) setError("This conversation changed. Your draft is kept. Refresh support before trying again.");
