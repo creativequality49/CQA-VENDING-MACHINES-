@@ -49,11 +49,18 @@ export async function GET() {
     const supabaseUrl = requireCqaSupabaseUrl(
       process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
     );
-    const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/functions/v1/cqa-stripe-webhook`, {
-      method: "GET",
-      cache: "no-store"
-    });
-    stripeWebhookEdge = response.status === 405 ? "ok" : "error";
+    const baseUrl = supabaseUrl.replace(/\/$/, "");
+    const isolatedPreview = process.env.VERCEL_ENV === "preview" &&
+      baseUrl === "https://ndzmlywsuywkhgqdbzft.supabase.co";
+    const paths = isolatedPreview
+      ? ["cqa-test-webhook/platform", "cqa-test-webhook/connect"]
+      : ["cqa-stripe-webhook"];
+    const responses = await Promise.all(paths.map(path =>
+      fetch(`${baseUrl}/functions/v1/${path}`, {
+        method: "GET", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(5000)
+      })
+    ));
+    stripeWebhookEdge = responses.every(response => response.status === 405) ? "ok" : "error";
   } catch {
     stripeWebhookEdge = "error";
   }
