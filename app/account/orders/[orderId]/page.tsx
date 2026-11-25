@@ -23,6 +23,7 @@ import {
 } from "@/components/customer/types";
 import styles from "../../account.module.css";
 import { ShipmentPanel } from "@/components/fulfillment/ShipmentPanel";
+import { OrderSupportPanel } from "@/components/fulfillment/OrderSupportPanel";
 
 function OrderWorkspace({
   result,
@@ -427,6 +428,7 @@ function OrderWorkspace({
               )}
             </section>
           )}
+          <OrderSupportPanel orderId={order.id} audience="customer" request={request} />
           <section className={styles.panel} aria-labelledby="activity-title">
             <div className={styles.panelHeading}>
               <div>
@@ -516,13 +518,13 @@ function OrderWorkspace({
             <span aria-hidden="true">✧</span>
             <h3>We’re here to help.</h3>
             <p>
-              Need clarification or have a question about this purchase? Include
-              your order reference when you get in touch.
+              Need clarification or have a question about this purchase? Your
+              messages stay linked to this order, including after delivery.
             </p>
             <Link
-              href={`/contact?service=support&order=${encodeURIComponent(order.id)}`}
+              href="#order-support"
             >
-              Contact support →
+              Ask this business →
             </Link>
           </section>
         </aside>

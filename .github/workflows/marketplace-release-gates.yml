@@ -4,6 +4,12 @@ on:
     paths:
       - "app/api/marketplace/**"
       - "app/api/owner/marketplace-asset/**"
+      - "app/api/customer/orders/**"
+      - "app/api/owner/orders/**"
+      - "app/api/owner/order-support/**"
+      - "components/fulfillment/OrderSupportPanel*"
+      - "lib/cqa-order-support.ts"
+      - "supabase/migrations/*order_support.sql"
       - "app/marketplace/library/**"
       - "app/owner/marketplace-upload/**"
       - "lib/cqa-marketplace-delivery.ts"
@@ -25,10 +31,32 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:commerce
+      - run: npm run test:order-support
       - run: npm run typecheck
+      - run: npm run lint
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
           # Compile-only public fixtures; no credentials or provider verification.
           NEXT_PUBLIC_SUPABASE_URL: "https://cqa-build-only.supabase.co"
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_build_only_fixture"
+      - name: Install the customer UI test browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify customer delivery and ongoing support UI
+        shell: bash
+        env:
+          CQA_UI_SUPABASE_HOST: cqa-build-only.supabase.co
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3100 > "$RUNNER_TEMP/cqa-ui-server.log" 2>&1 &
+          cqa_ui_server_pid=$!
+          trap 'kill "$cqa_ui_server_pid" 2>/dev/null || true' EXIT
+          node --input-type=module -e '
+            let ready = false;
+            for (let attempt = 0; attempt < 30; attempt++) {
+              try { ready = (await fetch("http://127.0.0.1:3100/account", { signal: AbortSignal.timeout(2000) })).ok; } catch {}
+              if (ready) break;
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            if (!ready) process.exit(1);
+          '
+          npm run test:customer-ui

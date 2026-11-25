@@ -15,6 +15,7 @@ function evaluate(path, mocks = {}, suffix = "") {
   return exports;
 }
 const shipmentExports = evaluate("components/fulfillment/ShipmentPanel.tsx", { "./ShipmentPanel.module.css": {} });
+const supportExports = evaluate("components/fulfillment/OrderSupportPanel.tsx", { "./OrderSupportPanel.module.css": {} });
 const types = evaluate("components/customer/types.ts");
 const order = {
   id: "33333333-3333-4333-8333-333333333333", title: "Website delivery", businessName: "Test business",
@@ -32,6 +33,7 @@ for (const [status, expected] of [["pending", "Payment pending"], ["refunded", "
 const simple = ({ children }) => React.createElement("div", null, children);
 const { OrderWorkspace } = evaluate("app/account/orders/[orderId]/page.tsx", {
   "@/components/fulfillment/ShipmentPanel": shipmentExports,
+  "@/components/fulfillment/OrderSupportPanel": supportExports,
   "next/link": ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children),
   "next/navigation": { useParams() { return {}; } },
   "@/components/customer/useCustomerSession": { CustomerRequestError: class extends Error {}, useCustomerSession() { throw Error("Unexpected session hook"); } },
@@ -58,5 +60,6 @@ for (const status of ["pending", "refunded", "cancelled", "disputed", "failed", 
   const html = render(status);
   assert.doesNotMatch(html, /Your delivery is here|Private handover content|private-delivery\.zip|HANDOVER COMPLETE/);
   assert.match(html, /Payment must be confirmed before fulfilment/);
+  assert.match(html, /Order support/);
 }
 console.log("PASS customer portal payment labels and actual rendered delivery gating for unpaid/revoked orders");
