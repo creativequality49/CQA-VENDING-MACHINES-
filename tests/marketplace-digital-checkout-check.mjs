@@ -133,6 +133,7 @@ await test('real digital checkout binds verified buyer, original price, fee, acc
   assert.equal(data.payment_intent_data.application_fee_amount, Math.round(1299 * .03));
   assert.deepEqual(data.metadata, { cqaBusinessId: businessId, cqaMachineId: machineId, cqaOfferId: offerId, cqaPlan: 'pro', cqaBuyerUserId: buyerId, cqaDigitalDelivery: '1' });
   assert.equal(data.client_reference_id, buyerId); assert.equal(h.bindings.length, 1);
+  assert.deepEqual(h.bindings[0].purchase_snapshot.digitalAsset, { key: assetKey, sizeBytes: 64, contentType: 'application/pdf' });
   assert.equal(h.bindings[0].status, 'pending'); assert.equal(h.bindings[0].buyer_user_id, buyerId);
   assert.equal(h.bindings[0].stripe_checkout_session_id, 'cs_test_synthetic'); assert.equal(h.bindings[0].amount_cents,1299);
   assert.deepEqual(data.payment_intent_data.metadata, data.metadata); assert.deepEqual(request, { stripeAccount: 'acct_test' });
@@ -325,7 +326,8 @@ await test('actual purchase button recovers from errors and gives a local sign-i
   const ui = buttonHarness({ noSession: true, response: async () => Response.json({ error: 'Verified buyer required', code: 'CQA_BUYER_LOGIN_REQUIRED' }, { status: 401 }) });
   await find(ui.render(), node => node.type === 'button').props.onClick();
   assert.equal(ui.destinations.length, 0); const link = find(ui.render(), node => node.type === 'Link'); assert.ok(link);
-  const target = new URL(link.props.href, 'https://cqa.example.test'); assert.equal(target.origin, 'https://cqa.example.test'); assert.equal(target.pathname, '/login'); assert.equal(target.searchParams.get('next'), '/machine/test-store');
+  const target = new URL(link.props.href, 'https://cqa.example.test'); assert.equal(target.origin, 'https://cqa.example.test'); assert.equal(target.pathname, '/login'); assert.equal(ui.render().props.id, `checkout-${offerId}`);
+  assert.equal(target.searchParams.get('next'), `/machine/test-store#${ui.render().props.id}`);
   for (const response of [async () => new Response('not-json'), async () => Response.json({ error: 'Unavailable' }, { status: 503 }), async () => { throw Error('Network unavailable'); }]) {
     const failed = buttonHarness({ response }); await find(failed.render(), node => node.type === 'button').props.onClick();
     assert.equal(failed.destinations.length, 0); assert.ok(find(failed.render(), node => node.props.role === 'alert')); assert.equal(find(failed.render(), node => node.type === 'button').props.disabled, false);

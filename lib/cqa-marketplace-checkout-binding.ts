@@ -1,4 +1,5 @@
 import 'server-only';
+import { resolvePurchasedDigitalAsset } from '@/lib/cqa-marketplace-assets';
 import Stripe from 'stripe';
 import { getCqaSupabaseAdmin } from '@/lib/cqa-supabase-admin';
 import { getStripeClient } from '@/lib/stripe';
@@ -9,7 +10,7 @@ export async function verifyMarketplaceDigitalCheckout(event: Stripe.Event, supp
   if (supplied.payment_status !== 'paid' && supplied.payment_status !== 'no_payment_required') return null;
   const admin = getCqaSupabaseAdmin();
   const { data: pending, error: pendingError } = await admin.from('cqa_orders')
-    .select('id,business_id,machine_id,offer_id,buyer_user_id,amount_cents,currency,stripe_checkout_session_id,stripe_payment_intent_id,status')
+    .select('id,business_id,machine_id,offer_id,buyer_user_id,amount_cents,currency,stripe_checkout_session_id,stripe_payment_intent_id,status,purchase_snapshot')
     .eq('stripe_checkout_session_id', supplied.id).maybeSingle();
   if (pendingError) throw pendingError;
   // Connect accounts can emit unrelated Checkout events. With neither our
@@ -19,10 +20,15 @@ export async function verifyMarketplaceDigitalCheckout(event: Stripe.Event, supp
   const businessId = pending?.business_id || supplied.metadata?.cqaBusinessId;
   const offerId = pending?.offer_id || supplied.metadata?.cqaOfferId;
   const machineId = pending?.machine_id || supplied.metadata?.cqaMachineId;
-  const { data: offer, error: offerError } = await admin.from('cqa_offers').select('offer_type,fulfillment_type')
-    .eq('id', offerId).eq('business_id', businessId).eq('machine_id', machineId).maybeSingle();
-  if (offerError) throw offerError;
-  const digital = offer?.offer_type === 'digital_product' || offer?.fulfillment_type === 'digital';
+  const asset = pending ? resolvePurchasedDigitalAsset(pending) : undefined;
+  if (asset === null) throw new Error('Digital purchase has an invalid file binding.');
+  let digital = Boolean(asset);
+  if (asset === undefined) {
+    const { data: offer, error: offerError } = await admin.from('cqa_offers').select('offer_type,fulfillment_type')
+      .eq('id', offerId).eq('business_id', businessId).eq('machine_id', machineId).maybeSingle();
+    if (offerError) throw offerError;
+    digital = offer?.offer_type === 'digital_product' || offer?.fulfillment_type === 'digital';
+  }
   if (!digital && supplied.metadata?.cqaDigitalDelivery !== '1') return null;
   if (digital && pending && ['refunded', 'cancelled', 'disputed'].includes(pending.status)) return { session: supplied, buyerUserId: null, buyerEmail: null, terminal: true };
   if (!digital || !pending || !pending.buyer_user_id || !event.account) throw new Error('Digital checkout has no durable buyer contract.');

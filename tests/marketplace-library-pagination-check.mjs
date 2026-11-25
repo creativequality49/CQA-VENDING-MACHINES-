@@ -1,3 +1,4 @@
+import { resolvePurchasedDigitalAsset } from "./marketplace-asset-test-module.mjs";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import ts from "typescript";
@@ -10,9 +11,9 @@ const compiled = ts.transpileModule(source, { compilerOptions: {
   target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.None
 } }).outputText;
 let adminCalls = 0;
-const route = new Function("NextResponse", "getPublicSupabaseClient", "getCqaSupabaseAdmin",
+const route = new Function("resolvePurchasedDigitalAsset", "NextResponse", "getPublicSupabaseClient", "getCqaSupabaseAdmin",
   compiled + ";return GET;")(
-  { json: (body, init = {}) => new Response(JSON.stringify(body), init) },
+  resolvePurchasedDigitalAsset, { json: (body, init = {}) => new Response(JSON.stringify(body), init) },
   () => ({ auth: { getUser: async token => token === "buyer-token"
     ? { data: { user: { id: "buyer-a", email: "buyer@example.test", email_confirmed_at: "2026-01-01" } }, error: null }
     : token === "anonymous-token"
@@ -41,6 +42,10 @@ const offers = orders.map(order => ({
   fulfillment_type: "digital",
   fulfillment_config: { asset_key: `marketplace/business-a/${order.offer_id}/file.zip` }
 }));
+const originalAsset = { key: "marketplace/business-a/offer-0010/original.pdf", sizeBytes: 64, contentType: "application/pdf" };
+orders[10].purchase_snapshot = { title: "Purchased edition", offerType: "digital_product", fulfillmentType: "digital", digitalAsset: originalAsset };
+orders[11].purchase_snapshot = { ...orders[10].purchase_snapshot, digitalAsset: null };
+offers[10].fulfillment_config = {};
 const orderRanges = [];
 const offerBatches = [];
 const admin = { from(table) {
@@ -82,7 +87,12 @@ assert.ok(!body.products.some(product => ["order-1003", "order-1004", "other-buy
 assert.deepEqual(orderRanges, [[0, 499], [500, 999], [1000, 1499]]);
 assert.equal(offerBatches.length, 11, "offers are fetched in bounded batches instead of once per order");
 assert.ok(offerBatches.every(batch => batch.length <= 100));
-assert.ok(body.products.every(product => product.downloadable));
+const purchased = body.products.find(product => product.orderId === orders[10].id);
+assert.equal(purchased.title, "Purchased edition");
+assert.equal(purchased.downloadable, true, "replacement cannot disable the purchased file");
+assert.equal(body.products.find(product => product.orderId === orders[11].id)?.downloadable, false);
+assert.ok(body.products.filter(product => product.orderId !== orders[10].id).every(product => !product.downloadable), "an unbound purchase stays visible without exposing a replacement file");
+assert.doesNotMatch(JSON.stringify(body), /marketplace\//, "library responses keep private object keys off the client");
 console.log("PASS full buyer purchase history is paged and offers are batched with tenant binding");
 
 const invalid = await route(new Request("https://example.test/api/marketplace/library", {

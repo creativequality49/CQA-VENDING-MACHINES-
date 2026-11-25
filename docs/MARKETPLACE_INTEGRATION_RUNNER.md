@@ -185,3 +185,23 @@ References for the access/tax interpretation:
 - https://vercel.com/docs/environment-variables
 - https://docs.stripe.com/tax/products-prices-tax-codes-tax-behavior
 - https://abr.business.gov.au/
+
+## Link a sandbox payment to delivered bytes
+
+After a controlled shopper pays through the isolated storefront, run
+`npm run verify:marketplace:payment` with the fixture settings above and these
+server-side environment variables. Keep credentials in the isolated test environment.
+
+| Variable | Source |
+| --- | --- |
+| CQA_TEST_STRIPE_EVENT_ID | Successful Checkout event for this purchase on the sandbox connected account |
+| CQA_TEST_STRIPE_KEY | Read-capable test key belonging to CQA Isolated Launch Test |
+| CQA_TEST_DATABASE_SERVICE_KEY | CQA Launch Test server credential for reading the order and webhook receipt |
+
+Use the SHA-256 computed from the **original fixture before upload**. The verifier
+reads the connected-account Checkout Session, PaymentIntent, event and processed
+webhook receipt. It matches them to the order, buyer, machine, offer, currency and
+amount before running buyer isolation and byte-for-byte digest checks. The report
+includes the order, event, session and payment intent identifiers for reconciliation.
+It creates no transaction. A successful run covers that one purchase. Use the
+expiry recheck above for the original URL and test refund revocation separately.

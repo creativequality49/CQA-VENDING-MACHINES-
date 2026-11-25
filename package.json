@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test:commerce": "node tests/marketplace-webhook-check.mjs && node tests/billing-cancellation-check.mjs && node tests/webhook-claim-check.mjs && node tests/platform-webhook-check.mjs && node tests/digital-delivery-guard-check.mjs && node tests/marketplace-delivery-check.mjs && node tests/marketplace-upload-check.mjs && node tests/marketplace-digital-checkout-check.mjs && node tests/marketplace-checkout-binding-check.mjs && node tests/marketplace-receipt-check.mjs && node tests/marketplace-library-session-check.mjs && node tests/marketplace-library-pagination-check.mjs && node tests/purchase-automation-dedupe-check.mjs && node tests/marketplace-integration-runner-check.mjs",
+    "test:order-support": "node tests/order-support-database-check.mjs && node tests/order-support-api-check.mjs",
+    "test:commerce": "node tests/marketplace-webhook-check.mjs && node tests/billing-cancellation-check.mjs && node tests/webhook-claim-check.mjs && node tests/platform-webhook-check.mjs && node tests/digital-delivery-guard-check.mjs && node tests/marketplace-delivery-check.mjs && node tests/marketplace-upload-check.mjs && node tests/marketplace-digital-checkout-check.mjs && node tests/marketplace-checkout-binding-check.mjs && node tests/marketplace-receipt-check.mjs && node tests/marketplace-library-session-check.mjs && node tests/marketplace-library-pagination-check.mjs && node tests/purchase-automation-dedupe-check.mjs && node tests/marketplace-integration-runner-check.mjs && node tests/marketplace-payment-evidence-check.mjs",
     "verify:marketplace": "node scripts/verify-marketplace-integration.mjs",
     "test:auth-confirm": "node tests/auth-confirm-check.mjs",
     "test:onboarding-draft": "node tests/onboarding-draft-check.mjs",
@@ -19,7 +20,8 @@
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
     "test:mcp": "node --import tsx --test tests/cqa-mcp.test.ts",
     "local:check": "node scripts/local-check.mjs",
-    "test:customer-ui": "node scripts/verify-customer-ui.mjs"
+    "test:customer-ui": "node scripts/verify-customer-ui.mjs",
+    "verify:marketplace:payment": "node scripts/verify-marketplace-payment.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1073.0",
