@@ -15,6 +15,22 @@ function configured(value: string | undefined): ComponentStatus {
   return value?.trim() ? "ok" : "missing";
 }
 
+async function isolatedWebhookResponds(origin: string): Promise<boolean> {
+  const checks = await Promise.all(["platform", "connect"].map(async route => {
+    // GET returns 405 even on unknown relay paths. An empty unsigned POST
+    // reaches each route's signature guard and cannot forward a Stripe event.
+    const response = await fetch(`${origin}/functions/v1/cqa-test-webhook/${route}`, {
+      method: "POST", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(5000)
+    });
+    if (response.status !== 401 || !response.headers.get("content-type")?.startsWith("text/plain")) {
+      await response.body?.cancel();
+      return false;
+    }
+    return (await response.text()) === "Invalid signature";
+  }));
+  return checks.every(Boolean);
+}
+
 export async function GET() {
   let database: ComponentStatus = "missing";
   let legacyServiceRole: ComponentStatus = "missing";
@@ -45,15 +61,26 @@ export async function GET() {
     legacyServiceRole = "missing";
   }
 
+  const previewIsolation = process.env.VERCEL_ENV === "preview"
+    ? await getCqaPreviewIsolationDiagnostics({ ...process.env, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL })
+    : undefined;
+  const testPreview = previewIsolation && (previewIsolation.acknowledgementMatches ||
+    previewIsolation.serverDatabaseMatches || previewIsolation.browserDatabaseMatches) ? previewIsolation : undefined;
+
   try {
     const supabaseUrl = requireCqaSupabaseUrl(
       process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
     );
-    const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/functions/v1/cqa-stripe-webhook`, {
-      method: "GET",
-      cache: "no-store"
-    });
-    stripeWebhookEdge = response.status === 405 ? "ok" : "error";
+    if (testPreview) {
+      const isolated = testPreview.serverDatabaseMatches && testPreview.browserDatabaseMatches && testPreview.acknowledgementMatches;
+      stripeWebhookEdge = isolated && (await isolatedWebhookResponds(supabaseUrl)) ? "ok" : "error";
+    } else {
+      const response = await fetch(`${supabaseUrl}/functions/v1/cqa-stripe-webhook`, {
+        method: "GET", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(5000)
+      });
+      await response.body?.cancel();
+      stripeWebhookEdge = response.status === 405 ? "ok" : "error";
+    }
   } catch {
     stripeWebhookEdge = "error";
   }
@@ -72,19 +99,17 @@ export async function GET() {
     legacyServiceRole === "ok" &&
     commerceSchema === "ok" &&
     platformWebhookSecret === "ok" &&
-    connectWebhookSecret === "ok";
+    connectWebhookSecret === "ok" &&
+    (!testPreview || (stripeWebhookEdge === "ok" && testPreview.stripeTestAccountMatches));
 
   // Configuration checks do not prove delivery or successful real payments.
-  const launchConfigurationReady = commerceReady && email === "ok" && emailSender === "ok";
+  const launchConfigurationReady = commerceReady && email === "ok" && emailSender === "ok" &&
+    (!testPreview || (testPreview.r2Configured && testPreview.r2PublicUrlAbsent));
 
   const aiWorkforceReady =
     database === "ok" &&
     legacyServiceRole === "ok" &&
     ai === "ok";
-
-  const previewIsolation = process.env.VERCEL_ENV === "preview"
-    ? await getCqaPreviewIsolationDiagnostics({ ...process.env, NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL })
-    : undefined;
 
   return NextResponse.json(
     {
