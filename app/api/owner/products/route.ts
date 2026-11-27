@@ -6,8 +6,12 @@ import { getCqaSupabaseAdmin } from "@/lib/cqa-supabase-admin";
 import { requireVerifiedOrderOwner, requestBusinessId } from "@/lib/cqa-owner-orders";
 import { isPrivateProductAssetReady, ownerProductHeaders, ownerProductSchema, productSaveFailure, readOwnerProductBody } from "@/lib/cqa-owner-products";
 
+import { isCqaPhysicalPilotEnabled } from "@/lib/cqa-launch-gate";
+
 export const runtime = "nodejs";
 const fields = "id,business_id,machine_id,name,description,price_cents,currency,offer_type,fulfillment_type,image_url,active,inventory_tracking,inventory_quantity,product_revision,fulfillment_config";
+
+const pilotFields = "fulfilment_type,supplier_provider,supplier_variant_sku,external_url";
 
 function presentationProduct(row: Record<string, unknown>) {
   const raw = row.fulfillment_config;
@@ -43,14 +47,18 @@ export async function GET(request: Request) {
       productSaveFailure(400, "Choose a valid product page (up to 100 products).");
     const context = await requireCqaOwner(request, requestBusinessId(request));
     requireVerifiedOrderOwner(context);
+    const pilot = isCqaPhysicalPilotEnabled();
+    const offers = context.admin.from("cqa_offers").select(pilot ? `${fields},${pilotFields}` : fields)
+      .eq("business_id", context.business.id);
+    const catalogue = pilot ? offers.or("offer_type.in.(digital_product,physical_product),fulfilment_type.eq.affiliate_link")
+      : offers.in("offer_type", ["digital_product", "physical_product"]);
     const [products, machines] = await Promise.all([
-      context.admin.from("cqa_offers").select(fields).eq("business_id", context.business.id)
-        .in("offer_type", ["digital_product", "physical_product"])
+      catalogue
         .order("created_at", { ascending: false }).order("id", { ascending: false }).range(page * limit, page * limit + limit),
       context.admin.from("cqa_machines").select("id,title").eq("business_id", context.business.id).order("created_at").limit(100)
     ]);
     if (products.error || machines.error) throw products.error || machines.error;
-    const visible = (products.data || []).slice(0, limit);
+    const visible = ((products.data || []) as unknown as Array<Record<string, unknown> & { id: string }>).slice(0, limit);
     const inventory = visible.length ? await getCqaSupabaseAdmin().rpc("cqa_owner_product_inventory", {
       p_business_id: context.business.id, p_actor_user_id: context.user.id, p_offer_ids: visible.map(row => row.id)
     }) : { data: { inventory: [] }, error: null };
@@ -61,7 +69,7 @@ export async function GET(request: Request) {
       throw new Error("Inventory read not confirmed");
     const held = new Map(summary.data.inventory.map(row => [row.offer_id, row]));
     if (visible.some(row => !held.has(row.id))) throw new Error("Inventory binding not confirmed");
-    return NextResponse.json({ business: { id: context.business.id, name: context.business.name },
+    return NextResponse.json({ pilot, business: { id: context.business.id, name: context.business.name },
       machines: (machines.data || []).map(machine => ({ id: machine.id, name: machine.title || "Storefront" })),
       products: visible.map(row => ({ ...presentationProduct(row),
         reserved_quantity: held.get(row.id)!.reserved_quantity, available_quantity: held.get(row.id)!.available_quantity })), page, hasMore: (products.data || []).length > limit
@@ -75,6 +83,14 @@ export async function POST(request: Request) {
     if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message || "Check the product form.",
       fields: parsed.error.issues.map(issue => ({ field: issue.path.join("."), message: issue.message })) }, { status: 400, headers: ownerProductHeaders });
     const input = parsed.data;
+    const pilot = isCqaPhysicalPilotEnabled();
+    if ((input.kind === "supplier" || input.kind === "affiliate") && !pilot)
+      productSaveFailure(403, "This listing type is available only in the isolated pilot.");
+    const shipping = input.kind === "physical" || input.kind === "supplier";
+    const offerType = shipping ? "physical_product" : input.kind === "affiliate" ? "service" : "digital_product";
+    const legacyType = shipping ? "shipping" : input.kind === "affiliate" ? "external" : "digital";
+    const kind = { digital: "digital_download", physical: "seller_shipped", supplier: "supplier_shipped", affiliate: "affiliate_link" }[input.kind];
+    const tracksStock = input.kind === "physical";
     const context = await requireCqaOwner(request, input.businessId);
     requireVerifiedOrderOwner(context);
     const { data: machine, error: machineError } = await context.admin.from("cqa_machines").select("id")
@@ -87,7 +103,7 @@ export async function POST(request: Request) {
         .eq("id", input.id).eq("business_id", context.business.id).eq("machine_id", input.machineId).maybeSingle();
       if (error) throw error;
       if (!existing) productSaveFailure(404, "Product not found in this storefront.");
-      if (existing.offer_type !== (input.kind === "physical" ? "physical_product" : "digital_product"))
+      if (existing.offer_type !== offerType)
         productSaveFailure(409, "Create a new product to change between digital and physical fulfilment.");
       if (existing.product_revision !== input.expectedRevision) productSaveFailure(409, "This product changed. Refresh before saving again.");
       if (input.active && input.kind === "digital") {
@@ -102,15 +118,16 @@ export async function POST(request: Request) {
     }
     // Stock and revision changes happen together under a database offer lock. Client
     // stock totals and asset keys are never accepted; SQL preserves existing assets.
-    const { data, error } = await getCqaSupabaseAdmin().rpc("cqa_owner_save_product", {
+    const { data, error } = await getCqaSupabaseAdmin().rpc(pilot ? "cqa_owner_save_pilot_product" : "cqa_owner_save_product", {
       p_business_id: context.business.id, p_machine_id: input.machineId, p_actor_user_id: context.user.id,
       p_offer_id: input.id || null, p_expected_revision: input.expectedRevision ?? null,
       p_inventory_delta: input.inventoryDelta,
       p_product: { name: input.name, description: input.description, price_cents: input.priceCents, currency: input.currency,
-        offer_type: input.kind === "physical" ? "physical_product" : "digital_product",
-        fulfillment_type: input.kind === "physical" ? "shipping" : "digital", shipping_required: input.kind === "physical",
-        inventory_tracking: input.kind === "physical", image_url: input.imageUrl, active: input.active,
-        fulfillment_config: { ...(input.kind === "physical" ? { provider: "merchant" } : {}), deliveryDescription: input.deliveryDescription, deliveryTiming: input.deliveryTiming,
+        offer_type: offerType,
+        fulfillment_type: legacyType, shipping_required: shipping,
+        ...(pilot ? { fulfilment_type: kind, supplier_provider: input.supplierProvider, supplier_variant_sku: input.supplierSku, external_url: input.affiliateUrl } : {}),
+        inventory_tracking: tracksStock, image_url: input.imageUrl, active: input.active,
+        fulfillment_config: { ...(shipping ? { provider: "merchant" } : {}), deliveryDescription: input.deliveryDescription, deliveryTiming: input.deliveryTiming,
           supportDetails: input.supportDetails, refundTerms: input.refundTerms, ...(input.shipping ? { shipping: input.shipping } : {}) } }
     });
     if (error) {
@@ -122,16 +139,16 @@ export async function POST(request: Request) {
     const confirmed = z.object({ product: z.object({ id: z.string().uuid(), business_id: z.string().uuid(), machine_id: z.string().uuid(),
       product_revision: z.number().int().positive(), offer_type: z.string(), fulfillment_type: z.string(),
       inventory_tracking: z.boolean(), inventory_quantity: z.number().int().nonnegative().nullable(),
-      name: z.string(), price_cents: z.number().int(), currency: z.literal("aud"), active: z.boolean()
+      name: z.string(), price_cents: z.number().int().nullable(), fulfilment_type: z.string().nullable().optional(), currency: z.literal("aud"), active: z.boolean()
     }).passthrough(), reserved_quantity: z.number().int().nonnegative(), available_quantity: z.number().int().nonnegative().nullable() }).safeParse(data);
     if (!confirmed.success || confirmed.data.product.business_id !== context.business.id || confirmed.data.product.machine_id !== input.machineId ||
         (input.id && confirmed.data.product.id !== input.id) || confirmed.data.product.product_revision !== (input.expectedRevision ?? 0) + 1 ||
-        confirmed.data.product.offer_type !== (input.kind === "physical" ? "physical_product" : "digital_product") ||
-        confirmed.data.product.fulfillment_type !== (input.kind === "physical" ? "shipping" : "digital") ||
-        confirmed.data.product.name !== input.name || confirmed.data.product.price_cents !== input.priceCents || confirmed.data.product.active !== input.active ||
-        confirmed.data.product.inventory_tracking !== (input.kind === "physical") ||
-        (input.kind === "physical" && (confirmed.data.product.inventory_quantity === null || confirmed.data.available_quantity !== confirmed.data.product.inventory_quantity - confirmed.data.reserved_quantity)) ||
-        (input.kind === "digital" && (confirmed.data.product.inventory_quantity !== null || confirmed.data.available_quantity !== null || confirmed.data.reserved_quantity !== 0)))
+        confirmed.data.product.offer_type !== offerType ||
+        confirmed.data.product.fulfillment_type !== legacyType ||
+        (pilot && confirmed.data.product.fulfilment_type !== kind) || confirmed.data.product.name !== input.name || confirmed.data.product.price_cents !== (input.kind === "affiliate" ? null : input.priceCents) || confirmed.data.product.active !== input.active ||
+        confirmed.data.product.inventory_tracking !== tracksStock ||
+        (tracksStock && (confirmed.data.product.inventory_quantity === null || confirmed.data.available_quantity !== confirmed.data.product.inventory_quantity - confirmed.data.reserved_quantity)) ||
+        (!tracksStock && (confirmed.data.product.inventory_quantity !== null || confirmed.data.available_quantity !== null || confirmed.data.reserved_quantity !== 0)))
       throw new Error("Product save not confirmed");
     return NextResponse.json({ product: { ...presentationProduct(data.product), reserved_quantity: data.reserved_quantity, available_quantity: data.available_quantity } }, { status: input.id ? 200 : 201, headers: ownerProductHeaders });
   } catch (failure) { return errorResponse(failure); }

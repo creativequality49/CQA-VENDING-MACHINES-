@@ -49,3 +49,9 @@ export const CQA_PRELAUNCH_CHECKOUT_MESSAGE = "Customer payments are paused whil
 export function isCqaPhysicalCheckoutAllowed() {
   return isNewCqaCheckoutAllowed() && process.env.CQA_PHYSICAL_DELIVERY_APPROVED === "true";
 }
+
+// New physical orders are confined to the existing isolated Preview sandbox.
+export function isCqaPhysicalPilotEnabled() {
+  return isIsolatedCqaSandbox() && isCqaPhysicalCheckoutAllowed() &&
+    process.env.CQA_SUPPLIER_PILOT_ENABLED === "true";
+}

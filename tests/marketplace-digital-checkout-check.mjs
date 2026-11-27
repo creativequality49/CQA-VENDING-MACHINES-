@@ -347,13 +347,14 @@ await test('actual storefront keeps live digital holds closed and marks sandbox 
     offers: [ { active: true, id: offerId, name: 'Digital file', offer_type: 'digital_product', fulfillment_type: 'digital', price_cents: 1299 },
       { active: true, id: foreignId, name: 'Digital fulfilment', offer_type: 'physical_product', fulfillment_type: 'digital', price_cents: 1299 },
       { active: true, id: 'service', name: 'Service', offer_type: 'service', price_cents: 1299, fulfillment_config: { deliveryDescription: 'Delivered report', deliveryTiming: 'Three days', supportDetails: 'Email us', refundTerms: 'Refund before work starts' } },
+      { active:true,id:'affiliate',name:'Referral',offer_type:'service',fulfillment_type:'external',fulfilment_type:'affiliate_link',external_url:'https://partner.example.test/item' },
       { active: true, id: 'subscription', name: 'Subscription', offer_type: 'subscription', price_cents: 1299 } ] };
   for (const [allowed, demo] of [[false, false], [true, false], [true, true]]) {
     const page = evaluate('app/machine/[slug]/page.tsx', {
       'next/link': { default: 'Link' }, 'next/navigation': { notFound() { throw Error('Unexpected missing machine'); } },
       'react/jsx-runtime': { jsx, jsxs: jsx }, '@/components/MarketplaceCheckoutButton': { MarketplaceCheckoutButton: 'Checkout' },
       '@/lib/cqa-offer-readiness': evaluate('lib/cqa-offer-readiness.ts'),
-      '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => allowed, isCqaPhysicalCheckoutAllowed: () => false, isNewCqaCheckoutAllowed: () => true },
+      '@/lib/cqa-launch-gate': { isCqaDigitalCheckoutAllowed: () => allowed, isCqaPhysicalCheckoutAllowed: () => false, isCqaPhysicalPilotEnabled: () => true, isNewCqaCheckoutAllowed: () => true },
       '@/lib/cqa-marketplace': { DEMO_MACHINES: [], formatAud: originalMarket.formatAud, getPublicSupabaseClient: () => ({
         from() { const q = { select() { return q; }, eq() { return q; }, single: async () => ({ data: { ...machine, demo }, error: null }) }; return q; },
       }) },
@@ -364,6 +365,8 @@ await test('actual storefront keeps live digital holds closed and marks sandbox 
     if (allowed && !demo) { assert.equal(digital.props.requiresBuyerAccount, true); assert.equal(alternate, undefined); }
     else { assert.equal(digital, undefined); assert.equal(alternate, undefined); }
     assert.equal(Boolean(find(tree, node => node.type === 'Checkout' && node.props.offerId === 'subscription')), false);
+    assert.equal(Boolean(find(tree, node => node.type === 'a' && node.props.href === 'https://partner.example.test/item')), !demo);
+    assert.equal(Boolean(find(tree, node => node.type === 'Checkout' && node.props.offerId === 'affiliate')), false);
     assert.equal(Boolean(find(tree, node => node.type === 'Checkout' && node.props.offerId === 'service')), !demo);
     if (!allowed) assert.ok(find(tree, node => node.type === 'button' && node.props.disabled && /DELIVERY SETUP PENDING/.test(textOf(node))));
   }

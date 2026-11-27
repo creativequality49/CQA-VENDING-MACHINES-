@@ -1,27 +1,18 @@
 import { z } from "zod";
-import { physicalShippingConfig, supportedShippingCountries } from "@/lib/cqa-offer-readiness";
+import { physicalShippingConfig, supportedShippingCountries, isSafeProductImage } from "@/lib/cqa-offer-readiness";
 
 export const ownerProductHeaders = { "Cache-Control": "private, no-store" };
 const text = z.string().trim().max(5000);
-
-/** Product images are public URLs; reject credentials, local networks and executable URL schemes. */
-export function isSafeProductImage(value: string) {
-  try {
-    const url = new URL(value);
-    const host = url.hostname.toLowerCase();
-    return url.protocol === "https:" && !url.username && !url.password && (!url.port || url.port === "443") &&
-      host.includes(".") && !host.endsWith(".localhost") && !host.endsWith(".local") &&
-      !host.endsWith(".internal") && !/^\d+(?:\.\d+){3}$/.test(host) && !host.includes(":") &&
-      !/[\x00-\x20\\]/.test(value);
-  } catch { return false; }
-}
 
 export const ownerProductSchema = z.object({
   businessId: z.string().uuid(), machineId: z.string().uuid(), id: z.string().uuid().optional(),
   name: z.string().trim().min(1).max(200), description: text,
   priceCents: z.number().int().min(50).max(99_999_999),
   currency: z.literal("aud"),
-  kind: z.enum(["digital", "physical"]), imageUrl: z.string().max(2048).refine(isSafeProductImage).nullable(),
+  kind: z.enum(["digital", "physical", "supplier", "affiliate"]), imageUrl: z.string().max(2048).refine(isSafeProductImage).nullable(),
+  supplierProvider: z.enum(["mock", "cjdropshipping"]).optional(),
+  supplierSku: z.string().trim().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/).optional(),
+  affiliateUrl: z.string().max(2048).refine(isSafeProductImage, "Use a public HTTPS referral URL.").optional(),
   active: z.boolean(), inventoryDelta: z.number().int().min(-1_000_000).max(1_000_000).default(0),
   expectedRevision: z.number().int().nonnegative().optional(),
   shipping: z.object({
@@ -34,13 +25,17 @@ export const ownerProductSchema = z.object({
   if (!product.id && product.inventoryDelta < 0) issue("inventoryDelta", "Initial stock cannot be negative.");
   if (product.id && product.expectedRevision === undefined) issue("expectedRevision", "Refresh the product before saving changes.");
   if (!product.id && product.expectedRevision !== undefined) issue("expectedRevision", "New products do not have a revision yet.");
-  if (product.kind === "digital" && product.inventoryDelta !== 0) issue("inventoryDelta", "Digital products do not use physical stock.");
-  if (product.kind === "digital" && product.shipping) issue("shipping", "Digital products do not ship physical goods.");
+  if (product.kind !== "physical" && product.inventoryDelta !== 0) issue("inventoryDelta", "Only seller-shipped products use seller stock.");
+  if ((product.kind === "digital" || product.kind === "affiliate") && product.shipping) issue("shipping", "Digital products do not ship physical goods.");
+  if ((product.kind === "supplier") !== Boolean(product.supplierProvider && product.supplierSku) ||
+      (product.kind !== "supplier" && (product.supplierProvider || product.supplierSku))) issue("supplierSku", "Choose a supplier and enter its variant SKU.");
+  if ((product.kind === "affiliate") !== Boolean(product.affiliateUrl)) issue("affiliateUrl", "Enter an HTTPS referral URL for the affiliate listing.");
   if (product.active) {
     if (!product.description) issue("description", "Describe the product before publishing.");
+    if (product.kind === "affiliate") return;
     for (const key of ["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"] as const)
       if (!product[key]) issue(key, "Publish delivery, timing, support and refund details first.");
-    if (product.kind === "physical" && !physicalShippingConfig({ provider: "merchant", shipping: product.shipping, deliveryDescription: product.deliveryDescription, deliveryTiming: product.deliveryTiming, supportDetails: product.supportDetails, refundTerms: product.refundTerms }))
+    if ((product.kind === "physical" || product.kind === "supplier") && !physicalShippingConfig({ provider: "merchant", shipping: product.shipping, deliveryDescription: product.deliveryDescription, deliveryTiming: product.deliveryTiming, supportDetails: product.supportDetails, refundTerms: product.refundTerms }))
       issue("shipping", "Choose supported delivery countries and dispatch timing before publishing.");
   }
 });

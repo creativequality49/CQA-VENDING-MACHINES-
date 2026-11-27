@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getBrowserSupabaseClient } from "@/lib/cqa-marketplace";
 import { MAX_MARKETPLACE_ASSET_BYTES } from "@/lib/cqa-marketplace-assets";
 import styles from "./orders.module.css";
+import { SupplierFulfilmentPanel } from "@/components/fulfillment/SupplierFulfilmentPanel";
 import { ShipmentPanel } from "@/components/fulfillment/ShipmentPanel";
 
 type Workspace = {
@@ -26,6 +27,7 @@ type Order = {
   customerEmail: string | null;
   offerName: string;
   digital: boolean;
+  supplierShipped?: boolean;
   offerType?: string | null;
   fulfillmentType?: string | null;
   workspace: Workspace;
@@ -559,7 +561,7 @@ export default function OwnerOrdersPage() {
                     file delivery.
                   </div>
                 )}
-                {physical && <ShipmentPanel key={selected.id} orderId={selected.id} paid={paid} owner request={request} />}
+                {physical && (selected.supplierShipped ? <SupplierFulfilmentPanel key={selected.id} orderId={selected.id} paid={paid} request={request} /> : <ShipmentPanel key={selected.id} orderId={selected.id} paid={paid} owner request={request} />)}
                 {selected.digital && (
                   <section className={styles.card}>
                     <p className={styles.eyebrow}>Protected digital delivery</p>

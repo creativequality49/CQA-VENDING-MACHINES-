@@ -31,7 +31,7 @@ console.log('PASS machine readiness: valid digital HEAD, storage mismatch/outage
 const endpoint=evaluate('app/api/owner/readiness/route.ts',{
  'next/server':{NextResponse:{json:(body,init)=>({body,...init})}},'zod':require('zod'),
  '@/lib/cqa-owner-auth':{requireCqaOwner:async()=>{throw Object.assign(Error('Authentication required.'),{status:401})}},
- '@/lib/cqa-machine-readiness':{evaluateCqaMachineReadiness:readiness},'@/lib/cqa-billing':{},'@/lib/stripe':{},'@/lib/cqa-site-url':{},'@/lib/cqa-launch-gate':{},'@/lib/storage':{}
+ '@/lib/cqa-machine-readiness':{evaluateCqaMachineReadiness:readiness},'@/lib/cqa-billing':{},'@/lib/stripe':{},'@/lib/cqa-site-url':{},'@/lib/cqa-launch-gate':{isCqaPhysicalPilotEnabled:()=>false},'@/lib/storage':{}
 });
 const denied=await endpoint.GET(new Request('https://example.com/api/owner/readiness'));
 assert.equal(denied.status,401);assert.equal(denied.headers['Cache-Control'],'private, no-store');

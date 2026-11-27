@@ -118,12 +118,14 @@ export async function POST(req: Request) {
         }
 
         let revokedStatus: "refunded" | "cancelled" | null = null;
+        let supplierRefundObserved = false;
         if (paymentIntentId) {
           const intent = await getStripeClient().paymentIntents.retrieve(paymentIntentId,
             { expand: ["latest_charge"] }, { stripeAccount: event.account });
           const latestCharge = typeof intent.latest_charge === "string"
             ? await getStripeClient().charges.retrieve(intent.latest_charge, { stripeAccount: event.account })
             : intent.latest_charge;
+          supplierRefundObserved = Boolean(physicalBinding?.supplier && latestCharge && latestCharge.amount_refunded > 0);
           if (latestCharge?.disputed) revokedStatus = "cancelled";
           else if (latestCharge?.refunded) revokedStatus = "refunded";
           else if (intent.status !== "succeeded" || !latestCharge) throw new Error("Checkout payment is not settled.");
@@ -132,7 +134,7 @@ export async function POST(req: Request) {
         }
 
         const { data: order, error: orderError } = await admin.from("cqa_orders")
-          .update({ ...orderDetails, status: revokedStatus || "paid", buyer_user_id: revokedStatus ? null : buyerUserId })
+          .update({ ...orderDetails, status: revokedStatus || "paid", buyer_user_id: revokedStatus ? null : buyerUserId, ...(supplierRefundObserved ? { supplier_refund_observed: true } : {}) })
           .eq("stripe_checkout_session_id", session.id)
           .eq("business_id", businessId)
           .neq("status", "refunded").neq("status", "cancelled").neq("status", "disputed")
@@ -147,6 +149,12 @@ export async function POST(req: Request) {
         }
 
         if (physicalBinding || digitalBinding) await recordProductFulfillment(order.id, session.id, physicalBinding?.address || {});
+        // Isolated pilot payments must not send merchant notifications or trigger
+        // purchase automations that could have external destinations.
+        if (physicalBinding?.pilot) {
+          if (claimedAt) await finishCqaWebhookEvent(event.id, claimedAt);
+          return NextResponse.json({ received: true });
+        }
 
         let contactId: string | null = null;
         if (email) {
@@ -196,7 +204,7 @@ export async function POST(req: Request) {
         ? charge.payment_intent : charge.payment_intent?.id || null;
       if (paymentIntentId && event.account) {
         const { data: orders, error: lookupError } = await admin.from("cqa_orders")
-          .select("id,business_id").eq("stripe_payment_intent_id", paymentIntentId);
+          .select("id,business_id,purchase_snapshot").eq("stripe_payment_intent_id", paymentIntentId);
         if (lookupError) throw lookupError;
         for (const order of orders || []) {
           const { data: account, error: accountError } = await admin.from("cqa_connected_accounts")
@@ -212,6 +220,12 @@ export async function POST(req: Request) {
                 buyer_user_id: null, updated_at: new Date().toISOString() })
               .eq("id", order.id);
             if (revokeError) throw revokeError;
+          } else if (charge.amount_refunded > 0 && order.purchase_snapshot?.fulfilmentType === "supplier_shipped") {
+            // Partial refunds block supplier submission without changing the
+            // customer's remaining paid balance or entitlement state.
+            const { error: blockError } = await admin.from("cqa_orders")
+              .update({ supplier_refund_observed: true }).eq("id", order.id);
+            if (blockError) throw blockError;
           }
         }
       }
