@@ -37,6 +37,7 @@ function harness(selected = order) {
   const mocks = {
     react: hooks,
     "@/components/fulfillment/ShipmentPanel": shipmentExports,
+    "@/components/fulfillment/SupplierFulfilmentPanel": { SupplierFulfilmentPanel: () => null },
     "next/link": ({ href, children, ...props }) => React.createElement("a", { href, ...props }, children),
     "next/navigation": { useRouter() { return router; } },
     "@/lib/cqa-marketplace": { getBrowserSupabaseClient() { throw Error("Render must not contact authentication"); } },
