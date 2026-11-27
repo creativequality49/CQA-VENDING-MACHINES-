@@ -185,7 +185,7 @@ export async function rememberBusinessFact(input: {
   content: string;
   namespace?: string;
   metadata?: Json;
-}) {
+}, serverRoleInstructions?: string) {
   const admin = getCqaSupabaseAdmin();
   const { error } = await admin.from("cqa_ai_memories").upsert(
     {
@@ -302,6 +302,7 @@ export async function runCqaAgent(input: {
       "",
       "ROLE:",
       AGENT_INSTRUCTIONS[input.agentKey],
+      ...(serverRoleInstructions ? [serverRoleInstructions] : []),
       "",
       "BUSINESS PROFILE:",
       businessProfile,
