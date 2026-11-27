@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+
+@theme {
+  --color-paper: #f2f3ef;
+  --color-ink: #1c2530;
+  --color-slate: #5e6875;
+  --color-rule: #d3d6cf;
+  --color-card: #ffffff;
+  --color-hivis: #e4f04a;
+  --color-signal: #c8361c;
+  --color-ok: #2f6b45;
+  --font-sans: 'Archivo Variable', system-ui, sans-serif;
+}
+
+/* Resets live in the base layer so Tailwind utilities (e.g. text colour on buttons) can override them. */
+@layer base {
+input, textarea, select, button {
+  font: inherit;
+  color: inherit;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+}
+
+/* The docket title: the one loud element. Condensed and heavy, like signage on a ute. */
+.docket-title {
+  font-stretch: 68%;
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.005em;
+}
+
+.condensed {
+  font-stretch: 78%;
+}
+
+/* Hi-vis tape along the edge of a job that still needs a call back. */
+.tape {
+  box-shadow: inset 6px 0 0 var(--color-hivis);
+}
+.tape-emergency {
+  box-shadow: inset 6px 0 0 var(--color-signal);
+}
+
+
+.field {
+  width: 100%;
+  border: 1.5px solid var(--color-rule);
+  background: var(--color-card);
+  border-radius: 8px;
+  padding: 0.7rem 0.8rem;
+  line-height: 1.4;
+}
+.field:focus {
+  border-color: var(--color-ink);
+  outline: none;
+}
+.field[aria-invalid='true'] {
+  border-color: var(--color-signal);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .arrive {
+    animation: arrive 260ms ease-out both;
+  }
+  @keyframes arrive {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+}
