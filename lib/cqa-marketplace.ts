@@ -14,6 +14,7 @@ export type MarketplaceOffer = {
   stripe_price_id?: string | null;
   image_url?: string | null;
   source_provider?: string | null;
+  fulfilment_type?: string | null;
   fulfillment_type?: string | null;
   fulfillment_config?: Record<string, unknown> | null;
   shipping_required?: boolean;

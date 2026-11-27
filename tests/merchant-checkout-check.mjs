@@ -54,3 +54,30 @@ await test('failed Stripe expiry retains inventory instead of making a still-pay
   assert.equal(h.state.reservations[0].state, 'reserved');
   assert.ok(!h.state.rpcCalls.some(call => call.name === 'cqa_release_inventory_reservation'));
 });
+
+await test('affiliate listings reject checkout without Stripe, a reservation or a CQA order', async () => {
+  const h = merchantHarness({ offer: { offer_type: 'service', fulfillment_type: 'external', fulfilment_type: 'affiliate_link' }, context: { offer_type: 'service' } });
+  const response = await h.checkout(null);
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).code, 'CQA_AFFILIATE_EXTERNAL');
+  assert.deepEqual([h.state.sessions.length,h.state.orders.length,h.state.reservations.length],[0,0,0]);
+});
+await test('supplier checkout requires isolated pilot and binds the one-unit SKU and shipping price on the order', async () => {
+  const offer = { fulfilment_type: 'supplier_shipped', supplier_provider: 'mock', supplier_variant_sku: 'TEST-SKU', inventory_tracking: false, inventory_quantity: null };
+  const closed = merchantHarness({ offer, physicalPilot: false });
+  assert.equal((await closed.checkout()).status, 409);
+  assert.equal(closed.state.sessions.length, 0);
+  const h = merchantHarness({ offer });
+  const response = await h.checkout('verified-buyer', { quantity: 99, shippingPriceCents: 1 });
+  assert.equal(response.status, 200, await response.text());
+  const checkout = h.state.sessions[0];
+  assert.equal(checkout.params.line_items[0].quantity, 1);
+  assert.equal(checkout.params.phone_number_collection.enabled, true);
+  const snapshot = h.state.orders[0].purchase_snapshot;
+  assert.equal(snapshot.sku, 'TEST-SKU');
+  assert.equal(snapshot.fulfilmentType, 'supplier_shipped');
+  assert.equal(snapshot.currency, 'aud');
+  assert.equal(snapshot.unitPriceCents, 4900);
+  assert.equal(snapshot.shipping.rateCents, 900);
+  assert.equal(h.state.orders[0].amount_cents, 5800);
+});

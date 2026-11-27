@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { MarketplaceCheckoutButton } from "@/components/MarketplaceCheckoutButton";
-import { isCqaDigitalCheckoutAllowed, isCqaPhysicalCheckoutAllowed, isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
-import { getCqaOfferCheckoutHold, physicalShippingConfig } from "@/lib/cqa-offer-readiness";
+import { isCqaDigitalCheckoutAllowed, isCqaPhysicalCheckoutAllowed, isCqaPhysicalPilotEnabled, isNewCqaCheckoutAllowed } from "@/lib/cqa-launch-gate";
+import { getCqaOfferCheckoutHold, physicalShippingConfig, isSafeProductImage } from "@/lib/cqa-offer-readiness";
 import { DEMO_MACHINES, formatAud, getPublicSupabaseClient, type MarketplaceMachine } from "@/lib/cqa-marketplace";
 
 async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> {
@@ -11,7 +11,7 @@ async function getLiveMachine(slug: string): Promise<MarketplaceMachine | null> 
     const supabase = getPublicSupabaseClient();
     const { data, error } = await supabase
       .from("cqa_machines")
-      .select("id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,fulfillment_config,shipping_required,external_url,active)")
+      .select(`id,slug,title,subtitle,theme,assistant_enabled,template_key,template_locked,layout_version,hero_image_url,customization,business:cqa_businesses!inner(id,name,slug,category,description,location_text,logo_url,plan,featured,verified),offers:cqa_offers(id,name,description,offer_type,price_cents,currency,stripe_price_id,image_url,source_provider,fulfillment_type,fulfillment_config,shipping_required,external_url,active${isCqaPhysicalPilotEnabled() ? ",fulfilment_type" : ""})`)
       .eq("slug", slug)
       .eq("status", "live")
       .eq("business.status", "live")
@@ -108,6 +108,8 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
               const details = offer.fulfillment_config || {};
               const physical = offer.offer_type === "physical_product" && offer.fulfillment_type === "shipping";
               const shipping = physical ? physicalShippingConfig(details) : null;
+              const affiliate = offer.fulfilment_type === "affiliate_link";
+              const supplier = offer.fulfilment_type === "supplier_shipped";
               const checkoutHold = getCqaOfferCheckoutHold(offer);
               return (
                 <article key={offer.id} className="machine-offer-slot">
@@ -117,7 +119,7 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                     : <div className="slot-icon">{offer.offer_type === "subscription" ? "∞" : offer.offer_type === "booking" ? "□" : offer.offer_type === "quote" ? "✦" : "◆"}</div>}
                   <span className="slot-type">{offer.offer_type.replaceAll("_", " ")}</span>
                   <h2>{offer.name}</h2>
-                  <strong className="slot-price">{purchasable ? `${formatAud(offer.price_cents)}${offer.offer_type === "subscription" ? " / month" : ""}` : "Enquire for pricing"}</strong>
+                  <strong className="slot-price">{affiliate ? "External purchase" : purchasable ? `${formatAud(offer.price_cents)}${offer.offer_type === "subscription" ? " / month" : ""}` : "Enquire for pricing"}</strong>
                   <p>{offer.description || "Available through this business machine."}</p>
                   {([ ["deliveryDescription", "Delivery"], ["deliveryTiming", "Delivery timing"], ["supportDetails", "Customer support"], ["refundTerms", "Refund / cancellation terms"] ] as const).map(([key, label]) => {
                     const text = details[key];
@@ -128,13 +130,15 @@ export default async function MachinePage({ params }: { params: Promise<{ slug: 
                       <Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}&demo=1`}>
                         TRY DEMO →
                       </Link>
+                    ) : affiliate ? (
+                      offer.external_url && isSafeProductImage(offer.external_url) ? <div><a className="neon-enter-button" href={offer.external_url} target="_blank" rel="noopener sponsored noreferrer">VISIT EXTERNAL SELLER</a><p className="small">Affiliate link. CQA may earn a referral commission.</p></div> : <p className="small">Referral link unavailable.</p>
                     ) : checkoutHold ? (
                       <div><Link className="neon-enter-button" href={`/book?machine=${encodeURIComponent(machine.slug)}&offer=${encodeURIComponent(offer.id)}`}>ENQUIRE ABOUT THIS OFFER →</Link><p className="small">{checkoutHold.message}</p></div>
                     ) : physical && purchasable && shipping ? (
                       <div style={{ display: "grid", gap: ".75rem" }}>
-                        <p className="small">Merchant dispatch · Ships to {shipping.shippingCountries.join(", ")} · Shipping {formatAud(shipping.shippingRateCents)}</p>
-                        {isCqaPhysicalCheckoutAllowed() ? <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="BUY THIS PRODUCT" requiresBuyerAccount /> : <><button className="neon-enter-button" type="button" disabled>SHIPPING CHECKOUT PAUSED</button><p className="small">Physical purchases are held until stock and delivery verification is complete.</p></>}
-                        <p className="small">One item per checkout. Enter your delivery address at Stripe checkout. This business dispatches your order and adds tracking to your account.</p>
+                        <p className="small">{supplier ? "Supplier dispatch" : "Seller dispatch"} · Ships to {shipping.shippingCountries.join(", ")} · Shipping {formatAud(shipping.shippingRateCents)}</p>
+                        {(offer.fulfilment_type ? isCqaPhysicalPilotEnabled() : isCqaPhysicalCheckoutAllowed()) ? <MarketplaceCheckoutButton machineSlug={machine.slug} offerId={offer.id} label="BUY THIS PRODUCT" requiresBuyerAccount /> : <><button className="neon-enter-button" type="button" disabled>SHIPPING CHECKOUT PAUSED</button><p className="small">Physical purchases are held until stock and delivery verification is complete.</p></>}
+                        <p className="small">One item per checkout. Enter your delivery address at Stripe checkout. {supplier ? "The seller reviews your order before arranging supplier dispatch." : "The seller dispatches your order and adds tracking to your account."}</p>
                       </div>
                     ) : deliveryPending && purchasable ? (
                       isCqaDigitalCheckoutAllowed() ? <div style={{ display: "grid", gap: ".75rem" }}>

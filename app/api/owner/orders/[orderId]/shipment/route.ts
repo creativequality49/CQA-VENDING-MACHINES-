@@ -12,7 +12,7 @@ async function load(request: Request, route: Context) {
   const context = await requireCqaOwner(request, requestBusinessId(request));
   const { orderId } = await route.params;
   const order = await ownerOrder(context, orderId);
-  const { data: shipment, error } = await context.admin.from('cqa_order_shipments').select(shipmentColumns)
+  const { data: shipment, error } = await getCqaSupabaseAdmin().from('cqa_order_shipments').select(shipmentColumns)
     .eq('order_id', orderId).eq('business_id', context.business.id).maybeSingle();
   if (error) throw error;
   return { context, orderId, order, shipment };

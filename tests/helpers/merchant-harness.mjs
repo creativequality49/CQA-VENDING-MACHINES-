@@ -7,7 +7,7 @@ export const ids = { business: '30000000-0000-4000-8000-000000000001', machine: 
 const clone = value => structuredClone(value);
 export function merchantHarness(options = {}) {
   const config = { provider: 'merchant', deliveryDescription: 'A physical product shipped by the merchant', deliveryTiming: 'Delivered in three business days', supportDetails: 'support@example.test', refundTerms: 'Returns within fourteen days', shipping: { supportedRegions: ['AU'], flatFeeCents: 900, dispatchTiming: 'Packed in two business days' } };
-  const state = { physicalGate: true, launchGate: true, stock: 1, reservations: [], orders: [], contacts: [], webhookEvents: [], rpcCalls: [], operations: [], sessions: [], expirations: [], notifications: [], automations: [], retrieveCalls: [], event: null, rpcFaults: {}, ...options };
+  const state = { physicalGate: true, physicalPilot: true, launchGate: true, stock: 1, reservations: [], orders: [], contacts: [], webhookEvents: [], rpcCalls: [], operations: [], sessions: [], expirations: [], notifications: [], automations: [], retrieveCalls: [], event: null, rpcFaults: {}, ...options };
   state.offer = { id: ids.offer, business_id: ids.business, machine_id: ids.machine, active: true, name: 'Merchant product', description: 'A merchant product', price_cents: 4900, currency: 'aud', offer_type: 'physical_product', fulfillment_type: 'shipping', shipping_required: true, inventory_tracking: true, inventory_quantity: 1, fulfillment_config: config, ...options.offer };
   state.context = { business_id: ids.business, machine_id: ids.machine, offer_id: ids.offer, machine_slug: 'merchant-store', offer_type: 'physical_product', offer_name: 'Merchant product', offer_description: 'A merchant product', currency: 'aud', price_cents: 4900, business_plan: 'pro', connected_account_id: 'acct_merchant', charges_enabled: true, onboarding_complete: true, ...options.context };
   state.user = { id: ids.buyer, email: 'buyer@example.test', email_confirmed_at: '2026-11-20', is_anonymous: false, ...options.user };
@@ -55,7 +55,7 @@ export function merchantHarness(options = {}) {
       if (state.rpcFaults[name]) return { data: null, error: state.rpcFaults[name] };
       if (name === 'cqa_reserve_inventory') {
         if (state.reservations.filter(item => item.state === 'reserved' || item.state === 'committed').length >= state.stock) return { data: null, error: { code: '23514' } };
-        const reservation = { id: ids.reservation, offer_id: ids.offer, buyer_user_id: ids.buyer, quantity: 1, state: 'reserved', offer_snapshot: { title: state.context.offer_name, offerType: state.context.offer_type, fulfillmentType: state.offer.fulfillment_type, priceCents: state.context.price_cents, currency: state.context.currency, terms: Object.fromEntries(['deliveryDescription', 'deliveryTiming', 'supportDetails', 'refundTerms'].map(key => [key, state.offer.fulfillment_config[key]])), shipping: { ...state.offer.fulfillment_config.shipping } }, ...state.reservationOverrides };
+        const reservation = { id: ids.reservation, offer_id: ids.offer, buyer_user_id: ids.buyer, quantity: 1, state: 'reserved', offer_snapshot: { title: state.context.offer_name, offerType: state.context.offer_type, fulfillmentType: state.offer.fulfillment_type, priceCents: state.context.price_cents, currency: state.context.currency, productRevision: state.offer.product_revision, terms: Object.fromEntries(['deliveryDescription', 'deliveryTiming', 'supportDetails', 'refundTerms'].map(key => [key, state.offer.fulfillment_config[key]])), shipping: { ...state.offer.fulfillment_config.shipping } }, ...state.reservationOverrides };
         state.reservations.push(reservation); return { data: { reservation: clone(reservation) }, error: null };
       }
       if (name === 'cqa_bind_inventory_reservation') {
@@ -77,6 +77,9 @@ export function merchantHarness(options = {}) {
           const reservation = state.reservations.find(item => item.checkout === args.p_checkout_session_id);
           if (!reservation || !['reserved', 'committed'].includes(reservation.state)) return { data: null, error: { code: '23514' } };
           reservation.state = 'committed';
+          if (order.purchase_snapshot.fulfilmentType === 'supplier_shipped') {
+            state.supplierFulfillment = { orderId: order.id, provider: order.purchase_snapshot.shipping.provider, sku: order.purchase_snapshot.sku, status: 'awaiting_approval' };
+          }
           state.fulfillment = { job: { order_id: order.id, kind: 'physical_shipment', state: 'queued' }, shipment: { order_id: order.id, business_id: ids.business, state: 'ready', revision: 0 }, reservation };
           state.commits = (state.commits || 0) + 1;
         }
@@ -93,7 +96,7 @@ export function merchantHarness(options = {}) {
         assert.ok(state.reservations.length, 'Inventory is reserved before creating a payable Stripe session');
         if (state.createError) throw Error('Private Stripe detail');
         const shipping = params.shipping_options?.[0]?.shipping_rate_data?.fixed_amount?.amount || 0;
-        const session = { id: 'cs_merchant', url: state.missingUrl ? null : 'https://checkout.stripe.com/c/pay/cs_merchant', mode: params.mode, payment_status: 'paid', amount_total: params.line_items[0].price_data.unit_amount + shipping, currency: params.line_items[0].price_data.currency, payment_intent: 'pi_merchant', client_reference_id: params.client_reference_id, customer_email: 'payer-edited@example.test', metadata: clone(params.metadata), shipping_cost: { amount_total: shipping }, total_details: { amount_shipping: shipping }, shipping_details: { name: 'Verified recipient', address: { line1: '1 Example Street', city: 'Adelaide', postal_code: '5000', state: 'SA', country: 'AU' } } };
+        const session = { id: 'cs_merchant', url: state.missingUrl ? null : 'https://checkout.stripe.com/c/pay/cs_merchant', mode: params.mode, payment_status: 'paid', amount_subtotal: params.line_items[0].price_data.unit_amount, customer_details: { phone: '+61400000000' }, amount_total: params.line_items[0].price_data.unit_amount + shipping, currency: params.line_items[0].price_data.currency, payment_intent: 'pi_merchant', client_reference_id: params.client_reference_id, customer_email: 'payer-edited@example.test', metadata: clone(params.metadata), shipping_cost: { amount_total: shipping }, total_details: { amount_shipping: shipping }, shipping_details: { name: 'Verified recipient', address: { line1: '1 Example Street', city: 'Adelaide', postal_code: '5000', state: 'SA', country: 'AU' } } };
         state.createdSession = session; return clone(session);
       },
       retrieve: async (id, _params, request) => { state.retrieveCalls.push({ id, request }); return { ...clone(state.createdSession), ...clone(state.retrieveOverrides || {}) }; },
@@ -122,7 +125,7 @@ export function merchantHarness(options = {}) {
       if (name === '@/lib/cqa-supabase-admin') return { getCqaSupabaseAdmin: () => admin };
       if (name === '@/lib/stripe') return { getStripeClient: () => stripe };
       if (name === '@/lib/cqa-site-url') return { getCqaSiteUrl: () => 'https://shop.example.test' };
-      if (name === '@/lib/cqa-launch-gate') return { isCqaPhysicalCheckoutAllowed: () => state.physicalGate, isCqaDigitalCheckoutAllowed: () => true, isNewCqaCheckoutAllowed: () => state.launchGate, CQA_PRELAUNCH_CHECKOUT_MESSAGE: 'Launch pending' };
+      if (name === '@/lib/cqa-launch-gate') return { isCqaPhysicalCheckoutAllowed: () => state.physicalGate, isCqaPhysicalPilotEnabled: () => state.physicalPilot, isCqaDigitalCheckoutAllowed: () => true, isNewCqaCheckoutAllowed: () => state.launchGate, CQA_PRELAUNCH_CHECKOUT_MESSAGE: 'Launch pending' };
       if (name === '@/lib/cqa-marketplace') return { platformFeePercent: () => 10, getPublicSupabaseClient: () => ({ rpc: async () => ({ data: [state.context], error: null }), auth: { getUser: async token => ({ data: { user: token === 'verified-buyer' ? state.user : null }, error: null }) } }) };
       if (name === '@/lib/cqa-billing') return { isActiveBillingStatus: value => value === 'active' };
       if (name === '@/lib/storage') return { verifyPrivateMarketplaceAsset: async () => true };
@@ -140,7 +143,7 @@ export function merchantHarness(options = {}) {
     checkout: (token = 'verified-buyer', extra = {}) => checkout.POST(new Request('https://shop.example.test/api/marketplace/checkout', { method: 'POST', headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ machineSlug: 'merchant-store', offerId: ids.offer, ...extra }) })),
     send: (type = 'checkout.session.completed', overrides = {}, eventId = 'evt_merchant_' + state.webhookEvents.length, account = 'acct_merchant') => {
       const object = type.startsWith('checkout.') ? { ...clone(state.createdSession), ...overrides } : type === 'charge.dispute.created' ? { charge: 'ch_merchant', ...overrides } : { ...charge(), ...overrides };
-      state.event = { id: eventId, type, account, data: { object } };
+      state.event = { id: eventId, type, account, livemode: state.livemode || false, data: { object } };
       return webhook.POST(new Request('https://shop.example.test/api/marketplace/stripe-webhook', { method: 'POST', headers: { 'stripe-signature': 'fixture' }, body: '{}' }));
     }
   };

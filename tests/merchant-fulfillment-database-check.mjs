@@ -71,4 +71,99 @@ const digital={...product,active:false,name:'Digital PDF',offer_type:'digital_pr
 saved=await save(null,null,0,digital);const d=saved.product.id;await db.query("update public.cqa_offers set fulfillment_config=fulfillment_config||$1::jsonb where id=$2",[JSON.stringify({asset_key:`marketplace/${business}/${d}/file.pdf`,asset_size_bytes:100,asset_content_type:'application/pdf'}),d]);
 const digitalOrder=await order(d,42,'cs_digital',2900,'digital_product','paid');outcome=await rpc('cqa_record_product_fulfillment',[digitalOrder,'cs_digital','{}']);assert.equal(outcome.job.kind,'digital_access');assert.equal(outcome.job.state,'completed');assert.equal(outcome.shipment,null);
 console.log('PASS digital paid fulfilment ledger is separate from shipping (no actual object transfer or Stripe used)');
+
+// Exercise the additive migration against pre-existing merchant and digital purchases.
+await role("postgres");
+await db.exec(await readFile(new URL('../supabase/migrations/20261127100000_supplier_checkout.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../supabase/migrations/20261128120000_cqa_supplier_product_editor.sql',import.meta.url),'utf8'));
+await db.exec(await readFile(new URL('../supabase/migrations/20261128120100_cqa_supplier_approval.sql',import.meta.url),'utf8'));
+await role("service_role");
+const pilotSave=(input,actor=owner)=>rpc('cqa_owner_save_pilot_product',[business,machine,actor,null,null,0,JSON.stringify(input)]);
+const supplierProduct={...product,fulfilment_type:'supplier_shipped',supplier_provider:'mock',supplier_variant_sku:'TEST-SKU',inventory_tracking:false};
+await denied(()=>pilotSave(supplierProduct,other),'42501');
+const supplierOffer=(await pilotSave(supplierProduct)).product.id;
+const affiliateProduct={...product,offer_type:'service',fulfillment_type:'external',fulfilment_type:'affiliate_link',inventory_tracking:false,shipping_required:false,external_url:'https://partner.example.test/items/CQA'};
+await denied(()=>pilotSave({...affiliateProduct,external_url:'https://user:password@partner.example.test'}),'23514');
+const affiliateOffer=(await pilotSave(affiliateProduct)).product.id;
+await denied(()=>reserve(affiliateOffer,buyer,id(105)),'23514');
+assert.equal((await db.query('select count(*)::int n from public.cqa_orders where offer_id=$1',[affiliateOffer])).rows[0].n,0);
+console.log('PASS supplier pilot product validation, owner authorisation and affiliate checkout exclusion');
+
+async function supplierOrder(number) {
+  const hold=await reserve(supplierOffer,buyer,id(number+100));
+  assert.equal(hold.inventory_tracked,false);
+  const session='cs_supplier_'+number;
+  const orderId=await order(supplierOffer,number,session);
+  await db.query(`update public.cqa_orders set purchase_snapshot=purchase_snapshot || '{"fulfilmentType":"supplier_shipped","sku":"TEST-SKU","shipping":{"provider":"mock"}}'::jsonb where id=$1`,[orderId]);
+  await rpc('cqa_bind_inventory_reservation',[hold.id,session,orderId]);
+  const record=()=>rpc('cqa_record_product_fulfillment',[orderId,session,JSON.stringify({...address,phone:'+61400000000'})]);
+  await denied(record,'23514');
+  await db.query("update public.cqa_orders set status='paid' where id=$1",[orderId]);
+  await record();
+  await record();
+  return {orderId,record};
+}
+const blocked=await supplierOrder(51);
+const review=await supplierOrder(52);
+const supplierRows=()=>db.query('select order_item_id,provider,variant_sku,state,supplier_order_id,supplier_payment_state from public.cqa_supplier_fulfilments order by order_item_id');
+assert.deepEqual((await supplierRows()).rows.map(row=>[row.order_item_id,row.provider,row.variant_sku,row.state,row.supplier_payment_state]),[
+  [blocked.orderId,'mock','TEST-SKU','awaiting_approval','unpaid'],
+  [review.orderId,'mock','TEST-SKU','awaiting_approval','unpaid'],
+]);
+await denied(()=>rpc('cqa_update_order_shipment',[blocked.orderId,owner,'pack','{}',0]),'23514');
+const quote=(stock,totalCostCents)=>({stock,totalCostCents,currency:'USD'});
+const approval=(orderId,actor,revision,action,currentQuote)=>rpc('cqa_supplier_approval',[orderId,actor,revision,action,JSON.stringify(currentQuote)]);
+const refresh=(revision,action,currentQuote)=>approval(review.orderId,owner,revision,action,currentQuote);
+const q1=quote(8,1800), q2=quote(8,1900), q3=quote(0,1900), q4=quote(4,1900);
+await denied(()=>approval(review.orderId,other,0,'quote',q1),'42501');
+assert.equal((await refresh(0,'quote',q1)).job.revision,1);
+let result=await refresh(1,'approve',q2);
+assert.equal(result.changed,true);
+assert.equal(result.job.state,'awaiting_approval');
+await denied(()=>refresh(1,'approve',q2),'40001');
+result=await refresh(2,'approve',q3);
+assert.equal(result.changed,true);
+assert.equal((await refresh(3,'approve',q3)).job.state,'awaiting_approval');
+assert.equal((await refresh(3,'approve',q4)).job.state,'awaiting_approval');
+result=await refresh(4,'approve',q4);
+assert.equal(result.job.state,'submitting');
+assert.equal(result.job.approved_by,owner);
+await denied(()=>refresh(4,'approve',q4),'40001');
+const submitted=await rpc('cqa_supplier_submission_result',[review.orderId,null]);
+assert.equal(submitted.state,'reconciliation_required');
+await denied(()=>refresh(submitted.revision,'approve',q4),'40001');
+const recovered=await rpc('cqa_supplier_submission_result',[review.orderId,'mock_supplier_52']);
+assert.equal(recovered.state,'submitted');
+assert.equal(recovered.supplier_payment_state,'unpaid');
+assert.equal((await rpc('cqa_supplier_submission_result',[review.orderId,'mock_supplier_52'])).revision,recovered.revision);
+const tracking={status:'shipped', trackingNumber:'TRACK-FIXTURE', trackingUrl:null, carrier:'Fixture carrier', supplierPaymentStatus:'unpaid'};
+await rpc('cqa_supplier_tracking_update',[review.orderId,'mock_supplier_52',JSON.stringify(tracking)]);
+const shipmentStatus = async () => (await db.query('select state,tracking_number,revision from public.cqa_order_shipments where order_id=$1',[review.orderId])).rows[0];
+const shipped = await shipmentStatus();
+assert.equal(shipped.state,'shipped');
+assert.equal(shipped.tracking_number,'TRACK-FIXTURE');
+await rpc('cqa_supplier_tracking_update',[review.orderId,'mock_supplier_52',JSON.stringify(tracking)]);
+assert.deepEqual(await shipmentStatus(),shipped);
+
+console.log('PASS approval requires unchanged current stock and cost; stale retry denied and ambiguous submission reconciled once');
+await db.query("update public.cqa_orders set status='refunded' where id in ($1,$2)",[blocked.orderId,review.orderId]);
+await denied(blocked.record,'23514');
+await denied(()=>approval(blocked.orderId,owner,1,'approve',q1),'40001');
+assert.deepEqual((await supplierRows()).rows.map(row=>[row.state,row.supplier_order_id,row.supplier_payment_state]),[
+  ['blocked',null,'unpaid'],['returns_review','mock_supplier_52','unpaid'],
+]);
+console.log('PASS additive SQL: paid replay creates one supplier record per order; refunds block or require returns review');
+
+for (const user of [owner,buyer,other]) {
+  await role('authenticated',user);
+  await denied(()=>supplierRows(),'42501');
+  await denied(()=>approval(review.orderId,owner,0,'approve',q1),'42501');
+  await denied(()=>db.query('select shipping_address from public.cqa_order_shipments where order_id=$1',[blocked.orderId]),'42501');
+}
+await role('authenticated',owner);
+await denied(()=>db.query("update public.cqa_offers set supplier_variant_sku='UNAUTHORISED' where id=$1",[supplierOffer]),'42501');
+await denied(()=>pilotSave(supplierProduct),'42501');
+await role('anon');
+await denied(()=>supplierRows(),'42501');
+console.log('PASS supplier costs, approval ledger and address cannot be read directly by browser roles');
 }finally{await db.close();}

@@ -35,3 +35,15 @@ export function physicalShippingConfig(value: unknown) {
       !["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].every(key => typeof config[key] === "string" && Boolean((config[key] as string).trim()) && (config[key] as string).length <= 5000)) return null;
   return { provider: "merchant" as const, shippingCountries: [...new Set(shipping.supportedRegions as string[])], shippingRateCents: Number(shipping.flatFeeCents) };
 }
+
+/** Product images are public URLs; reject credentials, local networks and executable URL schemes. */
+export function isSafeProductImage(value: string) {
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+    return url.protocol === "https:" && !url.username && !url.password && (!url.port || url.port === "443") &&
+      host.includes(".") && !host.endsWith(".localhost") && !host.endsWith(".local") &&
+      !host.endsWith(".internal") && !/^\d+(?:\.\d+){3}$/.test(host) && !host.includes(":") &&
+      !/[\x00-\x20\\]/.test(value);
+  } catch { return false; }
+}

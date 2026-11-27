@@ -2,7 +2,7 @@ import type Stripe from "stripe";
 import { reserveProductInventory, bindProductInventory, releaseUnboundProductInventory } from "@/lib/cqa-product-fulfillment";
 import { getCqaOfferCheckoutHold, physicalShippingConfig } from "@/lib/cqa-offer-readiness";
 import { getCqaSiteUrl } from "@/lib/cqa-site-url";
-import { isCqaPhysicalCheckoutAllowed, isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
+import { isCqaPhysicalCheckoutAllowed, isCqaPhysicalPilotEnabled, isNewCqaCheckoutAllowed, isCqaDigitalCheckoutAllowed, CQA_PRELAUNCH_CHECKOUT_MESSAGE } from "@/lib/cqa-launch-gate";
 import { verifyPrivateMarketplaceAsset } from "@/lib/storage";
 import { MAX_MARKETPLACE_ASSET_BYTES, MARKETPLACE_ASSET_EXTENSIONS } from "@/lib/cqa-marketplace-assets";
 import { NextResponse } from "next/server";
@@ -47,17 +47,30 @@ export async function POST(req: Request) {
     if (!context) {
       return NextResponse.json({ error: "This offer is not available for checkout." }, { status: 404 });
     }
-    const { data: offer, error: offerError } = await getCqaSupabaseAdmin().from("cqa_offers")
-      .select("id,business_id,machine_id,offer_type,fulfillment_type,fulfillment_config,shipping_required,inventory_tracking,inventory_quantity")
+    // Read the server-owned offer row so legacy digital checkout also works
+    // during an additive rollout before the new optional columns exist.
+    const { data: offer, error: offerError } = await getCqaSupabaseAdmin().from("cqa_offers").select("*")
       .eq("id", context.offer_id).eq("business_id", context.business_id).eq("machine_id", context.machine_id).maybeSingle();
     if (offerError) throw offerError;
     if (!offer || context.offer_id !== payload.offerId || context.machine_slug !== payload.machineSlug || offer.offer_type !== context.offer_type) return NextResponse.json({ error: "This offer is no longer available." }, { status: 404 });
+    if (offer.fulfilment_type === "affiliate_link") {
+      return NextResponse.json({ error: "Open the seller's referral link to purchase this offer.", code: "CQA_AFFILIATE_EXTERNAL" }, { status: 409 });
+    }
     const readinessHold = getCqaOfferCheckoutHold(offer) || getCqaOfferCheckoutHold({ ...offer, offer_type: context.offer_type });
     if (readinessHold) return NextResponse.json({ error: readinessHold.message, code: readinessHold.code }, { status: 409 });
     const physical = offer.offer_type === "physical_product";
+    const pilotPhysicalCheckout = physical && Boolean(offer.fulfilment_type);
+    const supplier = physical && offer.fulfilment_type === "supplier_shipped";
+    const fulfilmentType = physical ? (supplier ? "supplier_shipped" : "seller_shipped") : null;
+    const provider = supplier ? offer.supplier_provider : "merchant";
+    const sku = supplier ? offer.supplier_variant_sku : offer.id;
     const shipping = physical ? physicalShippingConfig(offer.fulfillment_config) : null;
     if (physical && (!shipping || !isCqaPhysicalCheckoutAllowed()))
       return NextResponse.json({ error: "Physical delivery is paused until inventory and merchant dispatch are verified.", code: "CQA_PHYSICAL_DELIVERY_PENDING" }, { status: 409 });
+    if (pilotPhysicalCheckout && !isCqaPhysicalPilotEnabled())
+      return NextResponse.json({ error: "Physical pilot checkout is only available in isolated Preview.", code: "CQA_PHYSICAL_DELIVERY_PENDING" }, { status: 409 });
+    if (supplier && (!["mock", "cjdropshipping"].includes(provider) || typeof sku !== "string" || !sku))
+      return NextResponse.json({ error: "This offer is not ready for supplier fulfilment." }, { status: 409 });
     const digital = context.offer_type === "digital_product" || offer.offer_type === "digital_product" || offer.fulfillment_type === "digital";
     if (digital && !isCqaDigitalCheckoutAllowed()) {
       return NextResponse.json({ error: "Protected digital delivery is paused while customer launch checks are completed.", code: "CQA_DIGITAL_DELIVERY_PENDING" }, { status: 409 });
@@ -141,7 +154,7 @@ export async function POST(req: Request) {
     const subscription = context.offer_type === "subscription";
     const origin = getSiteUrl(req);
 
-    if (physical || (digital && offer.inventory_tracking === true)) reservationId = await reserveProductInventory(context.offer_id, buyerUserId!, { title: context.offer_name, offerType: context.offer_type, fulfillmentType: offer.fulfillment_type, priceCents, currency: String(context.currency || "aud").toLowerCase(), terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(physical ? { shipping: offer.fulfillment_config.shipping } : {}) });
+    if (physical || (digital && offer.inventory_tracking === true)) reservationId = await reserveProductInventory(context.offer_id, buyerUserId!, { title: context.offer_name, offerType: context.offer_type, fulfillmentType: offer.fulfillment_type, priceCents, currency: String(context.currency || "aud").toLowerCase(), terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(physical ? { shipping: offer.fulfillment_config.shipping, ...(pilotPhysicalCheckout ? { productRevision: offer.product_revision } : {}) } : {}) });
     const metadata = {
       cqaBusinessId: String(context.business_id),
       cqaMachineId: String(context.machine_id),
@@ -174,9 +187,10 @@ export async function POST(req: Request) {
         mode: subscription ? "subscription" : "payment",
         line_items: [lineItem],
         ...(physical && shipping ? {
-          expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+          expires_at: Math.floor(Date.now() / 1000) + (pilotPhysicalCheckout ? 35 : 30) * 60,
           shipping_address_collection: { allowed_countries: shipping.shippingCountries as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry[] },
-          shipping_options: [{ shipping_rate_data: { type: "fixed_amount" as const, fixed_amount: { amount: shipping.shippingRateCents, currency: String(context.currency || "aud").toLowerCase() }, display_name: "Merchant delivery" } }]
+          ...(supplier ? { phone_number_collection: { enabled: true } } : {}),
+          shipping_options: [{ shipping_rate_data: { type: "fixed_amount" as const, fixed_amount: { amount: shipping.shippingRateCents, currency: String(context.currency || "aud").toLowerCase() }, display_name: supplier ? "Supplier delivery" : "Merchant delivery" } }]
         } : {}),
         customer_email: buyerEmail || payload.customerEmail,
         ...(buyerUserId ? { client_reference_id: buyerUserId } : {}),
@@ -197,7 +211,7 @@ export async function POST(req: Request) {
       const { data: pendingOrder, error: bindingError } = await getCqaSupabaseAdmin().from("cqa_orders").insert({
         business_id: context.business_id, machine_id: context.machine_id, offer_id: context.offer_id,
         buyer_user_id: buyerUserId, customer_user_id: buyerUserId, customer_email: buyerEmail, amount_cents: priceCents + (shipping?.shippingRateCents || 0),
-        purchase_snapshot: { title: String(context.offer_name).slice(0, 300), offerType: String(context.offer_type), fulfillmentType: String(offer.fulfillment_type || "none"), quantity: 1, unitPriceCents: priceCents, terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(shipping ? { shipping: { provider: "merchant", rateCents: shipping.shippingRateCents, countries: shipping.shippingCountries, dispatchTiming: offer.fulfillment_config.shipping.dispatchTiming, reservationId } } : {}) },
+        purchase_snapshot: { title: String(context.offer_name).slice(0, 300), offerType: String(context.offer_type), fulfillmentType: String(offer.fulfillment_type || "none"), quantity: 1, unitPriceCents: priceCents, terms: Object.fromEntries(["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].map(key => [key, offer.fulfillment_config?.[key] || ""])), ...(shipping ? { fulfilmentType, sku, ...(pilotPhysicalCheckout ? { pilotPhysicalCheckout: true } : {}), currency: String(context.currency || "aud").toLowerCase(), shipping: { provider, rateCents: shipping.shippingRateCents, countries: shipping.shippingCountries, dispatchTiming: offer.fulfillment_config.shipping.dispatchTiming, reservationId } } : {}) },
         currency: String(context.currency || "aud").toLowerCase(), stripe_checkout_session_id: checkout.id,
         status: "pending"
       }).select("id").single();

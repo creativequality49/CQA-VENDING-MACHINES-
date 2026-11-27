@@ -20,6 +20,7 @@ export async function reserveProductInventory(offerId: string, buyerId: string, 
     if (snapshot.title !== expected.title || snapshot.offerType !== expected.offerType || snapshot.fulfillmentType !== expected.fulfillmentType ||
         snapshot.priceCents !== expected.priceCents || snapshot.currency !== expected.currency ||
         ["deliveryDescription", "deliveryTiming", "supportDetails", "refundTerms"].some(key => row(snapshot.terms)[key] !== row(expected.terms)[key]) ||
+        (typeof expected.productRevision === 'number' && snapshot.productRevision !== expected.productRevision) ||
         (expected.shipping && (!equalCountries || shipping.flatFeeCents !== expectedShipping.flatFeeCents || shipping.dispatchTiming !== expectedShipping.dispatchTiming))) {
       await releaseUnboundProductInventory(String(reservation.id));
       throw Object.assign(new Error('This product changed. Refresh before purchasing.'), { status: 409 });
@@ -75,11 +76,17 @@ export async function verifyPhysicalProductCheckout(event: Stripe.Event, supplie
       metadata.cqaPhysicalDelivery !== '1' || typeof shipping.reservationId !== 'string' || !shipping.reservationId || metadata.cqaInventoryReservationId !== shipping.reservationId ||
       session.shipping_cost?.amount_total !== shipping.rateCents || session.total_details?.amount_shipping !== shipping.rateCents ||
       !Array.isArray(shipping.countries)) throw new Error('Physical checkout does not match its purchase.');
+  const supplier = snapshot.fulfilmentType === 'supplier_shipped';
+  const pilot = supplier || snapshot.pilotPhysicalCheckout === true;
+  if (pilot && event.livemode !== false) throw new Error('Physical pilot checkout must use sandbox payment.');
+  if (pilot && session.amount_subtotal !== snapshot.unitPriceCents) throw new Error('Physical checkout item amount does not match its purchase.');
   const details = session.shipping_details;
   const address = details?.address;
   if (!details?.name?.trim() || !address?.line1?.trim() || !address.city?.trim() || !address.postal_code?.trim() ||
       !address.country || !shipping.countries.includes(address.country)) throw new Error('Physical checkout delivery address is incomplete.');
-  return { terminal: false as const, session, address: { name: details.name, line1: address.line1, line2: address.line2 || '', city: address.city, state: address.state || '', postal_code: address.postal_code, country: address.country } };
+  const phone = session.customer_details?.phone?.trim();
+  if (supplier && (!phone || phone.length < 5 || phone.length > 40)) throw new Error('Supplier delivery contact is incomplete.');
+  return { terminal: false as const, session, pilot, supplier, address: { name: details.name, line1: address.line1, line2: address.line2 || '', city: address.city, state: address.state || '', postal_code: address.postal_code, country: address.country, ...(supplier && phone ? { phone } : {}) } };
 }
 export async function recordProductFulfillment(orderId: string, checkoutId: string, address: Record<string, string> = {}) {
   const { data, error } = await getCqaSupabaseAdmin().rpc('cqa_record_product_fulfillment', {

@@ -28,3 +28,27 @@ await test('unsettled payments and refunded charges cannot produce shipment or r
  for(const options of [{unsettled:true},{refunded:true}]){const h=merchantHarness(options);await h.checkout();const response=await h.send();assert.equal(response.status,options.refunded?200:500);assert.equal(h.state.fulfillment,undefined);assert.equal(h.state.notifications.length,0);}
  const h=merchantHarness();await h.checkout();assert.equal((await h.send('checkout.session.completed',{payment_status:'unpaid'})).status,200);assert.equal(h.state.fulfillment,undefined);assert.equal((await h.send('checkout.session.async_payment_succeeded',{},'evt_async_success')).status,200);assert.equal(h.state.commits,1);
 });
+
+const supplierOffer = { fulfilment_type: 'supplier_shipped', supplier_provider: 'mock', supplier_variant_sku: 'TEST-SKU', inventory_tracking: false, inventory_quantity: null };
+await test('supplier payment produces one approval record after webhook replays without dispatch or email', async () => {
+  const h = merchantHarness({ offer: supplierOffer });
+  assert.equal((await h.checkout()).status,200);
+  assert.equal(h.state.supplierFulfillment,undefined);
+  for (const eventId of ['evt_supplier','evt_supplier','evt_supplier_replayed']) {
+    const response = await h.send('checkout.session.completed',{},eventId);
+    assert.equal(response.status,200,await response.text());
+  }
+  assert.equal(h.state.commits,1);
+  assert.equal(h.state.orders.length,1);
+  assert.deepEqual(h.state.supplierFulfillment,{ orderId: ids.order,provider: 'mock',sku: 'TEST-SKU',status: 'awaiting_approval' });
+  assert.equal(h.state.notifications.length,0);
+  assert.equal(h.state.automations.length,0);
+});
+await test('supplier webhook rejects live payment and missing verified shipping contact', async () => {
+  for (const invalid of [{livemode:true},{retrieveOverrides:{customer_details:{phone:null}}}]) {
+    const h = merchantHarness({ offer: supplierOffer, ...invalid });
+    assert.equal((await h.checkout()).status,200);
+    assert.equal((await h.send()).status,500);
+    assert.equal(h.state.supplierFulfillment,undefined);
+  }
+});
