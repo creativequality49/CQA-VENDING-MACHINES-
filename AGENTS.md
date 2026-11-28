@@ -75,3 +75,6 @@ Persistent coordination state is `ops/cqa-engineer/state.json` on
 `automation/cqa-website-engineer`. Run `node scripts/cqa-engineer/checks.mjs`
 for regression, type, lint and build evidence. Public health is a separate check:
 `node scripts/cqa-engineer/health.mjs`. Neither check establishes paid fulfilment.
+
+## UI/UX design workflow
+For visual changes, the Optimiser must use `.agents/skills/ui-ux-pro-max/SKILL.md` and `docs/design/cqa-design-system.md`. Follow the pinned installation instructions before running upstream search. Preserve commerce and security invariants; UI guidance never overrides them. Tester must check keyboard, mobile, accessibility and commerce regressions. Do not deploy or merge without approval.
